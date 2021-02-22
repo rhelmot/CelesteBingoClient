@@ -1,4 +1,4 @@
-![in-game screenshot of the bingo menu](pics/screenshot.png)
+![in-game screenshot of the bingo menu](promo/screenshot.png)
 
 # Celeste Bingo Client
 
