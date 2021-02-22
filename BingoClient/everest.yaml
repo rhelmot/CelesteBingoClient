@@ -1,0 +1,10 @@
+﻿- Name: BingoClient
+  Version: 0.0.1
+  DLL: BingoClient.dll
+  Dependencies:
+    - Name: Everest
+      Version: 1.1847.0
+    - Name: BingoUI
+      Version: 1.2.0
+    - Name: ExtendedVariantMode
+      Version: 0.19.7
