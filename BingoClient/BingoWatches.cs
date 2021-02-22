@@ -29,6 +29,7 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.CrushBlock.OnDashed += KevinDash;
             IL.Celeste.SummitCheckpoint.Update += TrackSummitCheckpoints;
             On.Celeste.IntroCar.Update += TrackIntroCar;
+            On.Celeste.Key.OnPlayer += TrackKeys;
 
             SpecialHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.Instance | BindingFlags.NonPublic), TrackSeekerDeath));
             SpecialHooks.Add(new ILHook(typeof(HeartGem).GetMethod("orig_CollectRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), TrackEmptySpace));
@@ -48,13 +49,21 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.CrushBlock.OnDashed -= KevinDash;
             IL.Celeste.SummitCheckpoint.Update -= TrackSummitCheckpoints;
             On.Celeste.IntroCar.Update -= TrackIntroCar;
+            On.Celeste.Key.OnPlayer -= TrackKeys;
+
 
             foreach (var hook in SpecialHooks) {
                 hook.Dispose();
             }
             SpecialHooks.Clear();
         }
-        
+
+        private static void TrackKeys(On.Celeste.Key.orig_OnPlayer orig, Key self, Player player) {
+            orig(self, player);
+            var area = SaveData.Instance.CurrentSession.Area;
+            BingoClient.Instance.ModSaveData.AddFlag($"key:{area.ID}:{(int) area.Mode}:{self.ID}");
+        }
+
         private static void TrackIntroCar(On.Celeste.IntroCar.orig_Update orig, IntroCar self) {
             orig(self);
             if (self.HasRider() && SaveData.Instance.CurrentSession.Level == "e-01") {
@@ -125,7 +134,8 @@ namespace Celeste.Mod.BingoClient {
             }
             var level = self.Scene as Level ?? throw new Exception("how'd you do that");
 
-            if (level.Camera.Viewport.Bounds.Contains(new Point((int)self.X, (int)self.Y)) && player.Y < self.Y + 16) {
+            var screenSpacePos = level.Camera.CameraToScreen(self.Position);
+            if (level.Camera.Viewport.Bounds.Contains(new Point((int)screenSpacePos.X, (int)screenSpacePos.Y)) && player.Y < self.Y + 16) {
                 BingoClient.Instance.ModSaveData.AddFlag("foundpico");
             }
         }
@@ -151,7 +161,8 @@ namespace Celeste.Mod.BingoClient {
         private static void OnTransition(Level level, LevelData next, Vector2 direction) {
             var player = level.Tracker.GetEntity<Player>();
             var area = level.Session.Area;
-            var prev = level.Session.MapData.GetAt(player.Position - direction * 8);
+            Logger.Log("DEBUG", $"Here we are: player@{player.Position}");
+            var prev = level.Session.MapData.GetAt(player.Position - direction * 16);
             if (prev.Name == next.Name) {
                 // just in case!
                 return;
@@ -259,7 +270,9 @@ namespace Celeste.Mod.BingoClient {
 
             cursor.Emit(OpCodes.Dup);
             cursor.EmitDelegate<Action<int>>(idx => {
-                BingoClient.Instance.ModSaveData.OneUps[SaveData.Instance.CurrentSession.Area.ID]++;
+                if (idx >= 5) {
+                    BingoClient.Instance.ModSaveData.OneUps[SaveData.Instance.CurrentSession.Area.ID]++;
+                }
                 BingoClient.Instance.ModSaveData.MaxOneUpCombo = Math.Max(idx, BingoClient.Instance.ModSaveData.MaxOneUpCombo);
             });
         }

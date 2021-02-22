@@ -36,12 +36,16 @@ namespace Celeste.Mod.BingoClient {
                 this.Board[i].Text = square.name;
             }
             
+            this.RefreshObjectives();
+        }
+
+        private void RefreshObjectives() {
             this.ObjectivesCompleted = new List<bool>();
             for (int i = 0; i < 25; i++) {
                 this.ObjectivesCompleted.Add(false);
             }
         }
-        
+
         private void BingoEvent(StatusMessage msg) {
             this.LogChat(msg.Render());
             switch (msg.type) {

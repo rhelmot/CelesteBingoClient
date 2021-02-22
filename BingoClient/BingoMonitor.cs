@@ -72,7 +72,7 @@ namespace Celeste.Mod.BingoClient {
             { "Mirror Temple Cassette", () => HasCassette(5) },
             { "Huge Mess: Chest -> Books -> Towel", () => HasHugeMessOrder(2, 1, 0) },
             { "Huge Mess: Chest -> Towel -> Books", () => HasHugeMessOrder(2, 0, 1) },
-            { "Huge Mess: Towel -> Books -> Chest", () => HasHugeMessOrder(1, 1, 2) },
+            { "Huge Mess: Towel -> Books -> Chest", () => HasHugeMessOrder(0, 1, 2) },
             { "2 Seeded Berries", () => HasNSeedBerries(2) },
             { "2 optional Theo Cutscenes", () => HasNFlags(2, TheoCutscenes) },
             { "Get a 1-Up in 3 Chapters", () => HasN1upsInChapters(1, 3) },
@@ -751,8 +751,7 @@ namespace Celeste.Mod.BingoClient {
                 return null;
             }
 
-            bool first = ReferenceEquals(level.Session.LevelData, level.Session.MapData.Levels[0]);
-
+            bool first = ReferenceEquals(level.Session.LevelData, level.Session.MapData.StartLevel());
 
             var checkpoint = level.Entities.FindFirst<Checkpoint>();
             if (!first && checkpoint == null) {

@@ -52,6 +52,7 @@ namespace Celeste.Mod.BingoClient {
             IL.Monocle.Engine.Update += HookUpdateEarly;
             Everest.Events.Level.OnCreatePauseMenuButtons += OnPause;
             Everest.Events.Level.OnExit += OnExit;
+            On.Celeste.SaveData.Start += OnSaveStart;
             
             BingoWatches.HookStuff();
             
@@ -68,6 +69,7 @@ namespace Celeste.Mod.BingoClient {
             IL.Monocle.Engine.Update -= HookUpdateEarly;
             Everest.Events.Level.OnCreatePauseMenuButtons -= OnPause;
             Everest.Events.Level.OnExit -= OnExit;
+            On.Celeste.SaveData.Start -= OnSaveStart;
             
             BingoWatches.UnhookStuff();
             
@@ -122,6 +124,13 @@ namespace Celeste.Mod.BingoClient {
             }
 
             this.SendColor();
+        }
+
+        private void OnSaveStart(On.Celeste.SaveData.orig_Start orig, SaveData data, int slot) {
+            orig(data, slot);
+            if (this.Connected) {
+                this.RefreshObjectives();
+            }
         }
 
         private void OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {

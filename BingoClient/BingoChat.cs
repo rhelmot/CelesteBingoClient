@@ -25,12 +25,14 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public void Update() {
-            for (int i = 0; i < this.ChatTimers.Count; i++) {
-                this.ChatTimers[i] += Engine.RawDeltaTime;
-                if (this.ChatTimers[i] > ChatTime) {
-                    this.ChatTimers.RemoveAt(i);
-                    this.ChatMessages.RemoveAt(i);
-                    i--;
+            lock (this.ChatMessages) {
+                for (int i = 0; i < this.ChatTimers.Count; i++) {
+                    this.ChatTimers[i] += Engine.RawDeltaTime;
+                    if (this.ChatTimers[i] > ChatTime) {
+                        this.ChatTimers.RemoveAt(i);
+                        this.ChatMessages.RemoveAt(i);
+                        i--;
+                    }
                 }
             }
 
@@ -95,18 +97,20 @@ namespace Celeste.Mod.BingoClient {
 
             var currentBase = 1080f - 50f;
             var scale = 0.7f;
-            var chatTexts = this.ChatOpen ? this.ChatHistory : this.ChatMessages;
-            var chatTimers = this.ChatOpen ? null : this.ChatTimers;
-            for (int i = chatTexts.Count - 1; i >= 0 && currentBase > 0; i--) {
-                var timer = chatTimers?[i] ?? (ChatTime / 2f);
-                var text = chatTexts[i];
-                var alpha = timer < 0.25f ? timer * 4f : timer > (ChatTime - 0.5f) ? (ChatTime - timer) * 2 : 1f;
-                var rise = timer < 0.25f ? timer * 4f : 1f;
+            lock (this.ChatMessages) {
+                var chatTexts = this.ChatOpen ? this.ChatHistory : this.ChatMessages;
+                var chatTimers = this.ChatOpen ? null : this.ChatTimers;
+                for (int i = chatTexts.Count - 1; i >= 0 && currentBase > 0; i--) {
+                    var timer = chatTimers?[i] ?? (ChatTime / 2f);
+                    var text = chatTexts[i];
+                    var alpha = timer < 0.25f ? timer * 4f : timer > (ChatTime - 0.5f) ? (ChatTime - timer) * 2 : 1f;
+                    var rise = timer < 0.25f ? timer * 4f : 1f;
 
-                var textSize = ActiveFont.Measure(text) * scale;
-                ActiveFont.DrawOutline(text, new Vector2(1920f - 20, currentBase), new Vector2(1f, rise), Vector2.One * scale, Color.White * alpha, 2f, Color.Black * alpha);
+                    var textSize = ActiveFont.Measure(text) * scale;
+                    ActiveFont.DrawOutline(text, new Vector2(1920f - 20, currentBase), new Vector2(1f, rise), Vector2.One * scale, Color.White * alpha, 2f, Color.Black * alpha);
 
-                currentBase -= textSize.Y * 1.1f * rise;
+                    currentBase -= textSize.Y * 1.1f * rise;
+                }
             }
 
             if (this.ChatOpen) {
@@ -118,9 +122,11 @@ namespace Celeste.Mod.BingoClient {
         }
         
         public void Chat(string text) {
-            this.ChatHistory.Add(text);
-            this.ChatMessages.Add(text);
-            this.ChatTimers.Add(0f);
+            lock (this.ChatMessages) {
+                this.ChatHistory.Add(text);
+                this.ChatMessages.Add(text);
+                this.ChatTimers.Add(0f);
+            }
         }
 
         public void SetHistory(IEnumerable<string> history) {
