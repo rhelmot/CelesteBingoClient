@@ -16,6 +16,7 @@ namespace Celeste.Mod.BingoClient {
         public string RoomId;
         public String Username;
         public String Password;
+        private String SavedPassword;
         public bool Connected;
         private BingoColors SentColor;
 
@@ -38,25 +39,41 @@ namespace Celeste.Mod.BingoClient {
         
         public void Connect() {
             string sessionKey;
-            if (this.Session == null) {
-                this.Session = this.Session ?? new CookieAwareWebClient(new CookieContainer());
-                var r1 = this.Session.DownloadString(this.RoomUrl);
-                var postKeys = new NameValueCollection {
-                    {"csrfmiddlewaretoken", RecoverFormValue("csrfmiddlewaretoken", r1)},
-                    {"encoded_room_uuid", RecoverFormValue("encoded_room_uuid", r1)},
-                    {"room_name", RecoverFormValue("room_name", r1)},
-                    {"creator_name", RecoverFormValue("creator_name", r1)},
-                    {"game_name", RecoverFormValue("game_name", r1)},
-                    {"player_name", this.Username},
-                    {"passphrase", this.Password},
+            if (this.Session == null || this.Password != this.SavedPassword) {
+                try {
+                    this.SavedPassword = this.Password;
+                    this.Session = new CookieAwareWebClient(new CookieContainer());
+                    lock (this.Session) {
+                        var r1 = this.Session.DownloadString(this.RoomUrl);
+                        var postKeys = new NameValueCollection {
+                            {"csrfmiddlewaretoken", RecoverFormValue("csrfmiddlewaretoken", r1)},
+                            {"encoded_room_uuid", RecoverFormValue("encoded_room_uuid", r1)},
+                            {"room_name", RecoverFormValue("room_name", r1)},
+                            {"creator_name", RecoverFormValue("creator_name", r1)},
+                            {"game_name", RecoverFormValue("game_name", r1)},
+                            {"player_name", this.Username},
+                            {"passphrase", this.Password},
 
-                };
-                var r2 = Encoding.UTF8.GetString(this.Session.UploadValues(this.RoomUrl, postKeys));
-                sessionKey = RecoverFormValue("temporarySocketKey", r2);
+                        };
+                        var r2 = Encoding.UTF8.GetString(this.Session.UploadValues(this.RoomUrl, postKeys));
+                        if (r2.Contains("Incorrect Password")) {
+                            throw new Exception("Incorrect Password");
+                        }
+                        sessionKey = RecoverFormValue("temporarySocketKey", r2);
+                    }
+                } catch (Exception) {
+                    this.Session = null;
+                    throw;
+                }
             } else {
-                var r2 = this.Session.DownloadString(this.RoomUrl);
-                sessionKey = RecoverFormValue("temporarySocketKey", r2);
+                lock (this.Session) {
+                    var r2 = this.Session.DownloadString(this.RoomUrl);
+                    sessionKey = RecoverFormValue("temporarySocketKey", r2);
+                }
             }
+            
+            this.Chat.SetHistory(this.GetHistory().events.Select(x => x.Render()));
+            
             this.Sock = new ClientWebSocket();
             Uri uri = new Uri("wss://sockets.bingosync.com/broadcast");
             //Uri uri = new Uri("ws://localhost:8902/");
@@ -81,9 +98,8 @@ namespace Celeste.Mod.BingoClient {
                 Thread.Sleep(10);
             }
             
-            Instance.SetState(Instance.GetBoard());
-            Instance.StartObjectives();
-            Instance.SendColor();
+            this.SetState(Instance.GetBoard());
+            this.SendColor();
         }
 
         public void Disconnect() {
@@ -96,7 +112,7 @@ namespace Celeste.Mod.BingoClient {
         public void SendClaim(int slot) {
             new Task(() => {
                 lock (this.Session) {
-                    var result = this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
+                    this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
                         color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
                         remove_color = false,
                         room = this.RoomId,
@@ -136,7 +152,7 @@ namespace Celeste.Mod.BingoClient {
         public void SendChat(string text) {
             new Task(() => {
                 lock (this.Session) {
-                    this.Session.UploadString(this.ColorUrl, JsonConvert.SerializeObject(new ChatMessage {
+                    var result = this.Session.UploadString(this.ChatUrl, JsonConvert.SerializeObject(new ChatMessage {
                         text = text,
                         room = this.RoomId,
                     }));
@@ -145,7 +161,16 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public List<SquareMsg> GetBoard() {
-            return JsonConvert.DeserializeObject<List<SquareMsg>>(this.Session.DownloadString(this.RoomUrl + "/board"));
+            lock (this.Session) {
+                return JsonConvert.DeserializeObject<List<SquareMsg>>(this.Session.DownloadString(this.RoomUrl + "/board"));
+            }
+        }
+
+        public HistoryMessage GetHistory() {
+            lock (this.Session) {
+                var result = this.Session.DownloadString(this.RoomUrl + "/feed");
+                return JsonConvert.DeserializeObject<HistoryMessage>(result);
+            }
         }
 
         private void RecvThreadFunc(CancellationToken token) {
@@ -203,7 +228,7 @@ namespace Celeste.Mod.BingoClient {
             public string socket_key;
         }
 
-        class StatusMessage {
+        public class StatusMessage {
             public double timestamp;
             public string type;
             public string event_type;
@@ -216,6 +241,31 @@ namespace Celeste.Mod.BingoClient {
 
             public SquareMsg square;
             public bool remove;
+
+            public string Render() {
+                switch (this.type) {
+                    case "connection" when this.event_type == "disconnected":
+                        return $"{this.player.name} disconnected";
+                    case "connection" when this.event_type == "connected":
+                        return $"{this.player.name} connected";
+                    case "connection":
+                        Logger.Log("BingoClient", $"Unknown connection message {this.event_type}");
+                        return null;
+                    case "goal" when this.remove:
+                        return $"{this.player.name} cleared \"{this.square.name}\"";
+                    case "goal" when !this.remove:
+                        return $"{this.player.name} marked \"{this.square.name}\"";
+                    case "color":
+                        return $"{this.player.name} changed color to {this.player.color}";
+                    case "chat":
+                        return $"{this.player.name} said: {this.text}";
+                    case "error":
+                        return $"Error from server: {this.error}";
+                    default:
+                        Logger.Log("BingoClient", $"Unknown message {this.type}");
+                        return null;
+                }
+            }
         }
         
         public class PlayerMsg {
@@ -246,6 +296,11 @@ namespace Celeste.Mod.BingoClient {
         public class ChatMessage {
             public string room;
             public string text;
+        }
+
+        public class HistoryMessage {
+            public bool allincluded;
+            public List<StatusMessage> events;
         }
     }
 }

@@ -12,16 +12,14 @@ namespace Celeste.Mod.BingoClient {
         private List<string> ChatHistory = new List<string>();
         private List<float> ChatTimers = new List<float>();
 
-        private ButtonBinding OpenChat;
-
         public bool ChatOpen;
         private string Buffer = "";
         private bool Underscore;
         private float UnderscoreCounter;
+        private bool InhibitOne;
         private Action<string> Submit;
 
-        public BingoChat(ButtonBinding openChat, Action<string> submit) {
-            this.OpenChat = openChat;
+        public BingoChat(Action<string> submit) {
             this.Submit = submit;
             TextInput.OnInput += OnInput;
         }
@@ -37,15 +35,18 @@ namespace Celeste.Mod.BingoClient {
             }
 
             if (this.ChatOpen) {
+                Engine.OverloadGameLoop = () => { }; // hack. I don't care to find a better way to disable input
                 if (Input.ESC.Pressed) {
                     this.ChatOpen = false;
                 }
             } else {
-                if (this.OpenChat.Pressed && 
+                if (BingoClient.Instance.ModSettings.OpenChat.Pressed && 
                     !Engine.Commands.Open && 
-                    !(Engine.Scene is Overworld overworld &&
-                      (overworld.Current is OuiModOptionString || overworld.Current is OuiFileNaming))) {
+                    !(Engine.Scene is Overworld overworld && (overworld.Current is OuiModOptionString || overworld.Current is OuiFileNaming)) &&
+                    (this.ChatHistory.Count > 0 || BingoClient.Instance.Connected)) {
                     this.ChatOpen = true;
+                    this.InhibitOne = true;
+                    Engine.Scene.OnEndOfFrame += () => this.InhibitOne = false;
                 }
             }
             
@@ -57,12 +58,22 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private void OnInput(char ch) {
+            if (this.InhibitOne) {
+                this.InhibitOne = false;
+                return;
+            }
+
+            if (!this.ChatOpen) {
+                return;
+            }
+            
             this.Underscore = false;
             this.UnderscoreCounter = 0f;
             if (ch == '\r' || ch == '\n') {
-                var buf = this.Buffer;
-                this.Buffer = "";
-                this.Submit(buf);
+                if (this.Buffer != "") {
+                    this.Submit(this.Buffer);
+                    this.Buffer = "";
+                }
             } else if (ch == '\b') {
                 if (this.Buffer.Length > 0) {
                     this.Buffer = this.Buffer.Substring(0, this.Buffer.Length - 1);
@@ -87,7 +98,7 @@ namespace Celeste.Mod.BingoClient {
             var chatTexts = this.ChatOpen ? this.ChatHistory : this.ChatMessages;
             var chatTimers = this.ChatOpen ? null : this.ChatTimers;
             for (int i = chatTexts.Count - 1; i >= 0 && currentBase > 0; i--) {
-                var timer = chatTimers?[i] ?? ChatTime / 2f;
+                var timer = chatTimers?[i] ?? (ChatTime / 2f);
                 var text = chatTexts[i];
                 var alpha = timer < 0.25f ? timer * 4f : timer > (ChatTime - 0.5f) ? (ChatTime - timer) * 2 : 1f;
                 var rise = timer < 0.25f ? timer * 4f : 1f;
@@ -98,9 +109,11 @@ namespace Celeste.Mod.BingoClient {
                 currentBase -= textSize.Y * 1.1f * rise;
             }
 
-            var uch = this.Underscore ? "_" : "";
-            var prompt = $"> {this.Buffer}{uch}";
-            ActiveFont.DrawOutline(prompt, new Vector2(0, 1080f - 10), new Vector2(0f, 1f), Vector2.One * scale, Color.White, 2f, Color.Black);
+            if (this.ChatOpen) {
+                var uch = this.Underscore ? "_" : "";
+                var prompt = $"> {this.Buffer}{uch}";
+                ActiveFont.DrawOutline(prompt, new Vector2(10, 1080f - 10), new Vector2(0f, 1f), Vector2.One * scale, Color.White, 2f, Color.Black);
+            }
             Draw.SpriteBatch.End();
         }
         
@@ -110,7 +123,7 @@ namespace Celeste.Mod.BingoClient {
             this.ChatTimers.Add(0f);
         }
 
-        public void SetHistory(List<string> history) {
+        public void SetHistory(IEnumerable<string> history) {
             this.ChatHistory.Clear();
             this.ChatHistory.AddRange(history);
         }

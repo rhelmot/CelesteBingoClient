@@ -3,20 +3,24 @@ using System;
 using System.Collections;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Celeste.Mod.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
-using MonoMod.Utils;
 
 namespace Celeste.Mod.BingoClient {
     public partial class BingoClient : EverestModule {
         public static BingoClient Instance;
+        private BingoChat Chat;
+
+        public override Type SaveDataType => typeof(BingoSaveData);
+        public override Type SessionType => typeof(BingoSession);
+        public override Type SettingsType => typeof(BingoSettings);
+        public BingoSaveData ModSaveData => (BingoSaveData) this._SaveData;
+        public BingoSession ModSession => (BingoSession) this._Session;
+        public BingoSettings ModSettings => (BingoSettings) this._Settings;
 
         public BingoClient() {
             Instance = this;
@@ -29,6 +33,8 @@ namespace Celeste.Mod.BingoClient {
             if (this.ModSettings.MasterSwitch) {
                 this.HookStuff();
             }
+            
+            this.Chat = new BingoChat(this.SendChat);
         }
 
         public override void Unload() {
@@ -36,7 +42,6 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private bool StuffIsHooked;
-        private List<IDetour> SpecialHooks = new List<IDetour>();
         internal void HookStuff() {
             if (this.StuffIsHooked) {
                 return;
@@ -44,25 +49,12 @@ namespace Celeste.Mod.BingoClient {
             
             On.Celeste.OuiFileSelectSlot.CreateButtons += CreateBingoButton;
             On.Monocle.Engine.RenderCore += RenderBingoHud;
-            IL.Celeste.StrawberryPoints.Added += Track1up;
-            IL.Celeste.ClutterSwitch.OnDashed += TrackClutter;
-            On.Celeste.Pico8.Classic.load_room += TrackPicoRooms;
-            IL.Celeste.Pico8.Classic.fruit.update += TrackPicoBerries;
-            IL.Celeste.Pico8.Classic.fly_fruit.update += TrackPicoBerries;
             IL.Monocle.Engine.Update += HookUpdateEarly;
-            Everest.Events.Level.OnTransitionTo += OnTransition;
-            Everest.Events.Level.OnComplete += OnComplete;
             Everest.Events.Level.OnCreatePauseMenuButtons += OnPause;
             Everest.Events.Level.OnExit += OnExit;
-            On.Celeste.CutsceneEntity.EndCutscene += OnEndCutscene;
-            On.Celeste.PicoConsole.Update += CheckPicoProximity;
-            On.Celeste.CoreModeToggle.OnChangeMode += CheckIceRoom;
-            On.Celeste.CrushBlock.OnDashed += KevinDash;
-            IL.Celeste.SummitCheckpoint.Update += TrackSummitCheckpoints;
-            On.Celeste.IntroCar.Update += TrackIntroCar;
-
-            SpecialHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.Instance | BindingFlags.NonPublic), TrackSeekerDeath));
-            SpecialHooks.Add(new ILHook(typeof(HeartGem).GetMethod("orig_CollectRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), TrackEmptySpace));
+            
+            BingoWatches.HookStuff();
+            
             this.StuffIsHooked = true;
         }
 
@@ -73,121 +65,13 @@ namespace Celeste.Mod.BingoClient {
             
             On.Celeste.OuiFileSelectSlot.CreateButtons -= CreateBingoButton;
             On.Monocle.Engine.RenderCore -= RenderBingoHud;
-            IL.Celeste.StrawberryPoints.Added -= Track1up;
-            IL.Celeste.ClutterSwitch.OnDashed -= TrackClutter;
-            On.Celeste.Pico8.Classic.load_room -= TrackPicoRooms;
-            IL.Celeste.Pico8.Classic.fruit.update -= TrackPicoBerries;
-            IL.Celeste.Pico8.Classic.fly_fruit.update -= TrackPicoBerries;
             IL.Monocle.Engine.Update -= HookUpdateEarly;
-            Everest.Events.Level.OnTransitionTo -= OnTransition;
-            Everest.Events.Level.OnComplete -= OnComplete;
             Everest.Events.Level.OnCreatePauseMenuButtons -= OnPause;
             Everest.Events.Level.OnExit -= OnExit;
-            On.Celeste.CutsceneEntity.EndCutscene -= OnEndCutscene;
-            On.Celeste.PicoConsole.Update -= CheckPicoProximity;
-            On.Celeste.CoreModeToggle.OnChangeMode -= CheckIceRoom;
-            On.Celeste.CrushBlock.OnDashed -= KevinDash;
-            IL.Celeste.SummitCheckpoint.Update -= TrackSummitCheckpoints;
-            On.Celeste.IntroCar.Update -= TrackIntroCar;
-
-            foreach (var hook in this.SpecialHooks) {
-                hook.Dispose();
-            }
-            this.SpecialHooks.Clear();
+            
+            BingoWatches.UnhookStuff();
             
             this.StuffIsHooked = false;
-        }
-
-        private void TrackIntroCar(On.Celeste.IntroCar.orig_Update orig, IntroCar self) {
-            orig(self);
-            if (self.HasRider() && SaveData.Instance.CurrentSession.Level == "e-01") {
-                this.ModSaveData.AddFlag("remembered_intro_car");
-            }
-        }
-
-        private void TrackSummitCheckpoints(ILContext il) {
-            var cursor = new ILCursor(il);
-            if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchCall(typeof(Audio), "Play"))) {
-                throw new Exception("Could not find patch point");
-            }
-
-            cursor.EmitDelegate<Action>(() => {
-                var missed = false;
-                for (var i = 1; i <= 30; i++) {
-                    if (!SaveData.Instance.CurrentSession.GetFlag("summit_checkpoint_" + i)) {
-                        missed = true;
-                        break;
-                    }
-                }
-
-                if (!missed) {
-                    this.ModSaveData.AddFlag("all_summit_flags");
-                }
-            });
-        }
-
-        private void TrackEmptySpace(ILContext il) {
-            var cursor = new ILCursor(il);
-            for (var i = 0; i < 5; i++) {
-                if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchLdfld(typeof(HeartGem), "IsFake"))) {
-                    throw new Exception("Could not find patch point");
-                }
-            }
-
-            cursor.Emit(OpCodes.Dup);
-            cursor.EmitDelegate<Action<bool>>(b => {
-                if (b) {
-                    this.ModSaveData.AddFlag("empty_space");
-                }
-            });
-        }
-
-        private DashCollisionResults KevinDash(On.Celeste.CrushBlock.orig_OnDashed orig, CrushBlock self, Player player, Vector2 dir) {
-            var dirCh = dir.Y < 0 ? 'u' : dir.Y > 0 ? 'd' : dir.X < 0 ? 'l' : 'r';
-            var level = self.Scene as Level ?? throw new Exception("but why tho");
-            level.Session.SetFlag("kevin:"+ dirCh);
-            if (new[] {"kevin:u", "kevin:d", "kevin:l", "kevin:r"}.All(f => level.Session.GetFlag(f))) {
-                this.ModSaveData.AddFlag("kevin");
-            }
-            return orig(self, player, dir);
-        }
-
-        private void CheckIceRoom(On.Celeste.CoreModeToggle.orig_OnChangeMode orig, CoreModeToggle self, Session.CoreModes mode) {
-            orig(self, mode);
-            var level = self.Scene as Level ?? throw new Exception("dude what");
-            if (mode == global::Celeste.Session.CoreModes.Cold && level.Session.Level == "b-04") {
-                this.ModSaveData.AddFlag("first_ice");
-            }
-        }
-
-        private void CheckPicoProximity(On.Celeste.PicoConsole.orig_Update orig, PicoConsole self) {
-            orig(self);
-            var player = self.Scene.Tracker.GetEntity<Player>();
-            if (player == null) {
-                return;
-            }
-            var level = self.Scene as Level ?? throw new Exception("how'd you do that");
-
-            if (level.Camera.Viewport.Bounds.Contains(new Point((int)self.X, (int)self.Y)) && player.Y < self.Y + 16) {
-                this.ModSaveData.AddFlag("foundpico");
-            }
-        }
-
-        private void OnEndCutscene(On.Celeste.CutsceneEntity.orig_EndCutscene orig, CutsceneEntity self, Level level, bool removeself) {
-            orig(self, level, removeself);
-            if (self.WasSkipped) {
-                return;
-            }
-
-            var where = level.Session.Level;
-            if (level.Session.Area.ID == 5 && where == "e-00" && level.Session.RespawnPoint.Value.Y > 1300) {
-                where = "search";
-            }
-            this.ModSaveData.AddFlag($"cutscene:{level.Session.Area.ID}:{where}");
-        }
-
-        static BingoClient() {
-            InitObjectives();
         }
 
         public override void CreateModMenuSection(TextMenu menu, bool inGame, EventInstance snapshot) {
@@ -216,7 +100,7 @@ namespace Celeste.Mod.BingoClient {
                         this.Connect();
                     } catch (Exception e) {
                         Logger.LogDetailed(e, "BingoClient");
-                        Chat(Dialog.Clean("bingoclient_connect_error"));
+                        this.LogChat(Dialog.Clean("bingoclient_connect_error"));
                     }
                 };
                 menu.Add(retryBtn);
@@ -225,7 +109,7 @@ namespace Celeste.Mod.BingoClient {
                 var disconnectBtn = new TextMenu.Button(Dialog.Clean("modoptions_bingoclient_disconnect"));
                 disconnectBtn.OnPressed = () => {
                     this.Disconnect();
-                    Chat(Dialog.Clean("modoptions_bingoclient_disconnect_message"));
+                    this.LogChat(Dialog.Clean("modoptions_bingoclient_disconnect_message"));
                 };
                 menu.Add(disconnectBtn);
             }
@@ -240,17 +124,9 @@ namespace Celeste.Mod.BingoClient {
             this.SendColor();
         }
 
-        public override Type SaveDataType => typeof(BingoSaveData);
-        public override Type SessionType => typeof(BingoSession);
-        public override Type SettingsType => typeof(BingoSettings);
-        public BingoSaveData ModSaveData => (BingoSaveData) this._SaveData;
-        public BingoSession ModSession => (BingoSession) this._Session;
-        public BingoSettings ModSettings => (BingoSettings) this._Settings;
-        
-
         private void OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
             foreach (BingoVariant variant in typeof(BingoVariant).GetEnumValues()) {
-                SetVariantEnabled(variant, false);
+                BingoMonitor.SetVariantEnabled(variant, false);
             }
         }
 
@@ -284,50 +160,6 @@ namespace Celeste.Mod.BingoClient {
             }
         }
         
-        private void OnComplete(Level level) {
-            this.OnCompleteVariants(level);
-        }
-
-        private void OnTransition(Level level, LevelData next, Vector2 direction) {
-            var player = level.Tracker.GetEntity<Player>();
-            var area = level.Session.Area;
-            var prev = level.Session.MapData.GetAt(player.Position - direction * 8);
-            if (prev.Name == next.Name) {
-                // just in case!
-                return;
-            }
-
-            this.OnTransitionVariants(level, next.Name);
-
-            switch (next.Name) {
-                case "b-00c" when area == new AreaKey(6):
-                    this.ModSaveData.AddFlag("room:easteregg");
-                    break;
-                case "9" when area == new AreaKey(6): // 0
-                case "11" when area == new AreaKey(6): // 1
-                case "13" when area == new AreaKey(6): // 2
-                case "15" when area == new AreaKey(6): // 3
-                case "17" when area == new AreaKey(6): // 4
-                case "19" when area == new AreaKey(6): // 5
-                    var idx = (int.Parse(next.Name) - 9) / 2;
-                    var from = prev.Name.EndsWith("b") ? "top" : "bottom";
-                    level.Session.SetFlag($"hollows:{idx}:{from}");
-                    if (new[] {"hollows:0:bottom", "hollows:1:bottom", "hollows:2:bottom", "hollows:3:bottom", "hollows:4:bottom", "hollows:5:bottom"}.All(f => level.Session.GetFlag(f))) {
-                        this.ModSaveData.AddFlag("room:hollows:bottom");
-                    }
-                    if (new[] {"hollows:0:top", "hollows:1:top", "hollows:2:top", "hollows:3:top", "hollows:4:top", "hollows:5:top"}.All(f => level.Session.GetFlag(f))) {
-                        this.ModSaveData.AddFlag("room:hollows:top");
-                    }
-                    break;
-                case "d-00" when prev.Name == "c-10" && area == new AreaKey(4):
-                    this.ModSaveData.AddFlag("room:oldtrailsecret");
-                    break;
-                case "secret" when area == new AreaKey(8):
-                    this.ModSaveData.AddFlag("room:birdnest");
-                    break;
-            }
-        }
-
         private void HookUpdateEarly(ILContext il) {
             var cursor = new ILCursor(il);
             if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchCall(typeof(MInput), "Update"))) {
@@ -337,81 +169,25 @@ namespace Celeste.Mod.BingoClient {
             cursor.EmitDelegate<Action>(this.Update);
         }
         
-        private void TrackPicoBerries(ILContext il) {
-            var cursor = new ILCursor(il);
-            if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchLdfld(typeof(Pico8.Classic), "got_fruit"))) {
-                throw new Exception("Could not find patch point");
-            }
-
-            cursor.Emit(OpCodes.Dup);
-            cursor.EmitDelegate<Action<HashSet<int>>>(set => {
-                this.ModSaveData.PicoBerries = Math.Max(this.ModSaveData.PicoBerries, set.Count);
-            });
-        }
-
-        private void TrackPicoRooms(On.Celeste.Pico8.Classic.orig_load_room orig, Pico8.Classic self, int x, int y) {
-            orig(self, x, y);
-            if (this.ModSaveData == null) {
+        private void Update() {
+            if (Dialog.Language == null || ActiveFont.Font == null || ActiveFont.Font.Sizes.Count == 0) {
                 return;
             }
 
-            if (x == 3 && y == 1) {
-                this.ModSaveData.AddFlag("pico_oldsite");
-            }
-
-            if (x == 5 && y == 2) {
-                // todo move this into the actual orb collect routine
-                this.ModSaveData.AddFlag("pico_orb");
-            }
-
-            if (x == 6 && y == 3) {
-                this.ModSaveData.AddFlag("pico_complete");
-            }
+            this.PreUpdateMenu();
+            this.Chat.Update();
+            this.UpdateObjectives();
         }
 
-        private void TrackClutter(ILContext il) {
-            var cursor = new ILCursor(il);
-            if (!cursor.TryGotoNext(MoveType.After, instr => instr.MatchCall(typeof(Input), "Rumble"))) {
-                throw new Exception("Could not find patch point");
+        private void RenderBingoHud(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
+            orig(self);
+            if (Dialog.Language == null || ActiveFont.Font == null || ActiveFont.Font.Sizes.Count == 0) {
+                return;
             }
-
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.EmitDelegate<Action<ClutterSwitch>>(entity => {
-                var color = (int)typeof(ClutterSwitch).GetField("color", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entity);
-                this.ModSession.HugeMessOrder.Add(color);
-                if (this.ModSession.HugeMessOrder.Count == 3) {
-                    this.ModSaveData.AddHugeMessOrder(this.ModSession.HugeMessOrder[0], this.ModSession.HugeMessOrder[1], this.ModSession.HugeMessOrder[2]);
-                }
-            });
+            
+            this.RenderMenu();
+            this.Chat.Render();
         }
-
-        private void TrackSeekerDeath(ILContext il) {
-            var cursor = new ILCursor(il);
-            if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchCall<Entity>("RemoveSelf"))) {
-                throw new Exception("Could not find patch point");
-            }
-
-            cursor.EmitDelegate<Action>(() => {
-                // technically this can't account for killing two different seekers in the same room (technically possible in 5a but stupid hard)
-                // but who cares
-                var ident = SaveData.Instance.CurrentSession.Level;
-                this.ModSaveData.AddSeekerKill(ident);
-            });
-        }
-
-        private void Track1up(ILContext il) {
-            var cursor = new ILCursor(il);
-            if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchLdfld(typeof(StrawberryPoints), "index"))) {
-                throw new Exception("Could not find patch point");
-            }
-
-            cursor.Emit(OpCodes.Dup);
-            cursor.EmitDelegate<Action<int>>(idx => {
-                this.ModSaveData.OneUps[SaveData.Instance.CurrentSession.Area.ID]++;
-                this.ModSaveData.MaxOneUpCombo = Math.Max(idx, this.ModSaveData.MaxOneUpCombo);
-            });
-        }
-
         private void CreateBingoButton(On.Celeste.OuiFileSelectSlot.orig_CreateButtons orig, OuiFileSelectSlot self) {
             orig(self);
             if (!self.Exists) {
@@ -426,7 +202,7 @@ namespace Celeste.Mod.BingoClient {
                             this.Username = this.ModSettings.PlayerName.Length == 0 ? self.Name : this.ModSettings.PlayerName;
                             this.RoomUrl = contents;
                         } else {
-                            Chat(Dialog.Clean("BINGOCLIENT_BAD_PASTE"));
+                            this.LogChat(Dialog.Clean("BINGOCLIENT_BAD_PASTE"));
                         }
                     },
                     Label = Dialog.Clean("BINGOCLIENT_START_BUTTON"),
@@ -437,50 +213,38 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
-        private void Update() {
-            if (Dialog.Language == null || ActiveFont.Font == null || ActiveFont.Font.Sizes.Count == 0) {
-                return;
-            }
-            
-            this.UpdateChat();
-            this.PreUpdateMenu();
-            this.UpdateObjectives();
+        public void LogChat(string message) {
+            this.Chat.Chat(message);
         }
-
-        private void RenderBingoHud(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
-            orig(self);
-            if (Dialog.Language == null || ActiveFont.Font == null || ActiveFont.Font.Sizes.Count == 0) {
-                return;
-            }
-            
-            this.RenderMenu();
-            this.RenderChat();
-        }
-        
-        public class OuiBingoConnecting : Oui {
-            public override IEnumerator Enter(Oui from) {
+    }
+    
+    public class OuiBingoConnecting : Oui {
+        public override IEnumerator Enter(Oui from) {
+            if (!OuiModOptionString.Cancelled) {
                 var task = new Task(() => {
                     try {
-                        Instance.Connect();
+                        if (BingoClient.Instance.Connected) {
+                            BingoClient.Instance.Disconnect();
+                            BingoClient.Instance.LogChat(Dialog.Clean("modoptions_bingoclient_disconnect_message"));
+                        }
+                        BingoClient.Instance.Connect();
                     } catch (Exception e) {
                         Logger.LogDetailed(e, "BingoClient");
-                        Chat(Dialog.Clean("BINGOCLIENT_CONNECT_ERROR"));
-                        return;
+                        BingoClient.Instance.LogChat(Dialog.Clean("BINGOCLIENT_CONNECT_ERROR"));
                     }
-                    
                 });
                 task.Start();
 
                 while (!task.IsCompleted) {
                     yield return null;
                 }
-
-                this.Overworld.Goto<OuiFileSelect>();
             }
 
-            public override IEnumerator Leave(Oui next) {
-                yield return null;
-            }
+            this.Overworld.Goto<OuiFileSelect>();
+        }
+
+        public override IEnumerator Leave(Oui next) {
+            yield return null;
         }
     }
 
@@ -520,14 +284,14 @@ namespace Celeste.Mod.BingoClient {
             return this.HugeMessOrders.Contains(order);
         }
 
-        public void AddCheckpointVariant(int chapter, int mode, int checkpoint, BingoClient.BingoVariant variant) {
+        public void AddCheckpointVariant(int chapter, int mode, int checkpoint, BingoVariant variant) {
             var str = $"{chapter}:{mode}:{checkpoint}:{variant}";
             if (!this.VariantCompletions.Contains(str)) {
                 this.VariantCompletions.Add(str);
             }
         }
 
-        public bool HasCheckpointVariant(int chapter, int mode, int checkpoint, BingoClient.BingoVariant variant) {
+        public bool HasCheckpointVariant(int chapter, int mode, int checkpoint, BingoVariant variant) {
             var str = $"{chapter}:{mode}:{checkpoint}:{variant}";
             return this.VariantCompletions.Contains(str);
         }
@@ -543,7 +307,7 @@ namespace Celeste.Mod.BingoClient {
         [SettingMaxLength(20)]
         [SettingMinLength(0)]
         public string PlayerName { get; set; } = "";
-        public BingoClient.BingoColors PlayerColor { get; set; } = BingoClient.BingoColors.Orange;
+        public BingoColors PlayerColor { get; set; } = BingoColors.Orange;
         [DefaultButtonBinding(Buttons.RightStick, Keys.Tab)]
         public ButtonBinding MenuToggle { get; set; }
         public ButtonBinding MenuTrigger { get; set; }
@@ -553,8 +317,8 @@ namespace Celeste.Mod.BingoClient {
         public ButtonBinding OpenChat { get; set; }
 
         public void CreatePlayerColorEntry(TextMenu menu, bool inGame) {
-            var enumValues = new List<BingoClient.BingoColors>((BingoClient.BingoColors[])Enum.GetValues(typeof(BingoClient.BingoColors)));
-            enumValues.Remove(BingoClient.BingoColors.Blank);
+            var enumValues = new List<BingoColors>((BingoColors[])Enum.GetValues(typeof(BingoColors)));
+            enumValues.Remove(BingoColors.Blank);
             enumValues.Sort();
             string enumNamePrefix = $"modoptions_bingoclient_playercolor";
             var item =
@@ -564,7 +328,7 @@ namespace Celeste.Mod.BingoClient {
                         $"{enumNamePrefix}_{enumName.ToLowerInvariant()}".DialogCleanOrNull() ??
                         enumName;
                 }, 0, enumValues.Count - 1, (int)this.PlayerColor - 1)
-                .Change(v => this.PlayerColor = (BingoClient.BingoColors) v + 1)
+                .Change(v => this.PlayerColor = (BingoColors) v + 1)
             ;
             menu.Add(item);
         }

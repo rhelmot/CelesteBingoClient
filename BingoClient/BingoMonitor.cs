@@ -4,9 +4,14 @@ using System.Linq;
 using System.Reflection;
 using Celeste.Mod.BingoUI;
 using Microsoft.Xna.Framework;
+using Monocle;
+
+// this file is for static methods to query the game state
+// this includes methods to query BingoClient.ModSaveData
 
 namespace Celeste.Mod.BingoClient {
-    public partial class BingoClient {
+    public static class BingoMonitor {
+        #region data
         public static string[] TheoCutscenes = { "cutscene:1:6zb", "cutscene:2:end_2", "cutscene:3:09-d", "cutscene:search" };
         public static string[] SearchKeys = { "key:5:0:d-15:216", "key:5:0:d-04:39", "key:5:0:d-04:14" };
         public static string[] PowerSourceKeys = { "key:10:0:d-01:261", "key:10:0:d-02:70", "key:10:0:d-03:315", "key:10:0:d-04:444", "key:10:0:d-05:593" };
@@ -377,18 +382,6 @@ namespace Celeste.Mod.BingoClient {
             { "Farewell", () => HasASide(10) },
 
         };
-
-        private static float HasParticularBinos(int chapter, int mode, params string[] levels) {
-            return levels.Count(lvl => BinocularsList.Any(bino => {
-                var point = new Point((int) bino.pos.X, (int) bino.pos.Y);
-                return bino.areaID == chapter && bino.areaMode == mode && AreaData.Areas[chapter].Mode[mode].MapData.Get(lvl).Bounds.Contains(point);
-            })) / (float) levels.Length;
-        }
-
-        private static float HasNFlags(int n, params string[] flags) {
-            return Math.Min(1f, flags.Count(flag => Instance.ModSaveData.FileFlags.Contains(flag)) / (float) n);
-        }
-
         public static Dictionary<string, List<Tuple<int, int, int, BingoVariant>>> ObjectiveVariants = new Dictionary<string, List<Tuple<int, int, int, BingoVariant>>> {
             { "Complete 1A Start without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 0, BingoVariant.NoDash)} },
             { "Complete Crossing without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 1, BingoVariant.NoDash)} },
@@ -447,8 +440,8 @@ namespace Celeste.Mod.BingoClient {
             } },
             { "Complete 2 Chapters Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.NoGrab)} },
         };
-
-        private static void InitObjectives() {
+        
+        static BingoMonitor() {
             foreach (var kv in ObjectiveVariants) {
                 if (Objectives.TryGetValue(kv.Key, out var maybenull) && maybenull != null) {
                     continue;
@@ -460,20 +453,32 @@ namespace Celeste.Mod.BingoClient {
                             return 0f;
                         }
 
-                        return reqs.Count(req => Instance.ModSaveData.HasCheckpointVariant(req.Item1, req.Item2, req.Item3, req.Item4)) / (float)reqs.Count;
+                        return reqs.Count(req => BingoClient.Instance.ModSaveData.HasCheckpointVariant(req.Item1, req.Item2, req.Item3, req.Item4)) / (float)reqs.Count;
                     };
                 }
                 Objectives[kv.Key] = close(kv.Value);
             }
         }
 
+        #endregion
+
         #region checkers
+        private static float HasParticularBinos(int chapter, int mode, params string[] levels) {
+            return levels.Count(lvl => BinocularsList.Any(bino => {
+                var point = new Point((int) bino.pos.X, (int) bino.pos.Y);
+                return bino.areaID == chapter && bino.areaMode == mode && AreaData.Areas[chapter].Mode[mode].MapData.Get(lvl).Bounds.Contains(point);
+            })) / (float) levels.Length;
+        }
+
+        private static float HasNFlags(int n, params string[] flags) {
+            return Math.Min(1f, flags.Count(flag => BingoClient.Instance.ModSaveData.FileFlags.Contains(flag)) / (float) n);
+        }
 
         private static float HasChapterVariant(int chapter, int mode, BingoVariant variant) {
             var missed = false;
             var total = CountCheckpoints(new AreaKey(chapter, (AreaMode) mode));
             for (var ch = 0; ch < total; ch++) {
-                if (!Instance.ModSaveData.HasCheckpointVariant(chapter, mode, ch, variant)) {
+                if (!BingoClient.Instance.ModSaveData.HasCheckpointVariant(chapter, mode, ch, variant)) {
                     missed = true;
                     break;
                 }
@@ -487,19 +492,19 @@ namespace Celeste.Mod.BingoClient {
         }
         
         private static float HasFlag(string flag) {
-            return Instance.ModSaveData.FileFlags.Contains(flag) ? 1f : 0f;
+            return BingoClient.Instance.ModSaveData.FileFlags.Contains(flag) ? 1f : 0f;
         }
         
         private static float HasPicoBerries(int n) {
-            return Math.Min(1f, Instance.ModSaveData.PicoBerries / (float) n);
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.PicoBerries / (float) n);
         }
 
         private static float HasHugeMessOrder(int p0, int p1, int p2) {
-            return Instance.ModSaveData.HasHugeMessOrder(p0, p1, p2) ? 1f : 0f;
+            return BingoClient.Instance.ModSaveData.HasHugeMessOrder(p0, p1, p2) ? 1f : 0f;
         }
 
         private static float HasSeekerKills(int n) {
-            return Math.Min(1f, Instance.ModSaveData.SeekerKills.Count / (float) n);
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.SeekerKills.Count / (float) n);
         }
 
         private static float HasN1upsInChapters(int n, int chapters) {
@@ -507,11 +512,11 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private static float HasN1upsInChapter(int n, int chapter) {
-            return Math.Min(1f, Instance.ModSaveData.OneUps[chapter] / (float) n);
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.OneUps[chapter] / (float) n);
         }
 
         private static float HasN1ups(int n) {
-            return Math.Min(1f, Instance.ModSaveData.OneUps.Sum() / (float) n);
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.OneUps.Sum() / (float) n);
         }
 
         private static readonly List<Tuple<int, string>> WingedBerryIDList = new List<Tuple<int, string>> {
@@ -688,72 +693,117 @@ namespace Celeste.Mod.BingoClient {
             ) / (float) entities.Length;
         }
         #endregion
-
-        public List<bool> ObjectivesCompleted;
-
-        public void StartObjectives() {
-            this.ObjectivesCompleted = new List<bool>();
-            for (int i = 0; i < 25; i++) {
-                this.ObjectivesCompleted.Add(false);
-            }
+        
+        #region variants
+        public static IEnumerable<BingoVariant> EnabledVariants() {
+            return typeof(BingoVariant).GetEnumValues().Cast<BingoVariant>().Where(variant => IsVariantEnabled(variant));
         }
 
-        public void UpdateObjectives() {
-            if (this.ObjectivesCompleted == null) {
+        public static bool IsVariantEnabled(BingoVariant variant) {
+            if (SaveData.Instance == null) {
+                return false;
+            }
+
+            var extvar = ExtendedVariants.Module.ExtendedVariantsModule.Settings;
+            switch (variant) {
+                case BingoVariant.NoGrab:
+                    return SaveData.Instance.VariantMode && SaveData.Instance.Assists.NoGrabbing;
+                case BingoVariant.NoJump:
+                    return extvar.MasterSwitch && extvar.JumpCount == 0 && extvar.DisableClimbJumping && extvar.DisableNeutralJumping && extvar.DisableWallJumping;
+                case BingoVariant.NoDash:
+                    return extvar.MasterSwitch && extvar.DashCount == 0;
+            }
+
+            return false;
+        }
+
+        public static void SetVariantEnabled(BingoVariant variant, bool enabled) {
+            if (SaveData.Instance == null) {
                 return;
             }
+
+            var extvar = ExtendedVariants.Module.ExtendedVariantsModule.Settings;
+            switch (variant) {
+                case BingoVariant.NoGrab:
+                    if (enabled) SaveData.Instance.VariantMode = true;
+                    SaveData.Instance.Assists.NoGrabbing = enabled;
+                    break;
+                case BingoVariant.NoJump:
+                    if (enabled) extvar.MasterSwitch = true;
+                    extvar.JumpCount = enabled ? 0 : 1;
+                    extvar.DisableClimbJumping = extvar.DisableNeutralJumping = extvar.DisableWallJumping = enabled;
+                    break;
+                case BingoVariant.NoDash:
+                    if (enabled) extvar.MasterSwitch = true;
+                    extvar.DashCount = enabled ? 0 : -1;
+                    break;
+            }
+        }
+
+        public static int? AtCheckpoint() {
+            if (SaveData.Instance?.CurrentSession == null) {
+                return null;
+            }
+
+            var level = Engine.Scene as Level;
+            var player = level?.Tracker.GetEntity<Player>();
+            if (player == null) {
+                return null;
+            }
+
+            bool first = ReferenceEquals(level.Session.LevelData, level.Session.MapData.Levels[0]);
+
+
+            var checkpoint = level.Entities.FindFirst<Checkpoint>();
+            if (!first && checkpoint == null) {
+                return null;
+            }
+
+            Vector2 refpoint = checkpoint?.Position ?? level.Session.LevelData.Spawns[0];
+
+            if ((refpoint - player.Position).LengthSquared() > 30 * 30) {
+                return null;
+            }
+
+            if (first) {
+                return 0;
+            }
+
+            return IsCheckpointRoom(level.Session.Level);
+        }
+
+        public static int? IsCheckpointRoom(string room) {
+            var level = Engine.Scene as Level;
+            if (level == null) {
+                return null;
+            }
             
-            for (var i = 0; i < 25; i++) {
-                if (this.GetObjectiveStatus(i) != ObjectiveStatus.Completed) {
-                    continue;
-                }
-
-                if (!this.ObjectivesCompleted[i]) {
-                    this.ObjectivesCompleted[i] = true;
-                    Chat(string.Format(Dialog.Get("bingoclient_objective_claimable"), this.Board[i].Text));
-                }
-                
-                if (this.ModSettings.QuickClaim.Check) {
-                    this.SendClaim(i);
-                }
+            var checkpointList = AreaData.Get(level.Session.Area)
+                .Mode[(int) level.Session.Area.Mode]
+                .Checkpoints;
+            if (checkpointList == null) {
+                return null;
             }
+            var list = checkpointList
+                .Where(ch => ch != null)
+                .Select(ch => ch.Level)
+                .ToList();
+            if (!list.Contains(room)) {
+                return null;
+            }
+
+            return list.IndexOf(room) + 1;
         }
 
-        public ObjectiveStatus GetObjectiveStatus(int i) {
-            if (this.Board[i].Color != Color.Black) {
-                return ObjectiveStatus.Claimed;
+        public static int CountCheckpoints(AreaKey area) {
+            var areadata = AreaData.Get(area);
+            var mode = (int) area.Mode;
+            if (areadata.Mode.Length <= mode) {
+                return 1;
             }
-
-            if (this.ObjectivesCompleted[i]) {
-                return ObjectiveStatus.Completed;
-            }
-
-            if (SaveData.Instance == null) {
-                return ObjectiveStatus.Nothing;
-            }
-            
-            if (!Objectives.TryGetValue(this.Board[i].Text, out var checker) || checker == null) {
-                return ObjectiveStatus.Unknown;
-            }
-            
-            var progress = checker();
-            if (progress < 0.001f) {
-                return ObjectiveStatus.Nothing;
-            }
-
-            if (progress > 0.999f) {
-                return ObjectiveStatus.Completed;
-            }
-
-            return ObjectiveStatus.Progress;
+            return (areadata.Mode[mode].Checkpoints?.Length ?? 0) + 1;
         }
 
-        public bool IsObjectiveClaimable(int i) {
-            return this.Board[i].Color == Color.Black && this.ObjectivesCompleted[i];
-        }
-
-        public enum ObjectiveStatus {
-            Nothing, Unknown, Progress, Completed, Claimed
-        }
+        #endregion
     }
 }

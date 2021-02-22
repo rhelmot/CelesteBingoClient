@@ -96,11 +96,12 @@
   <ItemGroup>
     <Compile Include="BingoClient.cs" />
     <Compile Include="BingoConnection.cs" />
+    <Compile Include="BingoEnums.cs" />
     <Compile Include="BingoMenu.cs" />
-    <Compile Include="BingoObjectives.cs" />
+    <Compile Include="BingoMonitor.cs" />
     <Compile Include="BingoState.cs" />
     <Compile Include="BingoChat.cs" />
-    <Compile Include="BingoVariants.cs" />
+    <Compile Include="BingoWatches.cs" />
     <Compile Include="CookieWebClient.cs" />
   </ItemGroup>
   <ItemGroup>

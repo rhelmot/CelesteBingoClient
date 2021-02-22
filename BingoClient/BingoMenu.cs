@@ -10,9 +10,7 @@ namespace Celeste.Mod.BingoClient {
         public bool MenuToggled, MenuTriggered;
         public bool BoardSelected = true;
         public int BoardSelX, BoardSelY;
-        public int BoarcSelSlot {
-            get => this.BoardSelX + this.BoardSelY * 5;
-        }
+        public int BoarcSelSlot => this.BoardSelX + this.BoardSelY * 5;
         private Wiggler Wiggle = Wiggler.Create(0.25f, 3f);
 
         private const int DISABLE_OFFSET = 1;
@@ -23,6 +21,7 @@ namespace Celeste.Mod.BingoClient {
 
         private MTexture CircleDark, CircleLight, CircleSlice;
 
+        #region init
         private void InitMenu() {
             CircleDark = GFX.Gui["menu/bingo/dark"];
             CircleLight = GFX.Gui["menu/bingo/light"];
@@ -79,15 +78,15 @@ namespace Celeste.Mod.BingoClient {
 
             Action makeVariantCallback(BingoVariant v, bool value) {
                 return () => {
-                    SetVariantEnabled(v, value);
+                    BingoMonitor.SetVariantEnabled(v, value);
                     if (value) {
-                        this.ModSession.CheckpointStartedVariant = AtCheckpoint();
+                        this.ModSession.CheckpointStartedVariant = BingoMonitor.AtCheckpoint();
                     }
                 };
             }
 
             for (int idx = 0; idx < 25; idx++) {
-                var button = this.Menu.Items[OBJECTIVE_OFFSET + idx] as TextMenuExt.ButtonExt;
+                var button = this.Menu.Items[OBJECTIVE_OFFSET + idx] as TextMenuExt.ButtonExt ?? throw new Exception("programming error");
                 button.OnPressed = makeMenuCallback(idx);
             }
             
@@ -96,7 +95,7 @@ namespace Celeste.Mod.BingoClient {
                 this.GetEnableButton(variant).OnPressed = makeVariantCallback(variant, true);
             }
 
-            (this.Menu.Items[OBJECTIVE_OFFSET - 1] as TextMenuExt.ButtonExt).OnPressed = () => {
+            (this.Menu.Items[OBJECTIVE_OFFSET - 1] as TextMenuExt.ButtonExt ?? throw new Exception("programming error")).OnPressed = () => {
                 for (int idx = 0; idx < 25; idx++) {
                     if (this.IsObjectiveClaimable(idx)) {
                         this.SendClaim(idx);
@@ -109,15 +108,7 @@ namespace Celeste.Mod.BingoClient {
             this.Menu.Position = new Vector2(1100f, 0f);
             this.Menu.ItemSpacing = 3f;
         }
-
-        public void ToggleSquare(int i) {
-            if (this.Board[i].Color == Color.Black) {
-                this.SendClaim(i);
-            } else if (this.Board[i].Color == this.ModSettings.PlayerColor.ToColor()) {
-                this.SendClear(i);
-            }
-        }
-
+        
         public TextMenuExt.ButtonExt GetSlotButton(int idx) {
             return (TextMenuExt.ButtonExt) this.Menu.Items[OBJECTIVE_OFFSET + idx];
         }
@@ -128,6 +119,16 @@ namespace Celeste.Mod.BingoClient {
         
         public TextMenuExt.ButtonExt GetDisableButton(BingoVariant idx) {
             return (TextMenuExt.ButtonExt) this.Menu.Items[DISABLE_OFFSET + (int)idx];
+        }
+        #endregion
+
+        #region update
+        public void ToggleSquare(int i) {
+            if (this.Board[i].Color == Color.Black) {
+                this.SendClaim(i);
+            } else if (this.Board[i].Color == this.ModSettings.PlayerColor.ToColor()) {
+                this.SendClear(i);
+            }
         }
 
         private void PreUpdateMenu() {
@@ -163,9 +164,9 @@ namespace Celeste.Mod.BingoClient {
             if (!this.MenuTriggered) {
                 // force update the console
                 if (Engine.Commands.Open) {
-                    typeof(Monocle.Commands).GetMethod("UpdateOpen", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(Engine.Commands, new object[] { });
+                    typeof(Monocle.Commands).GetMethod("UpdateOpen", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(Engine.Commands, new object[] { });
                 } else if (Engine.Commands.Enabled) {
-                    typeof(Monocle.Commands).GetMethod("UpdateClosed", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(Engine.Commands, new object[] { });
+                    typeof(Monocle.Commands).GetMethod("UpdateClosed", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(Engine.Commands, new object[] { });
                 }
             }
             
@@ -195,11 +196,11 @@ namespace Celeste.Mod.BingoClient {
             // visibility for variant buttons
             anyVisible = false;
             foreach (BingoVariant variant in typeof(BingoVariant).GetEnumValues()) {
-                anyVisible |= (GetDisableButton(variant).Visible = IsVariantEnabled(variant));
+                anyVisible |= (GetDisableButton(variant).Visible = BingoMonitor.IsVariantEnabled(variant));
                 GetEnableButton(variant).Visible = false;
             }
             foreach (var variant in RelevantVariants()) {
-                if (!IsVariantEnabled(variant)) {
+                if (!BingoMonitor.IsVariantEnabled(variant)) {
                     GetEnableButton(variant).Visible = true;
                     anyVisible = true;
                 }
@@ -264,7 +265,9 @@ namespace Celeste.Mod.BingoClient {
                 }
             }
         }
-
+        #endregion
+        
+        #region render
         private void RenderMenu() {
             if (!this.MenuTriggered && !this.MenuToggled) {
                 return;
@@ -337,7 +340,7 @@ namespace Celeste.Mod.BingoClient {
                             break;
                         case ObjectiveStatus.Progress:
                             this.CircleLight.Draw(subcorner, origin, Color.White, scale, 0f);
-                            var progress = Objectives[this.Board[slot].Text]();
+                            var progress = BingoMonitor.Objectives[this.Board[slot].Text]();
                             var progressInt = Calc.Clamp((int) (progress * 30), 1, 29);
                             for (var i = 0; i < progressInt; i++) {
                                 this.CircleSlice.Draw(subcorner, origin, Color.White, scale, MathHelper.WrapAngle(MathHelper.TwoPi / 30f * i));
@@ -347,7 +350,7 @@ namespace Celeste.Mod.BingoClient {
                 }
             }
             
-            this.Menu.Render();
+            this.Menu?.Render();
             Draw.SpriteBatch.End();
         }
 
@@ -398,5 +401,6 @@ namespace Celeste.Mod.BingoClient {
                 }
             }
         }
+        #endregion
     }
 }

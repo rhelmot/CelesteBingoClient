@@ -6,21 +6,8 @@ using Monocle;
 namespace Celeste.Mod.BingoClient {
     public partial class BingoClient {
         private List<BingoSquare> Board;
+        public List<bool> ObjectivesCompleted;
 
-        public enum BingoColors {
-            Blank,
-            Orange,
-            Red,
-            Blue,
-            Green,
-            Purple,
-            Navy,
-            Teal,
-            Brown,
-            Pink,
-            Yellow,
-        }
-        
         public static Dictionary<string, Color> ColorMap = new Dictionary<string, Color> {
             {"blank", Color.Black},
             {"orange", new Color(0xF9, 0x8E, 0x1E)},
@@ -48,51 +35,44 @@ namespace Celeste.Mod.BingoClient {
                 this.Board[i].Color = ColorMap[square.colors];
                 this.Board[i].Text = square.name;
             }
+            
+            this.ObjectivesCompleted = new List<bool>();
+            for (int i = 0; i < 25; i++) {
+                this.ObjectivesCompleted.Add(false);
+            }
         }
         
         private void BingoEvent(StatusMessage msg) {
+            this.LogChat(msg.Render());
             switch (msg.type) {
                 case "connection" when msg.event_type == "disconnected":
-                    Chat($"{msg.player.name} disconnected");
                     break;
                 case "connection" when msg.event_type == "connected":
-                    Chat($"{msg.player.name} connected");
                     this.Connected = true;
                     break;
                 case "connection":
-                    Logger.Log("BingoClient", $"Unknown connection message {msg.event_type}");
                     break;
                 case "goal": {
                     var i = int.Parse(msg.square.slot.Substring(4)) - 1;
-                    if (msg.remove) {
-                        this.Board[i].Color = ColorMap["blank"];
-                        Chat($"{msg.player.name} cleared \"{this.Board[i].Text}\"");
-                    } else {
-                        this.Board[i].Color = ColorMap[msg.player.color];
-                        Chat($"{msg.player.name} marked \"{this.Board[i].Text}\"");
-                    }
-
+                    this.Board[i].Color = msg.remove ? ColorMap["blank"] : ColorMap[msg.player.color];
                     break;
                 }
                 case "color":
-                    Chat($"{msg.player.name} changed color to {msg.player.color}");
                     break;
                 case "chat":
-                    Chat($"{msg.player.name} said: {msg.text}");
                     break;
                 case "error":
-                    Chat($"Error from server: {msg.error}");
                     if (this.Connected) {
-                        Chat(Dialog.Clean("bingoclient_connect_retrying"));
+                        this.LogChat(Dialog.Clean("bingoclient_connect_retrying"));
                         this.Disconnect();
                         try {
                             this.Connect();
                         } catch (Exception e) {
                             Logger.LogDetailed(e, "BingoClient");
-                            Chat(Dialog.Clean("bingoclient_connect_error"));
+                            this.LogChat(Dialog.Clean("bingoclient_connect_error"));
                         }
                     } else {
-                        Chat(Dialog.Clean("bingoclient_connect_tryagain"));
+                        this.LogChat(Dialog.Clean("bingoclient_connect_tryagain"));
                         this.Disconnect();
                     }
                     break;
@@ -107,11 +87,81 @@ namespace Celeste.Mod.BingoClient {
             public Color Color = Color.Black;
             public string Text = "";
         }
-    }
 
-    public static class BingoColorsExt {
-        public static Color ToColor(this BingoClient.BingoColors self) {
-            return BingoClient.ColorMap[self.ToString().ToLowerInvariant()];
+        public void UpdateObjectives() {
+            if (this.ObjectivesCompleted == null) {
+                return;
+            }
+            
+            for (var i = 0; i < 25; i++) {
+                if (this.GetObjectiveStatus(i) != ObjectiveStatus.Completed) {
+                    continue;
+                }
+
+                if (!this.ObjectivesCompleted[i]) {
+                    this.ObjectivesCompleted[i] = true;
+                    this.LogChat(string.Format(Dialog.Get("bingoclient_objective_claimable"), this.Board[i].Text));
+                }
+                
+                if (this.ModSettings.QuickClaim.Check) {
+                    this.SendClaim(i);
+                }
+            }
+        }
+
+        public ObjectiveStatus GetObjectiveStatus(int i) {
+            if (this.Board[i].Color != Color.Black) {
+                return ObjectiveStatus.Claimed;
+            }
+
+            if (this.ObjectivesCompleted[i]) {
+                return ObjectiveStatus.Completed;
+            }
+
+            if (SaveData.Instance == null) {
+                return ObjectiveStatus.Nothing;
+            }
+            
+            if (!BingoMonitor.Objectives.TryGetValue(this.Board[i].Text, out var checker) || checker == null) {
+                return ObjectiveStatus.Unknown;
+            }
+            
+            var progress = checker();
+            if (progress < 0.001f) {
+                return ObjectiveStatus.Nothing;
+            }
+
+            if (progress > 0.999f) {
+                return ObjectiveStatus.Completed;
+            }
+
+            return ObjectiveStatus.Progress;
+        }
+
+        public bool IsObjectiveClaimable(int i) {
+            return this.Board[i].Color == Color.Black && this.ObjectivesCompleted[i];
+        }
+        
+        public IEnumerable<BingoVariant> RelevantVariants() {
+            var checkpoint = BingoMonitor.AtCheckpoint();
+            if (checkpoint == null) {
+                yield break;
+            }
+            var area = SaveData.Instance.CurrentSession.Area;
+
+            var seen = new HashSet<BingoVariant>();
+            foreach (var square in Instance.Board) {
+                if (!BingoMonitor.ObjectiveVariants.TryGetValue(square.Text, out var variants)) {
+                    continue;
+                }
+
+                foreach (var entry in variants) {
+                    if (entry.Item1 == area.ID && entry.Item2 == (int) area.Mode && entry.Item3 == checkpoint && !seen.Contains(entry.Item4)) {
+                        seen.Add(entry.Item4);
+                        yield return entry.Item4;
+                    }
+                }
+            }
         }
     }
 }
