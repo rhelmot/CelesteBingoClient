@@ -99,7 +99,7 @@
     <Compile Include="BingoMenu.cs" />
     <Compile Include="BingoObjectives.cs" />
     <Compile Include="BingoState.cs" />
-    <Compile Include="BingoToasts.cs" />
+    <Compile Include="BingoChat.cs" />
     <Compile Include="BingoVariants.cs" />
     <Compile Include="CookieWebClient.cs" />
   </ItemGroup>

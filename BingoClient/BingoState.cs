@@ -53,10 +53,10 @@ namespace Celeste.Mod.BingoClient {
         private void BingoEvent(StatusMessage msg) {
             switch (msg.type) {
                 case "connection" when msg.event_type == "disconnected":
-                    Toast($"{msg.player.name} disconnected");
+                    Chat($"{msg.player.name} disconnected");
                     break;
                 case "connection" when msg.event_type == "connected":
-                    Toast($"{msg.player.name} connected");
+                    Chat($"{msg.player.name} connected");
                     this.Connected = true;
                     break;
                 case "connection":
@@ -66,33 +66,33 @@ namespace Celeste.Mod.BingoClient {
                     var i = int.Parse(msg.square.slot.Substring(4)) - 1;
                     if (msg.remove) {
                         this.Board[i].Color = ColorMap["blank"];
-                        Toast($"{msg.player.name} cleared \"{this.Board[i].Text}\"");
+                        Chat($"{msg.player.name} cleared \"{this.Board[i].Text}\"");
                     } else {
                         this.Board[i].Color = ColorMap[msg.player.color];
-                        Toast($"{msg.player.name} marked \"{this.Board[i].Text}\"");
+                        Chat($"{msg.player.name} marked \"{this.Board[i].Text}\"");
                     }
 
                     break;
                 }
                 case "color":
-                    Toast($"{msg.player.name} changed color to {msg.player.color}");
+                    Chat($"{msg.player.name} changed color to {msg.player.color}");
                     break;
                 case "chat":
-                    Toast($"{msg.player.name} said: {msg.text}");
+                    Chat($"{msg.player.name} said: {msg.text}");
                     break;
                 case "error":
-                    Toast($"Error from server: {msg.error}");
+                    Chat($"Error from server: {msg.error}");
                     if (this.Connected) {
-                        Toast(Dialog.Clean("bingoclient_connect_retrying"));
+                        Chat(Dialog.Clean("bingoclient_connect_retrying"));
                         this.Disconnect();
                         try {
                             this.Connect();
                         } catch (Exception e) {
                             Logger.LogDetailed(e, "BingoClient");
-                            Toast(Dialog.Clean("bingoclient_connect_error"));
+                            Chat(Dialog.Clean("bingoclient_connect_error"));
                         }
                     } else {
-                        Toast(Dialog.Clean("bingoclient_connect_tryagain"));
+                        Chat(Dialog.Clean("bingoclient_connect_tryagain"));
                         this.Disconnect();
                     }
                     break;

@@ -216,7 +216,7 @@ namespace Celeste.Mod.BingoClient {
                         this.Connect();
                     } catch (Exception e) {
                         Logger.LogDetailed(e, "BingoClient");
-                        Toast(Dialog.Clean("bingoclient_connect_error"));
+                        Chat(Dialog.Clean("bingoclient_connect_error"));
                     }
                 };
                 menu.Add(retryBtn);
@@ -225,7 +225,7 @@ namespace Celeste.Mod.BingoClient {
                 var disconnectBtn = new TextMenu.Button(Dialog.Clean("modoptions_bingoclient_disconnect"));
                 disconnectBtn.OnPressed = () => {
                     this.Disconnect();
-                    Toast(Dialog.Clean("modoptions_bingoclient_disconnect_message"));
+                    Chat(Dialog.Clean("modoptions_bingoclient_disconnect_message"));
                 };
                 menu.Add(disconnectBtn);
             }
@@ -426,7 +426,7 @@ namespace Celeste.Mod.BingoClient {
                             this.Username = this.ModSettings.PlayerName.Length == 0 ? self.Name : this.ModSettings.PlayerName;
                             this.RoomUrl = contents;
                         } else {
-                            Toast(Dialog.Clean("BINGOCLIENT_BAD_PASTE"));
+                            Chat(Dialog.Clean("BINGOCLIENT_BAD_PASTE"));
                         }
                     },
                     Label = Dialog.Clean("BINGOCLIENT_START_BUTTON"),
@@ -442,7 +442,7 @@ namespace Celeste.Mod.BingoClient {
                 return;
             }
             
-            this.UpdateToasts();
+            this.UpdateChat();
             this.PreUpdateMenu();
             this.UpdateObjectives();
         }
@@ -454,7 +454,7 @@ namespace Celeste.Mod.BingoClient {
             }
             
             this.RenderMenu();
-            this.RenderToasts();
+            this.RenderChat();
         }
         
         public class OuiBingoConnecting : Oui {
@@ -464,7 +464,7 @@ namespace Celeste.Mod.BingoClient {
                         Instance.Connect();
                     } catch (Exception e) {
                         Logger.LogDetailed(e, "BingoClient");
-                        Toast(Dialog.Clean("BINGOCLIENT_CONNECT_ERROR"));
+                        Chat(Dialog.Clean("BINGOCLIENT_CONNECT_ERROR"));
                         return;
                     }
                     
@@ -549,6 +549,8 @@ namespace Celeste.Mod.BingoClient {
         public ButtonBinding MenuTrigger { get; set; }
         [DefaultButtonBinding(Buttons.LeftStick, Keys.Enter)]
         public ButtonBinding QuickClaim { get; set; }
+        [DefaultButtonBinding(Buttons.Back, Keys.T)]
+        public ButtonBinding OpenChat { get; set; }
 
         public void CreatePlayerColorEntry(TextMenu menu, bool inGame) {
             var enumValues = new List<BingoClient.BingoColors>((BingoClient.BingoColors[])Enum.GetValues(typeof(BingoClient.BingoColors)));

@@ -710,7 +710,7 @@ namespace Celeste.Mod.BingoClient {
 
                 if (!this.ObjectivesCompleted[i]) {
                     this.ObjectivesCompleted[i] = true;
-                    Toast(string.Format(Dialog.Get("bingoclient_objective_claimable"), this.Board[i].Text));
+                    Chat(string.Format(Dialog.Get("bingoclient_objective_claimable"), this.Board[i].Text));
                 }
                 
                 if (this.ModSettings.QuickClaim.Check) {
