@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Monocle;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -159,6 +160,15 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private void UpdateMenuOpen() {
+            if (!this.MenuTriggered) {
+                // force update the console
+                if (Engine.Commands.Open) {
+                    typeof(Monocle.Commands).GetMethod("UpdateOpen", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(Engine.Commands, new object[] { });
+                } else if (Engine.Commands.Enabled) {
+                    typeof(Monocle.Commands).GetMethod("UpdateClosed", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(Engine.Commands, new object[] { });
+                }
+            }
+            
             this.Wiggle.UseRawDeltaTime = true;
             this.Wiggle.Update();
 

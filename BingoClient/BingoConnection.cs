@@ -30,11 +30,11 @@ namespace Celeste.Mod.BingoClient {
 
         private string SelectUrl => $"{this.RoomDomain}/api/select";
         private string ColorUrl => $"{this.RoomDomain}/api/color";
+        private string ChatUrl => $"{this.RoomDomain}/api/chat";
 
         private CookieAwareWebClient Session;
         private ClientWebSocket Sock;
         private CancellationTokenSource CancelToken;
-        private Mutex Mutex = new Mutex();
         
         public void Connect() {
             string sessionKey;
@@ -87,9 +87,6 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public void Disconnect() {
-            if (this.CancelToken != null) {
-                Logger.Log("DEBUG", "sending cancel message");
-            }
             this.CancelToken?.Cancel();
             this.CancelToken = null;
             this.Sock = null;
@@ -98,43 +95,53 @@ namespace Celeste.Mod.BingoClient {
 
         public void SendClaim(int slot) {
             new Task(() => {
-                this.Mutex.WaitOne();
-                var result = this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
-                    color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
-                    remove_color = false,
-                    room = this.RoomId,
-                    slot = (slot + 1).ToString(),
-                }));
-                Logger.Log("DEBUG", $"Got claim result: {result}");
-                this.Mutex.ReleaseMutex();
+                lock (this.Session) {
+                    var result = this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
+                        color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
+                        remove_color = false,
+                        room = this.RoomId,
+                        slot = (slot + 1).ToString(),
+                    }));
+                }
             }).Start();
         }
 
         public void SendClear(int slot) {
             new Task(() => {
-                this.Mutex.WaitOne();
-                this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
-                    color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
-                    remove_color = true,
-                    room = this.RoomId,
-                    slot = (slot + 1).ToString(),
-                }));
-                this.Mutex.ReleaseMutex();
+                lock (this.Session) {
+                    this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
+                        color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
+                        remove_color = true,
+                        room = this.RoomId,
+                        slot = (slot + 1).ToString(),
+                    }));
+                }
             }).Start();
         }
 
         public void SendColor() {
             if (this.SentColor != this.ModSettings.PlayerColor) {
                 new Task(() => {
-                    this.Mutex.WaitOne();
-                    this.Session.UploadString(this.ColorUrl, JsonConvert.SerializeObject(new ColorMessage {
-                        color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
-                        room = this.RoomId,
-                    }));
+                    lock (this.Session) {
+                        this.Session.UploadString(this.ColorUrl, JsonConvert.SerializeObject(new ColorMessage {
+                            color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
+                            room = this.RoomId,
+                        }));
+                    }
                     this.SentColor = this.ModSettings.PlayerColor;
-                    this.Mutex.ReleaseMutex();
                 }).Start();
             }
+        }
+        
+        public void SendChat(string text) {
+            new Task(() => {
+                lock (this.Session) {
+                    this.Session.UploadString(this.ColorUrl, JsonConvert.SerializeObject(new ChatMessage {
+                        text = text,
+                        room = this.RoomId,
+                    }));
+                }
+            }).Start();
         }
 
         public List<SquareMsg> GetBoard() {
@@ -145,23 +152,18 @@ namespace Celeste.Mod.BingoClient {
             var buffer = new byte[1024];
             var sock = this.Sock;
             while (!token.IsCancellationRequested) {
-                Logger.Log("DEBUG", "receiving...");
                 var t = sock.ReceiveAsync(new ArraySegment<byte>(buffer), token);
                 try {
                     t.Wait(token);
                 } catch (OperationCanceledException) {
-                    Logger.Log("DEBUG", "...CANCELLED");
                     break;
                 } catch (Exception e) {
-                    Logger.Log("DEBUG", "SOMETHING ELSE???");
                     Logger.LogDetailed(e, "BingoClient");
                 }
 
-                Logger.Log("DEBUG", "...received");
                 StatusMessage obj;
                 if (t.Result.Count == 0) {
                     // p sure this arm is impossible to reach
-                    Logger.Log("DEBUG", "zero length");
                     obj = new StatusMessage {
                         type = "error",
                         error = "Connection lost",
@@ -169,7 +171,6 @@ namespace Celeste.Mod.BingoClient {
                     };
                 } else {
                     var encoded = Encoding.UTF8.GetString(buffer, 0, t.Result.Count);
-                    Logger.Log("DEBUG", $"Here's the message: {encoded}");
                     try {
                         obj = JsonConvert.DeserializeObject<StatusMessage>(encoded);
                     } catch (JsonException e) {
@@ -187,7 +188,6 @@ namespace Celeste.Mod.BingoClient {
                 }
             }
 
-            Logger.Log("DEBUG", "thread going bye bye");
             sock.CloseAsync(WebSocketCloseStatus.NormalClosure, "bye", CancellationToken.None);
         }
 
@@ -241,6 +241,11 @@ namespace Celeste.Mod.BingoClient {
         public class ColorMessage {
             public string room;
             public string color;
+        }
+
+        public class ChatMessage {
+            public string room;
+            public string text;
         }
     }
 }
