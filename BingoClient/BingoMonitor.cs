@@ -460,6 +460,17 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
+        public static float ObjectiveProgress(string text) {
+            if (SaveData.Instance == null) {
+                return 0f;
+            }
+            if (!Objectives.TryGetValue(text, out var maybenull) || maybenull == null) {
+                return 0f;
+            }
+
+            return maybenull();
+        }
+
         #endregion
 
         #region checkers
@@ -613,10 +624,16 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private static float HasNSummitGems(int n) {
+            if (SaveData.Instance.SummitGems == null) {
+                return 0f;
+            }
             return Math.Min(1f, SaveData.Instance.SummitGems.Select(x => x ? 1f : 0f).Sum() / n);
         }
 
         private static float HasSummitGems(params int[] indices) {
+            if (SaveData.Instance.SummitGems == null) {
+                return 0f;
+            }
             return indices.Select(idx => SaveData.Instance.SummitGems[idx] ? 1f : 0f).Sum() / indices.Length;
         }
 

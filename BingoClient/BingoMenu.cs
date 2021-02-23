@@ -340,7 +340,7 @@ namespace Celeste.Mod.BingoClient {
                             break;
                         case ObjectiveStatus.Progress:
                             this.CircleLight.Draw(subcorner, origin, Color.White, scale, 0f);
-                            var progress = BingoMonitor.Objectives[this.Board[slot].Text]();
+                            var progress = BingoMonitor.ObjectiveProgress(this.Board[slot].Text);
                             var progressInt = Calc.Clamp((int) (progress * 30), 1, 29);
                             for (var i = 0; i < progressInt; i++) {
                                 this.CircleSlice.Draw(subcorner, origin, Color.White, scale, MathHelper.WrapAngle(MathHelper.TwoPi / 30f * i));

@@ -126,11 +126,11 @@ namespace Celeste.Mod.BingoClient {
                 return ObjectiveStatus.Nothing;
             }
             
-            if (!BingoMonitor.Objectives.TryGetValue(this.Board[i].Text, out var checker) || checker == null) {
+            if (!BingoMonitor.Objectives.ContainsKey(this.Board[i].Text)) {
                 return ObjectiveStatus.Unknown;
             }
             
-            var progress = checker();
+            var progress = BingoMonitor.ObjectiveProgress(this.Board[i].Text);
             if (progress < 0.001f) {
                 return ObjectiveStatus.Nothing;
             }
