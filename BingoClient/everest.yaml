@@ -3,7 +3,7 @@
   DLL: BingoClient.dll
   Dependencies:
     - Name: Everest
-      Version: 1.1847.0
+      Version: 1.2637.0
     - Name: BingoUI
       Version: 1.2.0
     - Name: ExtendedVariantMode
