@@ -83,7 +83,7 @@ namespace Celeste.Mod.BingoClient {
             { "Complete 3 A-Sides", () => HasNASides(3) },
             { "All Berries in Old Trail (7)", () => HasCheckpointBerries(4, 2) },
             { "3 Winged Berries", () => HasNWingBerries(3) },
-            { "4 Winged Berries", () => HasNWingBerries(4) },
+            { "Use 4 Binoculars in B-Sides", () => HasNBinosInBSides(4) },
             { "Use 5 Binoculars in B-Sides", () => HasNBinosInBSides(5) },
             { "5 Berries in 5 Chapters", () => HasNBerriesInChapters(5, 5) },
             { "Grabless Huge Mess", null }, // generated
@@ -102,6 +102,7 @@ namespace Celeste.Mod.BingoClient {
             { "Get 2 Keys in 5B", () => (HasFlag("key:5:1:b-02:221") + HasFlag("key:5:1:b-02:219")) / 2f },
             { "All Berries in Cliff Face (5)", () => HasCheckpointBerries(4, 3) },
             { "Grabless Search", null }, // generated
+            { "4 Winged Berries", () => HasNWingBerries(4) },
             { "5 Winged Berries", () => HasNWingBerries(5) },
             { "Talk to Theo in Search", () => HasFlag("cutscene:5:e-00") },
             { "4 Cassettes", () => HasNCassettes(4) },
