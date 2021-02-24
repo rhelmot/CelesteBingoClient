@@ -186,7 +186,7 @@ namespace Celeste.Mod.BingoClient {
             { "Use all Binoculars in 500M (3)", () => HasParticularBinos(7, 0, "b-01", "b-02", "b-02b") },
             { "All Berries in 0M (4)", () => HasCheckpointBerries(7, 0) },
             { "Reflection A-Side", () => HasASide(6) },
-            { "All Collectibles in 4A", () => (HasNBerriesInChapter(4, 29, false)*29f + HasCassette(4) + HasHeart(4, 0)) / 31f },
+            { "All Collectibles in 4A", () => (HasNBerriesInChapter(29, 4, false)*29f + HasCassette(4) + HasHeart(4, 0)) / 31f },
             { "8 Winged Berries", () => HasNWingBerries(8) },
             { "9 Winged Berries", () => HasNWingBerries(9) },
             { "Complete 3 A-Sides and 3 B-Sides", () => (HasNASides(3) + HasNHeartsColor(3, 1)) / 2f },
@@ -461,7 +461,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public static float ObjectiveProgress(string text) {
-            if (SaveData.Instance == null) {
+            if (SaveData.Instance == null || string.IsNullOrEmpty(SaveData.Instance.TheoSisterName)) {
                 return 0f;
             }
             if (!Objectives.TryGetValue(text, out var maybenull) || maybenull == null) {
@@ -620,7 +620,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private static float HasNASides(int n) {
-            return Math.Min(1f, SaveData.Instance.Areas.Select(area => area.Modes[0].Completed ? 1f : 0f).Sum() / n);
+            return Math.Min(1f, SaveData.Instance.Areas.Select(area => area.Modes[0].Completed && area.ID != 0 && area.ID != 8 && area.ID != 10 ? 1f : 0f).Sum() / n);
         }
 
         private static float HasNSummitGems(int n) {
@@ -753,6 +753,10 @@ namespace Celeste.Mod.BingoClient {
                 case BingoVariant.NoDash:
                     if (enabled) extvar.MasterSwitch = true;
                     extvar.DashCount = enabled ? 0 : -1;
+                    var player = Engine.Scene.Tracker.GetEntity<Player>();
+                    if (player != null) {
+                        player.Dashes = 0;
+                    }
                     break;
             }
         }

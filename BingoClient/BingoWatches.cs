@@ -21,6 +21,7 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.Pico8.Classic.load_room += TrackPicoRooms;
             IL.Celeste.Pico8.Classic.fruit.update += TrackPicoBerries;
             IL.Celeste.Pico8.Classic.fly_fruit.update += TrackPicoBerries;
+            IL.Celeste.Pico8.Classic.orb.draw += TrackPicoOrb;
             Everest.Events.Level.OnTransitionTo += OnTransition;
             Everest.Events.Level.OnComplete += OnComplete;
             On.Celeste.CutsceneEntity.EndCutscene += OnEndCutscene;
@@ -41,6 +42,7 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.Pico8.Classic.load_room -= TrackPicoRooms;
             IL.Celeste.Pico8.Classic.fruit.update -= TrackPicoBerries;
             IL.Celeste.Pico8.Classic.fly_fruit.update -= TrackPicoBerries;
+            IL.Celeste.Pico8.Classic.orb.draw -= TrackPicoOrb;
             Everest.Events.Level.OnTransitionTo -= OnTransition;
             Everest.Events.Level.OnComplete -= OnComplete;
             On.Celeste.CutsceneEntity.EndCutscene -= OnEndCutscene;
@@ -56,6 +58,17 @@ namespace Celeste.Mod.BingoClient {
                 hook.Dispose();
             }
             SpecialHooks.Clear();
+        }
+
+        private static void TrackPicoOrb(ILContext il) {
+            var cursor = new ILCursor(il);
+            if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchStfld(typeof(Pico8.Classic.player), "djump"))) {
+                throw new Exception("Could not find patch point");
+            }
+
+            cursor.EmitDelegate<Action>(() => {
+                BingoClient.Instance.ModSaveData.AddFlag("pico_orb");
+            });
         }
 
         private static void TrackKeys(On.Celeste.Key.orig_OnPlayer orig, Key self, Player player) {
@@ -220,11 +233,6 @@ namespace Celeste.Mod.BingoClient {
 
             if (x == 3 && y == 1) {
                 BingoClient.Instance.ModSaveData.AddFlag("pico_oldsite");
-            }
-
-            if (x == 5 && y == 2) {
-                // todo move BingoClient.Instance into the actual orb collect routine
-                BingoClient.Instance.ModSaveData.AddFlag("pico_orb");
             }
 
             if (x == 6 && y == 3) {
