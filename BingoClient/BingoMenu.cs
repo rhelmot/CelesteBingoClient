@@ -180,6 +180,10 @@ namespace Celeste.Mod.BingoClient {
             if (this.IsBoardHidden && Input.MenuConfirm.Pressed) {
                 this.RevealBoard();
             }
+
+            if (this.IsBoardHidden || !this.Connected) {
+                return;
+            }
             
             this.Wiggle.UseRawDeltaTime = true;
             this.Wiggle.Update();
