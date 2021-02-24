@@ -36,14 +36,15 @@ namespace Celeste.Mod.BingoClient {
         private CookieAwareWebClient Session;
         private ClientWebSocket Sock;
         private CancellationTokenSource CancelToken;
+        private SemaphoreSlim Lock = new SemaphoreSlim(1);
         
         public void Connect() {
             string sessionKey;
             if (this.Session == null || this.Password != this.SavedPassword) {
                 try {
                     this.SavedPassword = this.Password;
-                    this.Session = new CookieAwareWebClient(new CookieContainer());
-                    lock (this.Session) {
+                    using (this.Lock.Use(CancellationToken.None)) {
+                        this.Session = new CookieAwareWebClient(new CookieContainer());
                         var r1 = this.Session.DownloadString(this.RoomUrl);
                         var postKeys = new NameValueCollection {
                             {"csrfmiddlewaretoken", RecoverFormValue("csrfmiddlewaretoken", r1)},
@@ -66,12 +67,13 @@ namespace Celeste.Mod.BingoClient {
                     throw;
                 }
             } else {
-                lock (this.Session) {
+                using (this.Lock.Use(CancellationToken.None)) {
                     var r2 = this.Session.DownloadString(this.RoomUrl);
                     sessionKey = RecoverFormValue("temporarySocketKey", r2);
                 }
             }
             
+            this.CancelToken = new CancellationTokenSource();
             this.Chat.SetHistory(this.GetHistory().events.Select(x => x.Render()));
             
             // https://stackoverflow.com/questions/40502921/net-websockets-forcibly-closed-despite-keep-alive-and-activity-on-the-connectio
@@ -80,20 +82,17 @@ namespace Celeste.Mod.BingoClient {
             this.Sock = new ClientWebSocket();
             Uri uri = new Uri("wss://sockets.bingosync.com/broadcast");
             //Uri uri = new Uri("ws://localhost:8902/");
-            this.Sock.ConnectAsync(uri, CancellationToken.None).Wait();
+            this.Sock.ConnectAsync(uri, this.CancelToken.Token).Wait();
             string msg = JsonConvert.SerializeObject(new HelloMessage {
                 socket_key = sessionKey,
             });
             this.Sock.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(msg)),
                 WebSocketMessageType.Text,
                 true,
-                CancellationToken.None).Wait();
+                this.CancelToken.Token).Wait();
 
-            this.CancelToken = new CancellationTokenSource();
-            new Task(() => {
-                this.RecvThreadFunc(this.CancelToken.Token);
-            }).Start();
-
+            new Task(this.RecvThreadFunc).Start();
+            
             while (!this.Connected) {
                 if (this.Sock == null) {
                     throw new Exception("Encountered something wrong while logging in");
@@ -107,14 +106,14 @@ namespace Celeste.Mod.BingoClient {
 
         public void Disconnect() {
             this.CancelToken?.Cancel();
-            this.CancelToken = null;
+            //this.CancelToken = null;  // don't null this so we can preemptively cancel future things
             this.Sock = null;
             this.Connected = false;
         }
 
         public void SendClaim(int slot) {
             new Task(() => {
-                lock (this.Session) {
+                using (this.Lock.Use(this.CancelToken.Token)) {
                     this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
                         color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
                         remove_color = false,
@@ -127,7 +126,7 @@ namespace Celeste.Mod.BingoClient {
 
         public void SendClear(int slot) {
             new Task(() => {
-                lock (this.Session) {
+                using (this.Lock.Use(this.CancelToken.Token)) {
                     this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
                         color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
                         remove_color = true,
@@ -141,7 +140,7 @@ namespace Celeste.Mod.BingoClient {
         public void SendColor() {
             if (this.SentColor != this.ModSettings.PlayerColor) {
                 new Task(() => {
-                    lock (this.Session) {
+                    using (this.Lock.Use(this.CancelToken.Token)) {
                         this.Session.UploadString(this.ColorUrl, JsonConvert.SerializeObject(new ColorMessage {
                             color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
                             room = this.RoomId,
@@ -154,8 +153,8 @@ namespace Celeste.Mod.BingoClient {
         
         public void SendChat(string text) {
             new Task(() => {
-                lock (this.Session) {
-                    var result = this.Session.UploadString(this.ChatUrl, JsonConvert.SerializeObject(new ChatMessage {
+                using (this.Lock.Use(this.CancelToken.Token)) {
+                    this.Session.UploadString(this.ChatUrl, JsonConvert.SerializeObject(new ChatMessage {
                         text = text,
                         room = this.RoomId,
                     }));
@@ -164,19 +163,20 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public List<SquareMsg> GetBoard() {
-            lock (this.Session) {
+            using (this.Lock.Use(this.CancelToken.Token)) {
                 return JsonConvert.DeserializeObject<List<SquareMsg>>(this.Session.DownloadString(this.RoomUrl + "/board"));
             }
         }
 
         public HistoryMessage GetHistory() {
-            lock (this.Session) {
+            using (this.Lock.Use(this.CancelToken.Token)) {
                 var result = this.Session.DownloadString(this.RoomUrl + "/feed");
                 return JsonConvert.DeserializeObject<HistoryMessage>(result);
             }
         }
 
-        private void RecvThreadFunc(CancellationToken token) {
+        private void RecvThreadFunc() {
+            var token = this.CancelToken.Token;
             var buffer = new byte[1024];
             var sock = this.Sock;
             while (!token.IsCancellationRequested) {

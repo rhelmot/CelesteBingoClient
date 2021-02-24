@@ -103,6 +103,7 @@
     <Compile Include="BingoChat.cs" />
     <Compile Include="BingoWatches.cs" />
     <Compile Include="CookieWebClient.cs" />
+    <Compile Include="LockHolder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="everest.yaml">
