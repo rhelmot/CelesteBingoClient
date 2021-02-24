@@ -289,7 +289,10 @@ namespace Celeste.Mod.BingoClient {
                 null,
                 Engine.ScreenMatrix);
             
-            Draw.Rect(0, 0, 1920f, 1080f, Color.Black * 0.5f);
+            // TODO make this a setting
+            var masterAlpha = this.MenuTriggered ? 0.6f : 1f;
+            
+            Draw.Rect(0, 0, 1920f, 1080f, Color.Black * 0.5f * masterAlpha);
 
             if (!this.Connected) {
                 ActiveFont.DrawOutline(
@@ -318,11 +321,11 @@ namespace Celeste.Mod.BingoClient {
                     var subcorner = corner + subsize * new Vector2(x, y);
 
                     if (!this.MenuTriggered && x == this.BoardSelX && y == this.BoardSelY) {
-                        Draw.Rect(subcorner - Vector2.One * wiggle * 3f + Vector2.UnitY * wiggle * 2f, subsize.X + wiggle*3*2, subsize.Y + wiggle*3*2, Color.WhiteSmoke);
+                        Draw.Rect(subcorner - Vector2.One * wiggle * 3f + Vector2.UnitY * wiggle * 2f, subsize.X + wiggle*3*2, subsize.Y + wiggle*3*2, Color.WhiteSmoke * masterAlpha);
                     }
                     
-                    Draw.Rect(subcorner + subsize * margin / 2, subsize.X * (1 - margin), subsize.Y * (1 - margin), this.Board[slot].Color);
-                    DrawTextBox(this.Board[slot].Text, subcorner + subsize / 2, subsize.X * (1 - padding), subsize.Y * (1 - padding), 0.5f, 1.0f);
+                    Draw.Rect(subcorner + subsize * margin / 2, subsize.X * (1 - margin), subsize.Y * (1 - margin), this.Board[slot].Color * masterAlpha);
+                    DrawTextBox(this.Board[slot].Text, subcorner + subsize / 2, subsize.X * (1 - padding), subsize.Y * (1 - padding), 0.5f, 1.0f, Color.White, 1f, Color.Black);
                 }
             }
             
@@ -365,7 +368,7 @@ namespace Celeste.Mod.BingoClient {
             Draw.SpriteBatch.End();
         }
 
-        public static void DrawTextBox(string text, Vector2 center, float width, float height, float scale, float lineHeight) {
+        public static void DrawTextBox(string text, Vector2 center, float width, float height, float scale, float lineHeight, Color color, float stroke, Color strokeColor) {
             var words = text.Split(' ');
             var singleHeight = ActiveFont.Measure(text).Y;
             while (true) {
@@ -404,7 +407,7 @@ namespace Celeste.Mod.BingoClient {
 
                     var offsetY = -singleHeight * lineHeight * scale * (result.Count - 1) / 2;
                     foreach (var finalline in result) {
-                        ActiveFont.DrawOutline(finalline, center + Vector2.UnitY * offsetY, new Vector2(0.5f, 0.5f), Vector2.One * scale, Color.White, 1f, Color.Black);
+                        ActiveFont.DrawOutline(finalline, center + Vector2.UnitY * offsetY, new Vector2(0.5f, 0.5f), Vector2.One * scale, color, stroke, strokeColor);
                         offsetY += singleHeight * lineHeight * scale;
                     }
 
