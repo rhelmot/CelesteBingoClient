@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Celeste.Mod.UI;
 using Monocle;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -131,10 +132,16 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
+        public static bool IsInappropriateTimeForMenu() {
+            return (Engine.Scene is Overworld ow && (ow.Current is OuiModOptionString || ow.Current is OuiFileNaming)) ||
+                Engine.Scene.Entities.FindFirst<ButtonConfigUI>() != null ||
+                Engine.Scene.Entities.FindFirst<KeyboardConfigUI>() != null;
+        }
+
         private void PreUpdateMenu() {
             // this runs with higher priority and is in charge of controlling the flow of time
             Engine.OverloadGameLoop = null;
-            if (this.ModSettings.MenuToggle.Pressed || (this.MenuToggled && Input.MenuCancel.Pressed)) {
+            if ((this.ModSettings.MenuToggle.Pressed || (this.MenuToggled && Input.MenuCancel.Pressed)) && !IsInappropriateTimeForMenu()) {
                 this.MenuToggled ^= true;
                 Audio.Play(this.MenuToggled ? SFX.ui_game_pause : SFX.ui_game_unpause);
                 // if we're unpausing, hijack the game for another frame to eat the unpause input
@@ -146,7 +153,7 @@ namespace Celeste.Mod.BingoClient {
                     Engine.OverloadGameLoop = () => { };
                 }
             }
-            this.MenuTriggered = this.ModSettings.MenuTrigger.Check;
+            this.MenuTriggered = this.ModSettings.MenuTrigger.Check && !IsInappropriateTimeForMenu();
 
             if (this.MenuTriggered) {
                 this.UpdateMenuOpen();

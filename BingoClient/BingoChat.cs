@@ -44,7 +44,7 @@ namespace Celeste.Mod.BingoClient {
             } else {
                 if (BingoClient.Instance.ModSettings.OpenChat.Pressed && 
                     !Engine.Commands.Open && 
-                    !(Engine.Scene is Overworld overworld && (overworld.Current is OuiModOptionString || overworld.Current is OuiFileNaming)) &&
+                    !BingoClient.IsInappropriateTimeForMenu() &&
                     (this.ChatHistory.Count > 0 || BingoClient.Instance.Connected)) {
                     this.ChatOpen = true;
                     this.InhibitOne = true;
