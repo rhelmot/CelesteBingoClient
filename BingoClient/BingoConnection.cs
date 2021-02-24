@@ -74,6 +74,9 @@ namespace Celeste.Mod.BingoClient {
             
             this.Chat.SetHistory(this.GetHistory().events.Select(x => x.Render()));
             
+            // https://stackoverflow.com/questions/40502921/net-websockets-forcibly-closed-despite-keep-alive-and-activity-on-the-connectio
+            ServicePointManager.MaxServicePointIdleTime = 1000 * 60 * 60 * 24;
+            
             this.Sock = new ClientWebSocket();
             Uri uri = new Uri("wss://sockets.bingosync.com/broadcast");
             //Uri uri = new Uri("ws://localhost:8902/");
@@ -182,6 +185,10 @@ namespace Celeste.Mod.BingoClient {
                     t.Wait(token);
                 } catch (OperationCanceledException) {
                     break;
+                } catch (WebSocketException) {
+                    this.Disconnect();
+                    this.LogChat(Dialog.Clean("modoptions_bingoclient_disconnect_message"));
+                    return;
                 } catch (Exception e) {
                     Logger.LogDetailed(e, "BingoClient");
                 }
