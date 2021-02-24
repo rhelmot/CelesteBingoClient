@@ -352,6 +352,10 @@ namespace Celeste.Mod.BingoClient {
                             for (var i = 0; i < progressInt; i++) {
                                 this.CircleSlice.Draw(subcorner, origin, Color.White, scale, MathHelper.WrapAngle(MathHelper.TwoPi / 30f * i));
                             }
+
+                            if (progress > 1f / 30f) {
+                                this.CircleSlice.Draw(subcorner, origin, Color.White, scale, MathHelper.WrapAngle(MathHelper.TwoPi * (progress - 1f / 30f)));
+                            }
                             break;
                     }
                 }
