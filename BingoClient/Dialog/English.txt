@@ -7,6 +7,7 @@ BINGOCLIENT_CONNECT_RETRYING=Retrying connection...
 BINGOCLIENT_OBJECTIVE_CLAIMABLE="{0}" is now claimable
 
 BINGOCLIENT_MENU_NOBOARD=Connect to a bingo session on the "new file" menu!
+BINGOCLIENT_MENU_HIDDEN=Press CONFIRM to reveal the board
 BINGOCLIENT_MENU_VARIANTS=Relevant Variants
 BINGOCLIENT_MENU_ENABLEGRABLESS=Disable Grabbing
 BINGOCLIENT_MENU_ENABLEDASHLESS=Disable Dashing

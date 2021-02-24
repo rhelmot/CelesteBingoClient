@@ -62,8 +62,8 @@ namespace Celeste.Mod.BingoClient {
                     break;
                 }
                 case "color":
-                    break;
                 case "chat":
+                case "revealed":
                     break;
                 case "error":
                     if (this.Connected) {

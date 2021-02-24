@@ -19,6 +19,7 @@ namespace Celeste.Mod.BingoClient {
         private String SavedRoomId, SavedPassword;
         public bool Connected;
         private BingoColors SentColor;
+        public bool IsBoardHidden;
 
         public string RoomUrl {
             get => $"{this.RoomDomain}/room/{this.RoomId}";
@@ -32,6 +33,7 @@ namespace Celeste.Mod.BingoClient {
         private string SelectUrl => $"{this.RoomDomain}/api/select";
         private string ColorUrl => $"{this.RoomDomain}/api/color";
         private string ChatUrl => $"{this.RoomDomain}/api/chat";
+        private string RevealUrl => $"{this.RoomDomain}/api/revealed";
 
         private CookieAwareWebClient Session;
         private ClientWebSocket Sock;
@@ -61,6 +63,8 @@ namespace Celeste.Mod.BingoClient {
                         if (r2.Contains("Incorrect Password")) {
                             throw new Exception("Incorrect Password");
                         }
+
+                        this.IsBoardHidden = r2.Contains("hide_card\\u0022: true");
                         sessionKey = RecoverFormValue("temporarySocketKey", r2);
                     }
                 } catch (Exception) {
@@ -161,6 +165,19 @@ namespace Celeste.Mod.BingoClient {
                     }));
                 }
             }).Start();
+        }
+
+        public void RevealBoard() {
+            if (this.IsBoardHidden) {
+                new Task(() => {
+                    using (this.Lock.Use(this.CancelToken.Token)) {
+                        this.Session.UploadString(this.RevealUrl, JsonConvert.SerializeObject(new RevealMessage {
+                            room = this.RoomId,
+                        }));
+                    }
+                }).Start();
+                this.IsBoardHidden = false;
+            }
         }
 
         public List<SquareMsg> GetBoard() {
@@ -267,6 +284,8 @@ namespace Celeste.Mod.BingoClient {
                         return $"{this.player.name} changed color to {this.player.color}";
                     case "chat":
                         return $"{this.player.name} said: {this.text}";
+                    case "revealed":
+                        return $"{this.player.name} revealed the board";
                     case "error":
                         return $"Error from server: {this.error}";
                     default:
@@ -309,6 +328,10 @@ namespace Celeste.Mod.BingoClient {
         public class HistoryMessage {
             public bool allincluded;
             public List<StatusMessage> events;
+        }
+
+        public class RevealMessage {
+            public string room;
         }
     }
 }

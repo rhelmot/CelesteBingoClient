@@ -176,6 +176,10 @@ namespace Celeste.Mod.BingoClient {
                     typeof(Monocle.Commands).GetMethod("UpdateClosed", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(Engine.Commands, new object[] { });
                 }
             }
+
+            if (this.IsBoardHidden && Input.MenuConfirm.Pressed) {
+                this.RevealBoard();
+            }
             
             this.Wiggle.UseRawDeltaTime = true;
             this.Wiggle.Update();
@@ -297,6 +301,19 @@ namespace Celeste.Mod.BingoClient {
             if (!this.Connected) {
                 ActiveFont.DrawOutline(
                     Dialog.Clean("bingoclient_menu_noboard"),
+                    new Vector2(1920f, 1080f) / 2f,
+                    new Vector2(0.5f, 0.5f),
+                    Vector2.One,
+                    Color.White,
+                    1,
+                    Color.Black);
+                Draw.SpriteBatch.End();
+                return;
+            }
+
+            if (this.IsBoardHidden) {
+                ActiveFont.DrawOutline(
+                    Dialog.Clean("bingoclient_menu_hidden"),
                     new Vector2(1920f, 1080f) / 2f,
                     new Vector2(0.5f, 0.5f),
                     Vector2.One,
