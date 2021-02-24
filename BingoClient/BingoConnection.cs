@@ -16,7 +16,7 @@ namespace Celeste.Mod.BingoClient {
         public string RoomId;
         public String Username;
         public String Password;
-        private String SavedPassword;
+        private String SavedRoomId, SavedPassword;
         public bool Connected;
         private BingoColors SentColor;
 
@@ -40,9 +40,10 @@ namespace Celeste.Mod.BingoClient {
         
         public void Connect() {
             string sessionKey;
-            if (this.Session == null || this.Password != this.SavedPassword) {
+            if (this.Session == null || this.Password != this.SavedPassword || this.RoomId != this.SavedRoomId) {
                 try {
                     this.SavedPassword = this.Password;
+                    this.SavedRoomId = this.RoomId;
                     using (this.Lock.Use(CancellationToken.None)) {
                         this.Session = new CookieAwareWebClient(new CookieContainer());
                         var r1 = this.Session.DownloadString(this.RoomUrl);
