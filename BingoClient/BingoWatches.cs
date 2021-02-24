@@ -24,7 +24,7 @@ namespace Celeste.Mod.BingoClient {
             IL.Celeste.Pico8.Classic.orb.draw += TrackPicoOrb;
             Everest.Events.Level.OnTransitionTo += OnTransition;
             Everest.Events.Level.OnComplete += OnComplete;
-            On.Celeste.CutsceneEntity.EndCutscene += OnEndCutscene;
+            On.Celeste.Level.EndCutscene += OnEndCutscene;
             On.Celeste.PicoConsole.Update += CheckPicoProximity;
             On.Celeste.CoreModeToggle.OnChangeMode += CheckIceRoom;
             On.Celeste.CrushBlock.OnDashed += KevinDash;
@@ -34,6 +34,7 @@ namespace Celeste.Mod.BingoClient {
 
             SpecialHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.Instance | BindingFlags.NonPublic), TrackSeekerDeath));
             SpecialHooks.Add(new ILHook(typeof(HeartGem).GetMethod("orig_CollectRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), TrackEmptySpace));
+            SpecialHooks.Add(new ILHook(typeof(Level).GetMethod("SkipCutsceneRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), MarkSkippedCutscene));
         }
 
         internal static void UnhookStuff() {
@@ -45,7 +46,7 @@ namespace Celeste.Mod.BingoClient {
             IL.Celeste.Pico8.Classic.orb.draw -= TrackPicoOrb;
             Everest.Events.Level.OnTransitionTo -= OnTransition;
             Everest.Events.Level.OnComplete -= OnComplete;
-            On.Celeste.CutsceneEntity.EndCutscene -= OnEndCutscene;
+            On.Celeste.Level.EndCutscene -= OnEndCutscene;
             On.Celeste.PicoConsole.Update -= CheckPicoProximity;
             On.Celeste.CoreModeToggle.OnChangeMode -= CheckIceRoom;
             On.Celeste.CrushBlock.OnDashed -= KevinDash;
@@ -153,17 +154,32 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
-        private static void OnEndCutscene(On.Celeste.CutsceneEntity.orig_EndCutscene orig, CutsceneEntity self, Level level, bool removeself) {
-            orig(self, level, removeself);
-            if (self.WasSkipped) {
+        private static bool IsSkipping;
+        private static void OnEndCutscene(On.Celeste.Level.orig_EndCutscene orig, Level self) {
+            orig(self);
+            if (self.SkippingCutscene) {
                 return;
             }
 
-            var where = level.Session.Level;
-            if (level.Session.Area.ID == 5 && where == "e-00" && level.Session.RespawnPoint.Value.Y > 1300) {
+            if (IsSkipping) {
+                IsSkipping = false;
+                return;
+            }
+
+            var where = self.Session.Level;
+            if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.Y > 1300) {
                 where = "search";
             }
-            BingoClient.Instance.ModSaveData.AddFlag($"cutscene:{level.Session.Area.ID}:{where}");
+            BingoClient.Instance.ModSaveData.AddFlag($"cutscene:{self.Session.Area.ID}:{where}");
+        }
+
+        private static void MarkSkippedCutscene(ILContext il) {
+            var cursor = new ILCursor(il);
+            if (!cursor.TryGotoNext(MoveType.Before, insn => insn.MatchCallvirt<Level>("EndCutscene"))) {
+                throw new Exception("Could not find patch point");
+            }
+
+            cursor.EmitDelegate<Action>(() => IsSkipping = true);
         }
 
         private static void OnComplete(Level level) {
@@ -174,7 +190,6 @@ namespace Celeste.Mod.BingoClient {
         private static void OnTransition(Level level, LevelData next, Vector2 direction) {
             var player = level.Tracker.GetEntity<Player>();
             var area = level.Session.Area;
-            Logger.Log("DEBUG", $"Here we are: player@{player.Position}");
             var prev = level.Session.MapData.GetAt(player.Position - direction * 16);
             if (prev.Name == next.Name) {
                 // just in case!

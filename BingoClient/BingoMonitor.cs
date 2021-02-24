@@ -12,7 +12,7 @@ using Monocle;
 namespace Celeste.Mod.BingoClient {
     public static class BingoMonitor {
         #region data
-        public static string[] TheoCutscenes = { "cutscene:1:6zb", "cutscene:2:end_2", "cutscene:3:09-d", "cutscene:search" };
+        public static string[] TheoCutscenes = { "cutscene:1:6zb", "cutscene:2:end_2", "cutscene:3:09-d", "cutscene:5:search" };
         public static string[] SearchKeys = { "key:5:0:d-15:216", "key:5:0:d-04:39", "key:5:0:d-04:14" };
         public static string[] PowerSourceKeys = { "key:10:0:d-01:261", "key:10:0:d-02:70", "key:10:0:d-03:315", "key:10:0:d-04:444", "key:10:0:d-05:593" };
         public static Dictionary<string, Func<float>> Objectives = new Dictionary<string, Func<float>> {
