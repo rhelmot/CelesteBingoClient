@@ -780,9 +780,21 @@ namespace Celeste.Mod.BingoClient {
                 return null;
             }
 
-            Vector2 refpoint = checkpoint?.Position ?? level.Session.LevelData.Spawns[0];
+            Vector2? refpoint1 = checkpoint?.Position;
+            Vector2? refpoint2 = refpoint1 != null ? level.Session.GetSpawnPoint(refpoint1.Value + checkpoint.SpawnOffset) : level.Session.LevelData.Spawns[0];
+            Vector2? refpoint3 = null;
+            if (level.Session.Area == new AreaKey(6)) {
+                refpoint3 = new Vector2(0, 300);
+            }
+            Vector2? refpoint4 = null;
+            if (level.Session.Area == new AreaKey(6)) {
+                refpoint4 = new Vector2(-1113, -225);
+            }
 
-            if ((refpoint - player.Position).LengthSquared() > 30 * 30) {
+            if ((refpoint1 == null || (refpoint1.Value - player.Position).LengthSquared() > 30 * 30) &&
+                (refpoint2 == null || (refpoint2.Value - player.Position).LengthSquared() > 30 * 30) &&
+                (refpoint3 == null || (refpoint3.Value - player.Position).LengthSquared() > 30 * 30) &&
+                (refpoint4 == null || (refpoint4.Value - player.Position).LengthSquared() > 30 * 30)) {
                 return null;
             }
 
