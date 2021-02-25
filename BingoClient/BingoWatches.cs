@@ -69,6 +69,10 @@ namespace Celeste.Mod.BingoClient {
             }
 
             cursor.EmitDelegate<Action>(() => {
+                if (BingoClient.Instance.ModSaveData == null) {
+                    return;
+                }
+                
                 BingoClient.Instance.ModSaveData.AddFlag("pico_orb");
             });
         }
@@ -248,6 +252,10 @@ namespace Celeste.Mod.BingoClient {
 
             cursor.Emit(OpCodes.Dup);
             cursor.EmitDelegate<Action<HashSet<int>>>(set => {
+                if (BingoClient.Instance.ModSaveData == null) {
+                    return;
+                }
+                
                 BingoClient.Instance.ModSaveData.PicoBerries = Math.Max(BingoClient.Instance.ModSaveData.PicoBerries, set.Count + 1);
             });
         }
