@@ -35,6 +35,7 @@ namespace Celeste.Mod.BingoClient {
             SpecialHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.Instance | BindingFlags.NonPublic), TrackSeekerDeath));
             SpecialHooks.Add(new ILHook(typeof(HeartGem).GetMethod("orig_CollectRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), TrackEmptySpace));
             SpecialHooks.Add(new ILHook(typeof(Level).GetMethod("SkipCutsceneRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), MarkSkippedCutscene));
+            IL.Celeste.CutsceneEntity.EndCutscene += DebugTheo2;
         }
 
         internal static void UnhookStuff() {
@@ -171,6 +172,17 @@ namespace Celeste.Mod.BingoClient {
                 where = "search";
             }
             BingoClient.Instance.ModSaveData.AddFlag($"cutscene:{self.Session.Area.ID}:{where}");
+        }
+
+        private static void DebugTheo2(ILContext il) {
+            var cursor = new ILCursor(il);
+            
+            if (!cursor.TryGotoNext(MoveType.Before, insn => insn.MatchCallvirt<Level>("EndCutscene"))) {
+                throw new Exception("Could not find patch point");
+            }
+
+            // load-bearing nop. do not remove
+            cursor.EmitDelegate<Action>(() => { });
         }
 
         private static void MarkSkippedCutscene(ILContext il) {
