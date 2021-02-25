@@ -22,7 +22,8 @@ namespace Celeste.Mod.BingoClient {
             {"yellow", new Color(0xd8, 0xd0, 0x14)},
         };
 
-        private void SetState(List<SquareMsg> board) {
+        private void RefreshBoard() {
+            var board = this.GetBoard();
             this.Board = new List<BingoSquare>();
             for (int i = 0; i < 25; i++) {
                 this.Board.Add(new BingoSquare {
@@ -47,7 +48,10 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private void BingoEvent(StatusMessage msg) {
-            this.LogChat(msg.Render());
+            var rendered = msg.Render();
+            if (rendered != null) {
+                this.LogChat(rendered);
+            }
             switch (msg.type) {
                 case "connection" when msg.event_type == "disconnected":
                     break;
@@ -61,6 +65,10 @@ namespace Celeste.Mod.BingoClient {
                     this.Board[i].Color = msg.remove ? ColorMap["blank"] : ColorMap[msg.player.color];
                     break;
                 }
+                case "new-card":
+                    this.IsBoardHidden = this.GetSettings().Item1;
+                    this.RefreshBoard();
+                    break;
                 case "color":
                 case "chat":
                 case "revealed":

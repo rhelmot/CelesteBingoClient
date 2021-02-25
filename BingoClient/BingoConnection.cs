@@ -34,6 +34,7 @@ namespace Celeste.Mod.BingoClient {
         private string ColorUrl => $"{this.RoomDomain}/api/color";
         private string ChatUrl => $"{this.RoomDomain}/api/chat";
         private string RevealUrl => $"{this.RoomDomain}/api/revealed";
+        private string SettingsUrl => $"{this.RoomDomain}/room/{this.RoomId}/room-settings";
 
         private CookieAwareWebClient Session;
         private ClientWebSocket Sock;
@@ -105,7 +106,7 @@ namespace Celeste.Mod.BingoClient {
                 Thread.Sleep(10);
             }
             
-            this.SetState(Instance.GetBoard());
+            this.RefreshBoard();
             this.SendColor();
         }
 
@@ -190,6 +191,13 @@ namespace Celeste.Mod.BingoClient {
             using (this.Lock.Use(this.CancelToken.Token)) {
                 var result = this.Session.DownloadString(this.RoomUrl + "/feed");
                 return JsonConvert.DeserializeObject<HistoryMessage>(result);
+            }
+        }
+
+        public Tuple<bool> GetSettings() {
+            using (this.Lock.Use(this.CancelToken.Token)) {
+                var result = this.Session.DownloadString(this.SettingsUrl);
+                return Tuple.Create(result.Contains("\"hide_card\": true"));
             }
         }
 
@@ -286,6 +294,8 @@ namespace Celeste.Mod.BingoClient {
                         return $"{this.player.name} said: {this.text}";
                     case "revealed":
                         return $"{this.player.name} revealed the board";
+                    case "new-card":
+                        return $"{this.player.name} generated a new card";
                     case "error":
                         return $"Error from server: {this.error}";
                     default:
