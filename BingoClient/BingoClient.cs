@@ -320,7 +320,7 @@ namespace Celeste.Mod.BingoClient {
         [DefaultButtonBinding(Buttons.RightStick, Keys.Tab)]
         public ButtonBinding MenuToggle { get; set; }
         public ButtonBinding MenuTrigger { get; set; }
-        [DefaultButtonBinding(Buttons.LeftStick, Keys.Enter)]
+        [DefaultButtonBinding(Buttons.LeftStick, Keys.OemBackslash)]
         public ButtonBinding QuickClaim { get; set; }
         [DefaultButtonBinding(Buttons.Back, Keys.T)]
         public ButtonBinding OpenChat { get; set; }
