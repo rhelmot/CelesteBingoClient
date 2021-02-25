@@ -141,7 +141,7 @@ namespace Celeste.Mod.BingoClient {
         private void PreUpdateMenu() {
             // this runs with higher priority and is in charge of controlling the flow of time
             Engine.OverloadGameLoop = null;
-            if ((this.ModSettings.MenuToggle.Pressed || (this.MenuToggled && Input.MenuCancel.Pressed)) && !IsInappropriateTimeForMenu()) {
+            if ((this.ModSettings.MenuToggle.Pressed || (this.MenuToggled && (Input.MenuCancel.Pressed || Input.ESC.Pressed))) && !IsInappropriateTimeForMenu()) {
                 this.MenuToggled ^= true;
                 Audio.Play(this.MenuToggled ? SFX.ui_game_pause : SFX.ui_game_unpause);
                 // if we're unpausing, hijack the game for another frame to eat the unpause input
