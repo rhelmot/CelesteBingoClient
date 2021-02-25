@@ -31,6 +31,7 @@ namespace Celeste.Mod.BingoClient {
             IL.Celeste.SummitCheckpoint.Update += TrackSummitCheckpoints;
             On.Celeste.IntroCar.Update += TrackIntroCar;
             On.Celeste.Key.OnPlayer += TrackKeys;
+            On.Celeste.Level.LoadLevel += HookLoadLevel;
 
             SpecialHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.Instance | BindingFlags.NonPublic), TrackSeekerDeath));
             SpecialHooks.Add(new ILHook(typeof(HeartGem).GetMethod("orig_CollectRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), TrackEmptySpace));
@@ -54,6 +55,8 @@ namespace Celeste.Mod.BingoClient {
             IL.Celeste.SummitCheckpoint.Update -= TrackSummitCheckpoints;
             On.Celeste.IntroCar.Update -= TrackIntroCar;
             On.Celeste.Key.OnPlayer -= TrackKeys;
+            IL.Celeste.CutsceneEntity.EndCutscene -= DebugTheo2;
+            On.Celeste.Level.LoadLevel += HookLoadLevel;
 
 
             foreach (var hook in SpecialHooks) {
@@ -202,15 +205,18 @@ namespace Celeste.Mod.BingoClient {
             var checkpoint = BingoMonitor.CountCheckpoints(level.Session.Area);
             UpdateOnCheckpoint(level.Session.Area, checkpoint);
         }
+        
+        private static void HookLoadLevel(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerintro, bool isfromloader) {
+            orig(self, playerintro, isfromloader);
+            if (!isfromloader && playerintro != Player.IntroTypes.Transition) {
+                OnTransition(self, self.Session.LevelData, Vector2.Zero);
+            }
+        }
 
         private static void OnTransition(Level level, LevelData next, Vector2 direction) {
             var player = level.Tracker.GetEntity<Player>();
             var area = level.Session.Area;
-            var prev = level.Session.MapData.GetAt(player.Position - direction * 16);
-            if (prev.Name == next.Name) {
-                // just in case!
-                return;
-            }
+            var prev = level.Session.MapData.GetAt(player.Position - direction * 16) ?? next;
 
             var checkpoint = BingoMonitor.IsCheckpointRoom(next.Name);
             UpdateOnCheckpoint(level.Session.Area, checkpoint);
