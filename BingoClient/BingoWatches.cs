@@ -248,7 +248,7 @@ namespace Celeste.Mod.BingoClient {
 
             cursor.Emit(OpCodes.Dup);
             cursor.EmitDelegate<Action<HashSet<int>>>(set => {
-                BingoClient.Instance.ModSaveData.PicoBerries = Math.Max(BingoClient.Instance.ModSaveData.PicoBerries, set.Count);
+                BingoClient.Instance.ModSaveData.PicoBerries = Math.Max(BingoClient.Instance.ModSaveData.PicoBerries, set.Count + 1);
             });
         }
 
