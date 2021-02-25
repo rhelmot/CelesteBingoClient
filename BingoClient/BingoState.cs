@@ -160,7 +160,10 @@ namespace Celeste.Mod.BingoClient {
                 }
 
                 foreach (var entry in variants) {
-                    if (entry.Item1 == area.ID && entry.Item2 == (int) area.Mode && entry.Item3 == checkpoint && !seen.Contains(entry.Item4)) {
+                    if ((entry.Item1 == area.ID || entry.Item1 == -1) &&
+                        (entry.Item2 == (int) area.Mode || entry.Item2 == -1) &&
+                        (entry.Item3 == checkpoint || entry.Item3 == -1) &&
+                        !seen.Contains(entry.Item4)) {
                         seen.Add(entry.Item4);
                         yield return entry.Item4;
                     }
