@@ -11,7 +11,7 @@ namespace Celeste.Mod.BingoClient {
         public bool MenuToggled, MenuTriggered;
         public bool BoardSelected = true;
         public int BoardSelX, BoardSelY;
-        public int BoarcSelSlot => this.BoardSelX + this.BoardSelY * 5;
+        public int BoardSelSlot => this.BoardSelX + this.BoardSelY * 5;
         private Wiggler Wiggle = Wiggler.Create(0.25f, 3f);
 
         private const int DISABLE_OFFSET = 1;
@@ -248,7 +248,7 @@ namespace Celeste.Mod.BingoClient {
                     if (Input.MenuConfirm.Pressed) {
                         Audio.Play(SFX.ui_main_button_select);
                         this.Wiggle.Start();
-                        ToggleSquare(this.BoarcSelSlot);
+                        this.ToggleSquare(this.BoardSelSlot);
                     }
                 }
                 if (Input.MenuLeft.Pressed) {
