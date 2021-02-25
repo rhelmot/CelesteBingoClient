@@ -179,6 +179,7 @@ namespace Celeste.Mod.BingoClient {
 
             if (this.IsBoardHidden && Input.MenuConfirm.Pressed) {
                 this.RevealBoard();
+                Input.MenuConfirm.ConsumePress();
             }
 
             if (this.IsBoardHidden || !this.Connected) {
