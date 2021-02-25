@@ -115,7 +115,7 @@ namespace Celeste.Mod.BingoClient {
                     this.LogChat(string.Format(Dialog.Get("bingoclient_objective_claimable"), this.Board[i].Text));
                 }
                 
-                if (this.ModSettings.QuickClaim.Check) {
+                if (this.ModSettings.QuickClaim.Pressed) {
                     this.SendClaim(i);
                 }
             }
