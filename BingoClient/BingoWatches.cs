@@ -24,7 +24,6 @@ namespace Celeste.Mod.BingoClient {
             IL.Celeste.Pico8.Classic.orb.draw += TrackPicoOrb;
             Everest.Events.Level.OnTransitionTo += OnTransition;
             Everest.Events.Level.OnComplete += OnComplete;
-            On.Celeste.Level.EndCutscene += OnEndCutscene;
             On.Celeste.PicoConsole.Update += CheckPicoProximity;
             On.Celeste.CoreModeToggle.OnChangeMode += CheckIceRoom;
             On.Celeste.CrushBlock.OnDashed += KevinDash;
@@ -32,12 +31,13 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.IntroCar.Update += TrackIntroCar;
             On.Celeste.Key.OnPlayer += TrackKeys;
             On.Celeste.Level.LoadLevel += HookLoadLevel;
+            On.Celeste.Level.StartCutscene += OnStartCutscene;
+            On.Celeste.Level.SkipCutscene += OnSkipCutscene;
 
             SpecialHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.Instance | BindingFlags.NonPublic), TrackSeekerDeath));
             SpecialHooks.Add(new ILHook(typeof(HeartGem).GetMethod("orig_CollectRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), TrackEmptySpace));
-            SpecialHooks.Add(new ILHook(typeof(Level).GetMethod("SkipCutsceneRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), MarkSkippedCutscene));
-            IL.Celeste.CutsceneEntity.EndCutscene += DebugTheo2;
         }
+
 
         internal static void UnhookStuff() {
             IL.Celeste.StrawberryPoints.Added -= Track1up;
@@ -48,16 +48,15 @@ namespace Celeste.Mod.BingoClient {
             IL.Celeste.Pico8.Classic.orb.draw -= TrackPicoOrb;
             Everest.Events.Level.OnTransitionTo -= OnTransition;
             Everest.Events.Level.OnComplete -= OnComplete;
-            On.Celeste.Level.EndCutscene -= OnEndCutscene;
             On.Celeste.PicoConsole.Update -= CheckPicoProximity;
             On.Celeste.CoreModeToggle.OnChangeMode -= CheckIceRoom;
             On.Celeste.CrushBlock.OnDashed -= KevinDash;
             IL.Celeste.SummitCheckpoint.Update -= TrackSummitCheckpoints;
             On.Celeste.IntroCar.Update -= TrackIntroCar;
             On.Celeste.Key.OnPlayer -= TrackKeys;
-            IL.Celeste.CutsceneEntity.EndCutscene -= DebugTheo2;
             On.Celeste.Level.LoadLevel += HookLoadLevel;
-
+            On.Celeste.Level.StartCutscene += OnStartCutscene;
+            On.Celeste.Level.SkipCutscene += OnSkipCutscene;
 
             foreach (var hook in SpecialHooks) {
                 hook.Dispose();
@@ -162,43 +161,21 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
-        private static bool IsSkipping;
-        private static void OnEndCutscene(On.Celeste.Level.orig_EndCutscene orig, Level self) {
-            orig(self);
-            if (self.SkippingCutscene) {
-                return;
+        private static void OnSkipCutscene(On.Celeste.Level.orig_SkipCutscene orig, Level self) {
+            var where = self.Session.Level;
+            if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.Y > 1300) {
+                where = "search";
             }
+            BingoClient.Instance.ModSaveData.FileFlags.Remove($"cutscene:{self.Session.Area.ID}:{where}");
+            BingoClient.Instance.DowngradeObjectives();
+        }
 
-            if (IsSkipping) {
-                IsSkipping = false;
-                return;
-            }
-
+        private static void OnStartCutscene(On.Celeste.Level.orig_StartCutscene orig, Level self, Action<Level> onskip, bool fadeinonskip, bool endingchapteraftercutscene, bool resetzoomonskip) {
             var where = self.Session.Level;
             if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.Y > 1300) {
                 where = "search";
             }
             BingoClient.Instance.ModSaveData.AddFlag($"cutscene:{self.Session.Area.ID}:{where}");
-        }
-
-        private static void DebugTheo2(ILContext il) {
-            var cursor = new ILCursor(il);
-            
-            if (!cursor.TryGotoNext(MoveType.Before, insn => insn.MatchCallvirt<Level>("EndCutscene"))) {
-                throw new Exception("Could not find patch point");
-            }
-
-            // load-bearing nop. do not remove
-            cursor.EmitDelegate<Action>(() => { });
-        }
-
-        private static void MarkSkippedCutscene(ILContext il) {
-            var cursor = new ILCursor(il);
-            if (!cursor.TryGotoNext(MoveType.Before, insn => insn.MatchCallvirt<Level>("EndCutscene"))) {
-                throw new Exception("Could not find patch point");
-            }
-
-            cursor.EmitDelegate<Action>(() => IsSkipping = true);
         }
 
         private static void OnComplete(Level level) {

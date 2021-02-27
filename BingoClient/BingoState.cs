@@ -114,6 +114,15 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
+        public void DowngradeObjectives() {
+            for (var i = 0; i < 25; i++) {
+                this.ObjectivesCompleted[i] = false;
+                if (this.GetObjectiveStatus(i) == ObjectiveStatus.Completed) {
+                    this.ObjectivesCompleted[i] = true;
+                }
+            }
+        }
+
         public ObjectiveStatus GetObjectiveStatus(int i) {
             if (this.Board[i].Colors.Contains(this.ModSettings.PlayerColor)) {
                 return ObjectiveStatus.Claimed;
