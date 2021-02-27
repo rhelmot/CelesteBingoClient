@@ -144,6 +144,10 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public ObjectiveStatus GetObjectiveStatus(int i) {
+            if (this.Board == null || this.Board.Count <= i || this.Board[i] == null) {
+                return ObjectiveStatus.Nothing;
+            }
+            
             if (this.Board[i].Colors.Contains(this.ModSettings.PlayerColor)) {
                 return ObjectiveStatus.Claimed;
             }

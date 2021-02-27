@@ -269,7 +269,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public void LogChat(string message) {
-            this.Chat.Chat(message);
+            this.Chat?.Chat(message);
         }
     }
     
