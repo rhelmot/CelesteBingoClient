@@ -162,6 +162,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private static void OnSkipCutscene(On.Celeste.Level.orig_SkipCutscene orig, Level self) {
+            orig(self);
             var where = self.Session.Level;
             if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.Y > 1300) {
                 where = "search";
@@ -171,6 +172,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private static void OnStartCutscene(On.Celeste.Level.orig_StartCutscene orig, Level self, Action<Level> onskip, bool fadeinonskip, bool endingchapteraftercutscene, bool resetzoomonskip) {
+            orig(self, onskip, fadeinonskip, endingchapteraftercutscene, resetzoomonskip);
             var where = self.Session.Level;
             if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.Y > 1300) {
                 where = "search";
