@@ -204,7 +204,7 @@ namespace Celeste.Mod.BingoClient {
                 case "b-00c" when area == new AreaKey(6):
                     BingoClient.Instance.ModSaveData.AddFlag("room:easteregg");
                     break;
-                case "9" when area == new AreaKey(6): // 0
+                case "09" when area == new AreaKey(6): // 0
                 case "11" when area == new AreaKey(6): // 1
                 case "13" when area == new AreaKey(6): // 2
                 case "15" when area == new AreaKey(6): // 3
