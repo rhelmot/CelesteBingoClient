@@ -106,16 +106,53 @@ namespace Celeste.Mod.BingoClient {
                     var rise = timer < 0.25f ? timer * 4f : 1f;
 
                     var textSize = ActiveFont.Measure(text) * scale;
-                    ActiveFont.DrawOutline(text, new Vector2(1920f - 20, currentBase), new Vector2(1f, rise), Vector2.One * scale, Color.White * alpha, 2f, Color.Black * alpha);
+                    var lines = new List<string>();
+                    if (textSize.X > 1880f) {
+                        while (!string.IsNullOrEmpty(text)) {
+                            var textSplit = new List<string>(text.Split(' '));
+                            textSplit.Reverse();
+                            text = "";
+                            while (textSplit.Count > 0) {
+                                var maybetext = text + ' ' + textSplit[textSplit.Count - 1];
+                                if (ActiveFont.Measure(maybetext).X * scale > 1880f) {
+                                    break;
+                                }
+                                text = maybetext;
+                                textSplit.RemoveAt(textSplit.Count - 1);
+                            }
 
-                    currentBase -= textSize.Y * 1.1f * rise;
+                            if (text == "") {
+                                text = textSplit[textSplit.Count - 1];
+                                textSplit.RemoveAt(textSplit.Count - 1);
+                            }
+
+                            lines.Add(text);
+                            textSplit.Reverse();
+                            text = string.Join(" ", textSplit);
+                        }
+                    } else {
+                        lines.Add(text);
+                    }
+
+                    lines.Reverse();
+                    var height = 1.1f;
+                    foreach (var line in lines) {
+                        ActiveFont.DrawOutline(line, new Vector2(1920f - 20, currentBase), new Vector2(1f, rise), Vector2.One * scale, Color.White * alpha, 2f, Color.Black * alpha);
+                        currentBase -= textSize.Y * height * rise;
+                        height = 1.0f;
+                    }
                 }
             }
 
             if (this.ChatOpen) {
                 var uch = this.Underscore ? "_" : "";
                 var prompt = $"> {this.Buffer}{uch}";
-                ActiveFont.DrawOutline(prompt, new Vector2(10, 1080f - 10), new Vector2(0f, 1f), Vector2.One * scale, Color.White, 2f, Color.Black);
+                if (ActiveFont.Measure(prompt).X * scale > 1920f - 20f) {
+                    prompt = $"> {this.Buffer}  ";
+                    ActiveFont.DrawOutline(prompt, new Vector2(1920f - 10f, 1080f - 10f), new Vector2(1f, 1f), Vector2.One * scale, Color.White, 2f, Color.Black);
+                } else {
+                    ActiveFont.DrawOutline(prompt, new Vector2(10, 1080f - 10f), new Vector2(0f, 1f), Vector2.One * scale, Color.White, 2f, Color.Black);
+                }
             }
             Draw.SpriteBatch.End();
         }
