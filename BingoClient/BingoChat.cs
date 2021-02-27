@@ -2,7 +2,6 @@ using System;
 using Monocle;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
-using Celeste.Mod.UI;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Celeste.Mod.BingoClient {
@@ -134,24 +133,23 @@ namespace Celeste.Mod.BingoClient {
                         lines.Add(text);
                     }
 
-                    lines.Reverse();
-                    var height = 1.1f;
-                    foreach (var line in lines) {
-                        ActiveFont.DrawOutline(line, new Vector2(1920f - 20, currentBase), new Vector2(1f, rise), Vector2.One * scale, Color.White * alpha, 2f, Color.Black * alpha);
-                        currentBase -= textSize.Y * height * rise;
-                        height = 1.0f;
+                    for (var j = lines.Count - 1; j >= 0; j--) {
+                        ActiveFont.DrawOutline(lines[j], new Vector2(1920f - 20, currentBase), new Vector2(1f, rise), Vector2.One * scale, Color.White * alpha, 2f, Color.Black * alpha);
+                        currentBase -= textSize.Y * (j == 0 ? 1.1f : 0.9f) * rise;
                     }
                 }
             }
 
             if (this.ChatOpen) {
                 var uch = this.Underscore ? "_" : "";
-                var prompt = $"> {this.Buffer}{uch}";
-                if (ActiveFont.Measure(prompt).X * scale > 1920f - 20f) {
-                    prompt = $"> {this.Buffer}  ";
+                var prompt = "> " + this.Buffer;
+                var width = ActiveFont.Measure(prompt).X * scale;
+                if (width > 1920f - 20f) {
                     ActiveFont.DrawOutline(prompt, new Vector2(1920f - 10f, 1080f - 10f), new Vector2(1f, 1f), Vector2.One * scale, Color.White, 2f, Color.Black);
+                    ActiveFont.DrawOutline(uch, new Vector2(1920f - 10f, 1080f - 10f), new Vector2(0f, 1f), Vector2.One * scale, Color.White, 2f, Color.Black);
                 } else {
                     ActiveFont.DrawOutline(prompt, new Vector2(10, 1080f - 10f), new Vector2(0f, 1f), Vector2.One * scale, Color.White, 2f, Color.Black);
+                    ActiveFont.DrawOutline(uch, new Vector2(10 + width, 1080f - 10f), new Vector2(0f, 1f), Vector2.One * scale, Color.White, 2f, Color.Black);
                 }
             }
             Draw.SpriteBatch.End();
