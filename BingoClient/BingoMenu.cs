@@ -387,6 +387,14 @@ namespace Celeste.Mod.BingoClient {
                 }
             }
 
+            var scoreCorner = new Vector2(20f, 20f);
+            foreach (var entry in this.Score()) {
+                var scoreSize1 = new Vector2(100f, 100f);
+                Draw.Rect(scoreCorner, scoreSize1.X, scoreSize1.Y, entry.Item1.ToSquareColor());
+                ActiveFont.DrawOutline(entry.Item2.ToString(), scoreCorner + scoreSize1 / 2, new Vector2(0.5f, 0.5f), Vector2.One * 1f, Color.White, 2f, Color.Black);
+                scoreCorner += new Vector2(0f, 120f);
+            }
+
             if (!this.MenuTriggered) {
                 this.Menu?.Render();
             }

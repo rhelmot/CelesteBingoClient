@@ -83,6 +83,26 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
+        public IEnumerable<Tuple<BingoColors, int>> Score() {
+            var score = new Dictionary<BingoColors, int>();
+            foreach (var square in this.Board) {
+                foreach (var color in square.Colors) {
+                    if (score.TryGetValue(color, out var count)) {
+                        count++;
+                    } else {
+                        count = 1;
+                    }
+                    score[color] = count;
+                }
+            }
+
+            var keys = new List<BingoColors>(score.Keys);
+            keys.Sort();
+            foreach (var color in keys) {
+                yield return Tuple.Create(color, score[color]);
+            }
+        }
+
         private class BingoSquare {
             public int Idx;
             public List<BingoColors> Colors = new List<BingoColors>();
