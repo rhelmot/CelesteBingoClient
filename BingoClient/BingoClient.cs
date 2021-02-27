@@ -17,10 +17,10 @@ namespace Celeste.Mod.BingoClient {
 
         public override Type SaveDataType => typeof(BingoSaveData);
         public override Type SessionType => typeof(BingoSession);
-        public override Type SettingsType => typeof(BingoSettings);
+        public override Type SettingsType => typeof(BingoClientSettings);
         public BingoSaveData ModSaveData => (BingoSaveData) this._SaveData;
         public BingoSession ModSession => (BingoSession) this._Session;
-        public BingoSettings ModSettings => (BingoSettings) this._Settings;
+        public BingoClientSettings ModSettings => (BingoClientSettings) this._Settings;
 
         public BingoClient() {
             Instance = this;
@@ -367,7 +367,9 @@ namespace Celeste.Mod.BingoClient {
         public int? CheckpointStartedVariant;
     }
 
-    public class BingoSettings : EverestModuleSettings {
+    public class BingoClientSettings : EverestModuleSettings {
+        public enum TriggerMode { Patient, Hasty }
+        public enum TriggerAlphaMode { Low, Medium, High }
         public bool MasterSwitch { get; set; } = true;
         [SettingMaxLength(20)]
         [SettingMinLength(0)]
@@ -380,6 +382,8 @@ namespace Celeste.Mod.BingoClient {
         public ButtonBinding QuickClaim { get; set; }
         [DefaultButtonBinding(Buttons.Back, Keys.T)]
         public ButtonBinding OpenChat { get; set; }
+        public TriggerMode TriggerBehavior { get; set; } = TriggerMode.Hasty;
+        public TriggerAlphaMode TriggerAlpha { get; set; } = TriggerAlphaMode.Medium;
 
         public void CreatePlayerColorEntry(TextMenu menu, bool inGame) {
             var enumValues = new List<BingoColors>((BingoColors[])Enum.GetValues(typeof(BingoColors)));

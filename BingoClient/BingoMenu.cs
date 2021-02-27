@@ -142,14 +142,18 @@ namespace Celeste.Mod.BingoClient {
             if ((this.ModSettings.MenuToggle.Pressed || (this.MenuToggled && (Input.MenuCancel.Pressed || Input.ESC.Pressed))) && !IsInappropriateTimeForMenu()) {
                 this.MenuToggled ^= true;
                 Audio.Play(this.MenuToggled ? SFX.ui_game_pause : SFX.ui_game_unpause);
-                // if we're unpausing, hijack the game for another frame to eat the unpause input
                 if (this.MenuToggled) {
                     if (this.Menu != null) {
                         this.Menu.Selection = this.Menu.FirstPossibleSelection;
                     }
                 }
             }
-            this.MenuTriggered = this.ModSettings.MenuTrigger.Check && !IsInappropriateTimeForMenu();
+
+            if (this.ModSettings.TriggerBehavior == BingoClientSettings.TriggerMode.Hasty) {
+                this.MenuTriggered = this.ModSettings.MenuTrigger.Check && !IsInappropriateTimeForMenu();
+            } else if (this.ModSettings.MenuTrigger.Pressed && !IsInappropriateTimeForMenu()) {
+                this.MenuTriggered ^= true;
+            }
 
             if (this.MenuToggled || this.MenuTriggered) {
                 this.UpdateMenuOpen();
@@ -283,8 +287,12 @@ namespace Celeste.Mod.BingoClient {
                 null,
                 Engine.ScreenMatrix);
             
-            // TODO make this a setting
-            var masterAlpha = this.MenuTriggered ? 0.6f : 1f;
+            float masterAlpha;
+            if (this.MenuTriggered) {
+                masterAlpha = this.ModSettings.TriggerAlpha == BingoClientSettings.TriggerAlphaMode.High ? 1f : this.ModSettings.TriggerAlpha == BingoClientSettings.TriggerAlphaMode.Medium ? 0.6f : 0.4f;
+            } else {
+                masterAlpha = 1;
+            }
             
             Draw.Rect(0, 0, 1920f, 1080f, Color.Black * 0.5f * masterAlpha);
 
@@ -378,8 +386,10 @@ namespace Celeste.Mod.BingoClient {
                     }
                 }
             }
-            
-            this.Menu?.Render();
+
+            if (!this.MenuTriggered) {
+                this.Menu?.Render();
+            }
             Draw.SpriteBatch.End();
         }
 
