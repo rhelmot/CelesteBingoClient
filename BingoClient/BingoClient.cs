@@ -241,7 +241,7 @@ namespace Celeste.Mod.BingoClient {
             }
             
             this.RenderMenu();
-            this.Chat.Render();
+            this.Chat?.Render();
         }
         private void CreateBingoButton(On.Celeste.OuiFileSelectSlot.orig_CreateButtons orig, OuiFileSelectSlot self) {
             orig(self);
