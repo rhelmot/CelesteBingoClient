@@ -104,6 +104,10 @@ namespace Celeste.Mod.BingoClient {
             if (this.ObjectivesCompleted == null) {
                 return;
             }
+
+            if (!(Engine.Scene is Level)) {
+                return;
+            }
             
             for (var i = 0; i < 25; i++) {
                 if (this.GetObjectiveStatus(i) != ObjectiveStatus.Completed) {

@@ -53,6 +53,8 @@ namespace Celeste.Mod.BingoClient {
             Everest.Events.Level.OnCreatePauseMenuButtons += OnPause;
             Everest.Events.Level.OnExit += OnExit;
             On.Celeste.SaveData.Start += OnSaveStart;
+            On.Celeste.SaveData.InitializeDebugMode += WipeDebugFile;
+            On.Celeste.SaveData.Start += WipeObjectiveCache;
             
             BingoWatches.HookStuff();
             
@@ -70,6 +72,8 @@ namespace Celeste.Mod.BingoClient {
             Everest.Events.Level.OnCreatePauseMenuButtons -= OnPause;
             Everest.Events.Level.OnExit -= OnExit;
             On.Celeste.SaveData.Start -= OnSaveStart;
+            On.Celeste.SaveData.InitializeDebugMode -= WipeDebugFile;
+            On.Celeste.SaveData.Start -= WipeObjectiveCache;
             
             BingoWatches.UnhookStuff();
             
@@ -124,6 +128,16 @@ namespace Celeste.Mod.BingoClient {
             }
 
             this.SendColor();
+        }
+
+        private void WipeObjectiveCache(On.Celeste.SaveData.orig_Start orig, SaveData data, int slot) {
+            orig(data, slot);
+            this.RefreshObjectives();
+        }
+
+        private void WipeDebugFile(On.Celeste.SaveData.orig_InitializeDebugMode orig, bool loadexisting) {
+            orig(loadexisting);
+            this.ModSaveData.Reset();
         }
 
         private void OnSaveStart(On.Celeste.SaveData.orig_Start orig, SaveData data, int slot) {
@@ -190,13 +204,9 @@ namespace Celeste.Mod.BingoClient {
             if (this.gameSawNothing) {
                 this.UneatInput();
             }
-            Logger.Log("DEBUG", $"We see next={MInput.GamePads[0].CurrentState.IsButtonDown(Buttons.RightStick)}" +
-                                $" prev={MInput.GamePads[0].PreviousState.IsButtonDown(Buttons.RightStick)}");
 
             this.UpdateMenu();
             this.Chat.Update();
-            Logger.Log("DEBUG", $"We see next={MInput.GamePads[0].CurrentState.IsButtonDown(Buttons.RightStick)}" +
-                                $" prev={MInput.GamePads[0].PreviousState.IsButtonDown(Buttons.RightStick)}");
             this.UpdateObjectives();
             
             if (gameSeesNothing) {
@@ -302,6 +312,16 @@ namespace Celeste.Mod.BingoClient {
         public int MaxOneUpCombo = -1;
         public List<string> FileFlags = new List<string>();
         public List<string> VariantCompletions = new List<string>();
+
+        public void Reset() {
+            this.OneUps = new [] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            this.SeekerKills = new List<string>();
+            this.HugeMessOrders = new List<string>();
+            this.PicoBerries = 0;
+            this.MaxOneUpCombo = -1;
+            this.FileFlags = new List<string>();
+            this.VariantCompletions = new List<string>();
+        }
 
         public void AddSeekerKill(string seeker) {
             if (this.SeekerKills.Contains(seeker)) {
