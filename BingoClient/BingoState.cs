@@ -8,20 +8,6 @@ namespace Celeste.Mod.BingoClient {
         private List<BingoSquare> Board;
         public List<bool> ObjectivesCompleted;
 
-        public static Dictionary<string, Color> ColorMap = new Dictionary<string, Color> {
-            {"blank", Color.Black},
-            {"orange", new Color(0xF9, 0x8E, 0x1E)},
-            {"red", new Color(0xDA, 0x44, 0x40)},
-            {"blue", new Color(0x37, 0xA1, 0xDE)},
-            {"green", new Color(0x00, 0xB5, 0x00)},
-            {"purple", new Color(0x82, 0x2d, 0xbf)},
-            {"navy", new Color(0x0d, 0x48, 0xb5)},
-            {"teal", new Color(0x41, 0x96, 0x95)},
-            {"brown", new Color(0xab, 0x5c, 0x23)},
-            {"pink", new Color(0xed, 0x86, 0xaa)},
-            {"yellow", new Color(0xd8, 0xd0, 0x14)},
-        };
-
         private void RefreshBoard() {
             var board = this.GetBoard();
             this.Board = new List<BingoSquare>();
@@ -33,7 +19,7 @@ namespace Celeste.Mod.BingoClient {
 
             foreach (var square in board) {
                 int i = int.Parse(square.slot.Substring(4)) - 1;
-                this.Board[i].Color = ColorMap[square.colors];
+                this.Board[i].Colors = new List<BingoColors>(BingoEnumExtensions.ParseColors(square.colors));
                 this.Board[i].Text = square.name;
             }
             
@@ -62,11 +48,14 @@ namespace Celeste.Mod.BingoClient {
                     break;
                 case "goal": {
                     var i = int.Parse(msg.square.slot.Substring(4)) - 1;
-                    this.Board[i].Color = msg.remove ? ColorMap["blank"] : ColorMap[msg.player.color];
+                    var colors = msg.square.colors.Split(' ');
+                    this.Board[i].Colors = new List<BingoColors>(BingoEnumExtensions.ParseColors(msg.square.colors));
                     break;
                 }
                 case "new-card":
-                    this.IsBoardHidden = this.GetSettings().Item1;
+                    var settings = this.GetSettings();
+                    this.IsBoardHidden = settings.Item1;
+                    this.IsLockout = settings.Item2;
                     this.RefreshBoard();
                     break;
                 case "color":
@@ -96,7 +85,7 @@ namespace Celeste.Mod.BingoClient {
 
         private class BingoSquare {
             public int Idx;
-            public Color Color = Color.Black;
+            public List<BingoColors> Colors = new List<BingoColors>();
             public string Text = "";
         }
 
@@ -126,7 +115,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public ObjectiveStatus GetObjectiveStatus(int i) {
-            if (this.Board[i].Color != Color.Black) {
+            if (this.Board[i].Colors.Contains(this.ModSettings.PlayerColor)) {
                 return ObjectiveStatus.Claimed;
             }
 
@@ -155,7 +144,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public bool IsObjectiveClaimable(int i) {
-            return this.Board[i].Color == Color.Black && this.ObjectivesCompleted[i];
+            return this.Board[i].Colors.Count == 0 && this.ObjectivesCompleted[i];
         }
         
         public IEnumerable<BingoVariant> RelevantVariants() {

@@ -125,10 +125,10 @@ namespace Celeste.Mod.BingoClient {
 
         #region update
         public void ToggleSquare(int i) {
-            if (this.Board[i].Color == Color.Black) {
-                this.SendClaim(i);
-            } else if (this.Board[i].Color == this.ModSettings.PlayerColor.ToColor()) {
+            if (this.Board[i].Colors.Contains(this.ModSettings.PlayerColor)) {
                 this.SendClear(i);
+            } else {
+                this.SendClaim(i);
             }
         }
 
@@ -330,8 +330,16 @@ namespace Celeste.Mod.BingoClient {
                     if (!this.MenuTriggered && x == this.BoardSelX && y == this.BoardSelY) {
                         Draw.Rect(subcorner - Vector2.One * wiggle * 3f + Vector2.UnitY * wiggle * 2f, subsize.X + wiggle*3*2, subsize.Y + wiggle*3*2, Color.WhiteSmoke * masterAlpha);
                     }
-                    
-                    Draw.Rect(subcorner + subsize * margin / 2, subsize.X * (1 - margin), subsize.Y * (1 - margin), this.Board[slot].Color * masterAlpha);
+
+                    if (this.Board[slot].Colors.Count == 0) {
+                        Draw.Rect(subcorner + subsize * margin / 2, subsize.X * (1 - margin), subsize.Y * (1 - margin), BingoColors.Blank.ToSquareColor() * masterAlpha);
+                    } else {
+                        var chunkWidth = subsize.X * (1 - margin) / this.Board[slot].Colors.Count;
+                        for (var i = 0; i < this.Board[slot].Colors.Count; i++) {
+                            Draw.Rect(subcorner + subsize * margin / 2 + Vector2.UnitX * chunkWidth * i, chunkWidth, subsize.Y * (1 - margin), this.Board[slot].Colors[i].ToSquareColor() * masterAlpha);
+                        }
+                    }
+
                     DrawTextBox(this.Board[slot].Text, subcorner + subsize / 2, subsize.X * (1 - padding), subsize.Y * (1 - padding), 0.5f, 1.0f, Color.White, 1f, Color.Black);
                 }
             }
