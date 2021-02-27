@@ -224,11 +224,10 @@ namespace Celeste.Mod.BingoClient {
                 this.personalGamepads[i] = MInput.GamePads[i].CurrentState;
                 MInput.GamePads[i].CurrentState = new GamePadState();
             }
-            Logger.Log("DEBUG", $"Stashing {this.personalGamepads[0].IsButtonDown(Buttons.RightStick)}");
+            typeof(MInput).GetMethod("UpdateVirtualInputs", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { });
         }
 
         public void UneatInput() {
-            Logger.Log("DEBUG", $"Unstashing {this.personalGamepads[0].IsButtonDown(Buttons.RightStick)}");
             MInput.Keyboard.PreviousState = this.personalKeyboard;
             for (var i = 0; i < 4; i++) {
                 MInput.GamePads[i].PreviousState = this.personalGamepads[i];
