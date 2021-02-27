@@ -138,9 +138,7 @@ namespace Celeste.Mod.BingoClient {
                 Engine.Scene.Entities.FindFirst<KeyboardConfigUI>() != null;
         }
 
-        private void PreUpdateMenu() {
-            // this runs with higher priority and is in charge of controlling the flow of time
-            Engine.OverloadGameLoop = null;
+        private void UpdateMenu() {
             if ((this.ModSettings.MenuToggle.Pressed || (this.MenuToggled && (Input.MenuCancel.Pressed || Input.ESC.Pressed))) && !IsInappropriateTimeForMenu()) {
                 this.MenuToggled ^= true;
                 Audio.Play(this.MenuToggled ? SFX.ui_game_pause : SFX.ui_game_unpause);
@@ -149,16 +147,12 @@ namespace Celeste.Mod.BingoClient {
                     if (this.Menu != null) {
                         this.Menu.Selection = this.Menu.FirstPossibleSelection;
                     }
-                } else {
-                    Engine.OverloadGameLoop = () => { };
                 }
             }
             this.MenuTriggered = this.ModSettings.MenuTrigger.Check && !IsInappropriateTimeForMenu();
 
-            if (this.MenuTriggered) {
+            if (this.MenuToggled || this.MenuTriggered) {
                 this.UpdateMenuOpen();
-            } else if (this.MenuToggled) {
-                Engine.OverloadGameLoop = this.UpdateMenuOpen;
             }
         }
 
@@ -168,15 +162,6 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private void UpdateMenuOpen() {
-            if (!this.MenuTriggered) {
-                // force update the console
-                if (Engine.Commands.Open) {
-                    typeof(Monocle.Commands).GetMethod("UpdateOpen", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(Engine.Commands, new object[] { });
-                } else if (Engine.Commands.Enabled) {
-                    typeof(Monocle.Commands).GetMethod("UpdateClosed", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(Engine.Commands, new object[] { });
-                }
-            }
-
             if (this.IsBoardHidden && Input.MenuConfirm.Pressed) {
                 this.RevealBoard();
                 Input.MenuConfirm.ConsumePress();

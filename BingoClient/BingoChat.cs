@@ -37,7 +37,6 @@ namespace Celeste.Mod.BingoClient {
             }
 
             if (this.ChatOpen) {
-                Engine.OverloadGameLoop = () => { }; // hack. I don't care to find a better way to disable input
                 if (Input.ESC.Pressed) {
                     this.ChatOpen = false;
                 }

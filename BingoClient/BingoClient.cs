@@ -48,7 +48,7 @@ namespace Celeste.Mod.BingoClient {
             }
             
             On.Celeste.OuiFileSelectSlot.CreateButtons += CreateBingoButton;
-            On.Monocle.Engine.RenderCore += RenderBingoHud;
+            On.Monocle.Engine.RenderCore += this.Render;
             IL.Monocle.Engine.Update += HookUpdateEarly;
             Everest.Events.Level.OnCreatePauseMenuButtons += OnPause;
             Everest.Events.Level.OnExit += OnExit;
@@ -65,7 +65,7 @@ namespace Celeste.Mod.BingoClient {
             }
             
             On.Celeste.OuiFileSelectSlot.CreateButtons -= CreateBingoButton;
-            On.Monocle.Engine.RenderCore -= RenderBingoHud;
+            On.Monocle.Engine.RenderCore -= this.Render;
             IL.Monocle.Engine.Update -= HookUpdateEarly;
             Everest.Events.Level.OnCreatePauseMenuButtons -= OnPause;
             Everest.Events.Level.OnExit -= OnExit;
@@ -177,18 +177,55 @@ namespace Celeste.Mod.BingoClient {
 
             cursor.EmitDelegate<Action>(this.Update);
         }
-        
+
+        private KeyboardState personalKeyboard;
+        private GamePadState[] personalGamepads = {default, default, default, default};
+        private bool gameSawNothing;
         private void Update() {
             if (Dialog.Language == null || ActiveFont.Font == null || ActiveFont.Font.Sizes.Count == 0) {
                 return;
             }
 
-            this.PreUpdateMenu();
+            var gameSeesNothing = this.Chat.ChatOpen || (this.MenuToggled && !this.MenuTriggered);
+            if (this.gameSawNothing) {
+                this.UneatInput();
+            }
+            Logger.Log("DEBUG", $"We see next={MInput.GamePads[0].CurrentState.IsButtonDown(Buttons.RightStick)}" +
+                                $" prev={MInput.GamePads[0].PreviousState.IsButtonDown(Buttons.RightStick)}");
+
+            this.UpdateMenu();
             this.Chat.Update();
+            Logger.Log("DEBUG", $"We see next={MInput.GamePads[0].CurrentState.IsButtonDown(Buttons.RightStick)}" +
+                                $" prev={MInput.GamePads[0].PreviousState.IsButtonDown(Buttons.RightStick)}");
             this.UpdateObjectives();
+            
+            if (gameSeesNothing) {
+                this.EatInput();
+            }
+            this.gameSawNothing = gameSeesNothing;
         }
 
-        private void RenderBingoHud(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
+        public void EatInput() {
+            // prevent game from seeing any inputs
+            // but keep a copy so we can get accurate pressed/released data for ourselves
+            this.personalKeyboard = MInput.Keyboard.CurrentState;
+            MInput.Keyboard.CurrentState = new KeyboardState();
+            for (var i = 0; i < 4; i++) {
+                this.personalGamepads[i] = MInput.GamePads[i].CurrentState;
+                MInput.GamePads[i].CurrentState = new GamePadState();
+            }
+            Logger.Log("DEBUG", $"Stashing {this.personalGamepads[0].IsButtonDown(Buttons.RightStick)}");
+        }
+
+        public void UneatInput() {
+            Logger.Log("DEBUG", $"Unstashing {this.personalGamepads[0].IsButtonDown(Buttons.RightStick)}");
+            MInput.Keyboard.PreviousState = this.personalKeyboard;
+            for (var i = 0; i < 4; i++) {
+                MInput.GamePads[i].PreviousState = this.personalGamepads[i];
+            }
+        }
+
+        private void Render(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
             orig(self);
             if (Dialog.Language == null || ActiveFont.Font == null || ActiveFont.Font.Sizes.Count == 0) {
                 return;
