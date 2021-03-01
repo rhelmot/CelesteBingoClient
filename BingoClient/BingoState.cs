@@ -135,6 +135,9 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public void DowngradeObjectives() {
+            if (this.ObjectivesCompleted == null) {
+                return;
+            }
             for (var i = 0; i < 25; i++) {
                 this.ObjectivesCompleted[i] = false;
                 if (this.GetObjectiveStatus(i) == ObjectiveStatus.Completed) {
@@ -144,11 +147,11 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public ObjectiveStatus GetObjectiveStatus(int i) {
-            if (this.Board == null || this.Board.Count <= i || this.Board[i] == null) {
+            if (this.Board == null || this.Board.Count <= i || this.Board[i] == null || this.ObjectivesCompleted == null) {
                 return ObjectiveStatus.Nothing;
             }
             
-            if (this.Board[i].Colors.Contains(this.ModSettings.PlayerColor)) {
+            if (this.Board[i].Colors.Contains(this.ModSettings.PlayerColor) || (this.IsLockout && this.Board[i].Colors.Count != 0)) {
                 return ObjectiveStatus.Claimed;
             }
 
