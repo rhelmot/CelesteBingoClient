@@ -244,7 +244,7 @@ namespace Celeste.Mod.BingoClient {
             if (this.Board != null) {
                 for (var i = 0; i < 25; i++) {
                     this.GetSlotButton(i).Label = this.Board[i].Text;
-                    var visible = this.IsObjectiveClaimable(i);
+                    var visible = this.ModSettings.ClaimAssist && this.IsObjectiveClaimable(i);
                     this.GetSlotButton(i).Visible = visible;
                     anyVisible |= visible;
                 }
@@ -282,7 +282,7 @@ namespace Celeste.Mod.BingoClient {
                                     i--;
                                 } else {
                                     btn.Progress = 0f;
-                                    btn.PieText = "";
+                                    btn.PieText = "*";
                                 }
                                 break;
                         }
@@ -336,11 +336,12 @@ namespace Celeste.Mod.BingoClient {
                     if (Input.MenuConfirm.Pressed) {
                         Audio.Play(SFX.ui_main_button_select);
                         this.Wiggle.Start();
-                        if (Input.Grab.Check) {
-                            this.PinSquare(this.BoardSelSlot);
-                        } else {
-                            this.ToggleSquare(this.BoardSelSlot);
-                        }
+                        this.ToggleSquare(this.BoardSelSlot);
+                    }
+                    if (this.ModSettings.PinObjective.Pressed) {
+                        Audio.Play(SFX.ui_main_button_select);
+                        this.Wiggle.Start();
+                        this.PinSquare(this.BoardSelSlot);
                     }
                 }
                 if (Input.MenuLeft.Pressed) {

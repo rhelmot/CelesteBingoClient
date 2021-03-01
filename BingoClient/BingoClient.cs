@@ -83,12 +83,29 @@ namespace Celeste.Mod.BingoClient {
         public override void CreateModMenuSection(TextMenu menu, bool inGame, EventInstance snapshot) {
             base.CreateModMenuSection(menu, inGame, snapshot);
 
+            // this could maybe be refactored into a helper function with some generics magic
             foreach (var item in menu.Items) {
                 if (!(item is TextMenu.Button btn) || !btn.Label.StartsWith(Dialog.Clean("modoptions_bingoclient_playername"))) {
                     continue;
                 }
 
                 var messageHeader = new TextMenuExt.EaseInSubHeaderExt(Dialog.Clean("modoptions_bingoclient_playername_about"), false, menu) {
+                    HeightExtra = 17f,
+                    Offset = new Vector2(30, -5),
+                };
+
+                menu.Insert(menu.Items.IndexOf(item) + 1, messageHeader);
+                btn.OnEnter = () => messageHeader.FadeVisible = true;
+                btn.OnLeave = () => messageHeader.FadeVisible = false;
+                break;
+            }
+            
+            foreach (var item in menu.Items) {
+                if (!(item is TextMenu.OnOff btn) || !btn.Label.StartsWith(Dialog.Clean("modoptions_bingoclient_claimassist"))) {
+                    continue;
+                }
+
+                var messageHeader = new TextMenuExt.EaseInSubHeaderExt(Dialog.Clean("modoptions_bingoclient_claimassist_about"), false, menu) {
                     HeightExtra = 17f,
                     Offset = new Vector2(30, -5),
                 };
@@ -378,6 +395,8 @@ namespace Celeste.Mod.BingoClient {
         [DefaultButtonBinding(Buttons.RightStick, Keys.Tab)]
         public ButtonBinding MenuToggle { get; set; }
         public ButtonBinding MenuTrigger { get; set; }
+        [DefaultButtonBinding(Buttons.RightShoulder, Keys.P)]
+        public ButtonBinding PinObjective { get; set; }
         [DefaultButtonBinding(Buttons.LeftStick, Keys.OemBackslash)]
         public ButtonBinding QuickClaim { get; set; }
         [DefaultButtonBinding(Buttons.Back, Keys.T)]
@@ -385,6 +404,7 @@ namespace Celeste.Mod.BingoClient {
         public TriggerMode TriggerBehavior { get; set; } = TriggerMode.Hasty;
         public TriggerAlphaMode TriggerAlpha { get; set; } = TriggerAlphaMode.Medium;
         public bool AutoUnpin { get; set; } = true;
+        public bool ClaimAssist { get; set; } = false;
 
         public void CreatePlayerColorEntry(TextMenu menu, bool inGame) {
             var enumValues = new List<BingoColors>((BingoColors[])Enum.GetValues(typeof(BingoColors)));
