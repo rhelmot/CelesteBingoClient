@@ -17,8 +17,10 @@ namespace Celeste.Mod.BingoClient {
         private const int DISABLE_OFFSET = 1;
         private const int ENABLE_OFFSET = 4;
         private const int OBJECTIVE_OFFSET = 9;
+        private const int PINNED_OFFSET = 35;
 
         public TextMenu Menu;
+        public List<int> Pinned = new List<int>();
 
         private MTexture CircleDark, CircleLight, CircleSlice;
 
@@ -63,6 +65,32 @@ namespace Celeste.Mod.BingoClient {
                 new TextMenuExt.ButtonExt("X"),
                 new TextMenuExt.ButtonExt("X"),
                 new TextMenuExt.ButtonExt("X"),
+                new TextMenuExt.SubHeaderExt(Dialog.Clean("bingoclient_menu_pinned")),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
+                new PieButton("X"),
             };
 
             foreach (var item in this.Menu.Items) {
@@ -74,6 +102,17 @@ namespace Celeste.Mod.BingoClient {
             Action makeMenuCallback(int i) {
                 return () => {
                     this.SendClaim(i);
+                };
+            }
+
+            Action makePinnedCallback(int i) {
+                return () => {
+                    var j = this.Pinned[i];
+                    this.BoardSelX = j % 5;
+                    this.BoardSelY = j / 5;
+                    this.BoardSelected = true;
+                    this.OnMotion();
+                    Input.MenuConfirm.ConsumePress();
                 };
             }
 
@@ -89,6 +128,11 @@ namespace Celeste.Mod.BingoClient {
             for (int idx = 0; idx < 25; idx++) {
                 var button = this.Menu.Items[OBJECTIVE_OFFSET + idx] as TextMenuExt.ButtonExt ?? throw new Exception("programming error");
                 button.OnPressed = makeMenuCallback(idx);
+            }
+
+            for (var idx = 0; idx < 25; idx++) {
+                var button = this.Menu.Items[PINNED_OFFSET + idx] as PieButton ?? throw new Exception("programming error");
+                button.OnPressed += makePinnedCallback(idx);
             }
             
             foreach (BingoVariant variant in typeof(BingoVariant).GetEnumValues()) {
@@ -121,6 +165,10 @@ namespace Celeste.Mod.BingoClient {
         public TextMenuExt.ButtonExt GetDisableButton(BingoVariant idx) {
             return (TextMenuExt.ButtonExt) this.Menu.Items[DISABLE_OFFSET + (int)idx];
         }
+        
+        public PieButton GetPinnedButton(int idx) {
+            return (PieButton) this.Menu.Items[PINNED_OFFSET + idx];
+        }
         #endregion
 
         #region update
@@ -129,6 +177,14 @@ namespace Celeste.Mod.BingoClient {
                 this.SendClear(i);
             } else {
                 this.SendClaim(i);
+            }
+        }
+
+        public void PinSquare(int i) {
+            if (!this.Pinned.Contains(i)) {
+                this.Pinned.Add(i);
+            } else {
+                this.Pinned.Remove(i);
             }
         }
 
@@ -183,7 +239,7 @@ namespace Celeste.Mod.BingoClient {
             }
             this.Menu.Focused = !this.BoardSelected && !this.MenuTriggered;
             
-            // visibility for claim buttons
+            // visibility and text for claim buttons
             var anyVisible = false;
             if (this.Board != null) {
                 for (var i = 0; i < 25; i++) {
@@ -193,10 +249,53 @@ namespace Celeste.Mod.BingoClient {
                     anyVisible |= visible;
                 }
             }
+            
+            // visibility and status for pinned buttons
+            if (this.Board != null) {
+                for (var i = 0; i < 25; i++) {
+                    if (i >= this.Pinned.Count) {
+                        this.GetPinnedButton(i).Visible = false;
+                    } else {
+                        var j = this.Pinned[i];
+                        var btn = this.GetPinnedButton(i);
+                        btn.Visible = true;
+                        btn.Label = this.Board[j].Text;
+                        
+                        switch (this.GetObjectiveStatus(j)) {
+                            case ObjectiveStatus.Unknown:
+                                btn.Progress = 0f;
+                                btn.PieText = "?";
+                                break;
+                            case ObjectiveStatus.Progress:
+                            case ObjectiveStatus.Nothing:
+                                btn.Progress = BingoMonitor.ObjectiveProgress(this.Board[j].Text);
+                                btn.PieText = "";
+                                break;
+                            case ObjectiveStatus.Completed:
+                                btn.Progress = 1f;
+                                btn.PieText = "!";
+                                break;
+                            case ObjectiveStatus.Claimed:
+                                if (this.ModSettings.AutoUnpin) {
+                                    btn.Visible = false;
+                                    this.PinSquare(j);
+                                    i--;
+                                } else {
+                                    btn.Progress = 0f;
+                                    btn.PieText = "";
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
 
             // visibility for claim header and claimall
             this.Menu.Items[OBJECTIVE_OFFSET - 1].Visible = anyVisible;
             this.Menu.Items[OBJECTIVE_OFFSET - 2].Visible = anyVisible;
+            
+            // visibility for pin header
+            this.Menu.Items[PINNED_OFFSET - 1].Visible = this.Pinned.Count != 0;
 
             // visibility for variant buttons
             anyVisible = false;
@@ -237,7 +336,11 @@ namespace Celeste.Mod.BingoClient {
                     if (Input.MenuConfirm.Pressed) {
                         Audio.Play(SFX.ui_main_button_select);
                         this.Wiggle.Start();
-                        this.ToggleSquare(this.BoardSelSlot);
+                        if (Input.Grab.Check) {
+                            this.PinSquare(this.BoardSelSlot);
+                        } else {
+                            this.ToggleSquare(this.BoardSelSlot);
+                        }
                     }
                 }
                 if (Input.MenuLeft.Pressed) {
@@ -362,28 +465,10 @@ namespace Celeste.Mod.BingoClient {
                     var origin = new Vector2(50f, 50f);
                     var scale = Vector2.One * 0.4f;
                     var textScale = Vector2.One * 0.5f;
-                    switch (status) {
-                        case ObjectiveStatus.Completed:
-                            this.CircleDark.Draw(subcorner, origin, Color.White, scale, 0f);
-                            ActiveFont.Draw("!", subcorner, new Vector2(0.5f, 0.5f), textScale, Color.Black);
-                            break;
-                        case ObjectiveStatus.Unknown:
-                            this.CircleLight.Draw(subcorner, origin, Color.White, scale, 0f);
-                            ActiveFont.Draw("?", subcorner, new Vector2(0.5f, 0.5f), textScale, Color.Black);
-                            break;
-                        case ObjectiveStatus.Progress:
-                            this.CircleLight.Draw(subcorner, origin, Color.White, scale, 0f);
-                            var progress = BingoMonitor.ObjectiveProgress(this.Board[slot].Text);
-                            var progressInt = Calc.Clamp((int) (progress * 30), 1, 29);
-                            for (var i = 0; i < progressInt; i++) {
-                                this.CircleSlice.Draw(subcorner, origin, Color.White, scale, MathHelper.WrapAngle(MathHelper.TwoPi / 30f * i));
-                            }
-
-                            if (progress > 1f / 30f) {
-                                this.CircleSlice.Draw(subcorner, origin, Color.White, scale, MathHelper.WrapAngle(MathHelper.TwoPi * (progress - 1f / 30f)));
-                            }
-                            break;
+                    if (status == ObjectiveStatus.Completed) {
+                        PieButton.DrawPieAndText(subcorner, 0.5f, 1f, "!");
                     }
+
                 }
             }
 
@@ -445,6 +530,52 @@ namespace Celeste.Mod.BingoClient {
                     }
 
                     return;
+                }
+            }
+        }
+
+        public class PieButton : TextMenuExt.ButtonExt {
+            public float Progress;
+            public string PieText;
+            
+            public PieButton(string label) : base(label) {
+            }
+
+            public static Vector2 PieOffset = new Vector2(-30f, 0f);
+
+            public override void Render(Vector2 position, bool highlighted) {
+                base.Render(position, highlighted);
+                DrawPieAndText(position + PieOffset, this.Scale.Y * 0.5f, this.Progress, this.PieText);
+            }
+            
+            private static MTexture CircleDark => GFX.Gui["menu/bingo/dark"];
+            private static MTexture CircleLight => GFX.Gui["menu/bingo/light"];
+            private static MTexture CircleSlice => GFX.Gui["menu/bingo/slice"];
+            private static Vector2 Origin = new Vector2(50f, 50f);
+
+            public static void DrawPie(Vector2 position, float scale, float completion) {
+                if (completion < 0.999f) {
+                    CircleLight.Draw(position, Origin, Color.White, scale, 0f);
+                    if (completion >= 0.001f) {
+                        var progressInt = Calc.Clamp((int) (completion * 30), 1, 29);
+                        for (var i = 0; i < progressInt; i++) {
+                            CircleSlice.Draw(position, Origin, Color.White, scale, MathHelper.WrapAngle(MathHelper.TwoPi / 30f * i));
+                        }
+
+                        if (completion > 1f / 30f) {
+                            CircleSlice.Draw(position, Origin, Color.White, scale, MathHelper.WrapAngle(MathHelper.TwoPi * (completion - 1f / 30f)));
+                        }
+                    }
+                } else {
+                    CircleDark.Draw(position, Origin, Color.White, scale, 0f);
+                }
+            }
+
+            public static void DrawPieAndText(Vector2 position, float scale, float completion, string text) {
+                DrawPie(position, scale, completion);
+                
+                if (!string.IsNullOrEmpty(text)) {
+                    ActiveFont.Draw(text, position, new Vector2(0.5f, 0.5f), Vector2.One * scale * 1.25f, Color.Black);
                 }
             }
         }

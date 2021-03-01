@@ -384,6 +384,7 @@ namespace Celeste.Mod.BingoClient {
         public ButtonBinding OpenChat { get; set; }
         public TriggerMode TriggerBehavior { get; set; } = TriggerMode.Hasty;
         public TriggerAlphaMode TriggerAlpha { get; set; } = TriggerAlphaMode.Medium;
+        public bool AutoUnpin { get; set; } = true;
 
         public void CreatePlayerColorEntry(TextMenu menu, bool inGame) {
             var enumValues = new List<BingoColors>((BingoColors[])Enum.GetValues(typeof(BingoColors)));
