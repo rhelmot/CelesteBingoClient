@@ -180,7 +180,7 @@ namespace Celeste.Mod.BingoClient {
             { "15 Berries in 3A", () => HasNBerriesInChapter(15, 3) },
             { "45 Berries", () => HasNBerries(45) },
             { "50 Berries", () => HasNBerries(50) },
-            { "Reach Rock Bottom (6A/6B Checkpoint)", () => Math.Min(1f, HasCheckpoint(6, 0, 4) + HasCheckpoint(6, 1, 2)) },
+            { "Reach Rock Bottom (6A/6B Checkpoint)", () => Math.Max(HasCheckpoint(6, 0, 4), HasCheckpoint(6, 1, 2)) },
             { "Use 2 Binoculars in 4 Chapters", () => HasNBinosInChapters(2, 4) },
             { "Blue and Red Heart in Mirror Temple", () => (HasHeart(5, 0) + HasHeart(5, 1)) / 2f },
             { "All Berries in Heart of the Mountain (1)", () => HasCheckpointBerries(9, 3) },
