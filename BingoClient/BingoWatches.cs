@@ -34,6 +34,12 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.Level.StartCutscene += OnStartCutscene;
             On.Celeste.Level.SkipCutscene += OnSkipCutscene;
 
+            IL.Celeste.CutsceneEntity.Start += FuckedUpIfTrue;
+            IL.Celeste.NPC01_Theo.OnTalk += FuckedUpIfTrue;
+            IL.Celeste.NPC02_Theo.OnTalk += FuckedUpIfTrue;
+            IL.Celeste.NPC02_Theo.OnTalk += FuckedUpIfTrue;
+            IL.Celeste.NPC03_Theo_Vents.OnTalk += FuckedUpIfTrue;
+
             SpecialHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.Instance | BindingFlags.NonPublic), TrackSeekerDeath));
             SpecialHooks.Add(new ILHook(typeof(HeartGem).GetMethod("orig_CollectRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), TrackEmptySpace));
         }
@@ -57,11 +63,33 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.Level.LoadLevel += HookLoadLevel;
             On.Celeste.Level.StartCutscene += OnStartCutscene;
             On.Celeste.Level.SkipCutscene += OnSkipCutscene;
+            
+            IL.Celeste.CutsceneEntity.Start -= FuckedUpIfTrue;
+            IL.Celeste.NPC01_Theo.OnTalk -= FuckedUpIfTrue;
+            IL.Celeste.NPC02_Theo.OnTalk -= FuckedUpIfTrue;
+            IL.Celeste.NPC02_Theo.OnTalk -= FuckedUpIfTrue;
+            IL.Celeste.NPC03_Theo_Vents.OnTalk -= FuckedUpIfTrue;
 
             foreach (var hook in SpecialHooks) {
                 hook.Dispose();
             }
             SpecialHooks.Clear();
+        }
+
+        private static void FuckedUpIfTrue(ILContext il) {
+            var cursor = new ILCursor(il);
+            foreach (var call in new[] {Tuple.Create(typeof(Level), "StartCutscene")}) {
+                cursor.Index = 0;
+                while (cursor.TryGotoNext(MoveType.Before, insn => insn.MatchCall(call.Item1, call.Item2))) {
+                    cursor.EmitDelegate<Action>(() => { });
+                    cursor.Index++;
+                }
+                cursor.Index = 0;
+                while (cursor.TryGotoNext(MoveType.Before, insn => insn.MatchCallvirt(call.Item1, call.Item2))) {
+                    cursor.EmitDelegate<Action>(() => { });
+                    cursor.Index++;
+                }
+            }
         }
 
         private static void TrackPicoOrb(ILContext il) {
@@ -171,8 +199,8 @@ namespace Celeste.Mod.BingoClient {
             BingoClient.Instance.DowngradeObjectives();
         }
 
-        private static void OnStartCutscene(On.Celeste.Level.orig_StartCutscene orig, Level self, Action<Level> onskip, bool fadeinonskip, bool endingchapteraftercutscene, bool resetzoomonskip) {
-            orig(self, onskip, fadeinonskip, endingchapteraftercutscene, resetzoomonskip);
+        private static void OnStartCutscene(On.Celeste.Level.orig_StartCutscene orig, Level self, Action<Level> onSkip, bool fadeInOnSkip, bool endingChapterAfterCutscene, bool resetZoomOnSkip) {
+            orig(self, onSkip, fadeInOnSkip, endingChapterAfterCutscene, resetZoomOnSkip);
             var where = self.Session.Level;
             if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.Y > 1300) {
                 where = "search";
