@@ -5,12 +5,15 @@ using Celeste.Mod.UI;
 using Monocle;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace Celeste.Mod.BingoClient {
     public partial class BingoClient {
         public bool MenuToggled, MenuTriggered;
         public bool BoardSelected = true;
         public int BoardSelX, BoardSelY;
+        private Vector2 MousePos;
+        private bool MouseShown;
         public int BoardSelSlot => this.BoardSelX + this.BoardSelY * 5;
         private Wiggler Wiggle = Wiggler.Create(0.25f, 3f);
 
@@ -22,14 +25,8 @@ namespace Celeste.Mod.BingoClient {
         public TextMenu Menu;
         public List<int> Pinned = new List<int>();
 
-        private MTexture CircleDark, CircleLight, CircleSlice;
-
         #region init
         private void InitMenu() {
-            CircleDark = GFX.Gui["menu/bingo/dark"];
-            CircleLight = GFX.Gui["menu/bingo/light"];
-            CircleSlice = GFX.Gui["menu/bingo/slice"];
-            
             Menu = new TextMenu {
                 new TextMenuExt.SubHeaderExt(Dialog.Clean("bingoclient_menu_variants")),
                 new TextMenuExt.ButtonExt(Dialog.Clean("bingoclient_menu_disablegrabless")),
@@ -222,13 +219,28 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private void UpdateMenuOpen() {
-            if (this.IsBoardHidden && Input.MenuConfirm.Pressed) {
+            if (this.IsBoardHidden && (Input.MenuConfirm.Pressed || MInput.Mouse.PressedLeftButton)) {
                 this.RevealBoard();
                 Input.MenuConfirm.ConsumePress();
+                MInput.Mouse.PreviousState = MInput.Mouse.CurrentState; // hack to consume press
             }
+            
+            this.MousePos = MInput.Mouse.Position;
+            this.MouseShown |= MInput.Mouse.WasMoved;
 
             if (this.IsBoardHidden || !this.Connected) {
                 return;
+            }
+
+            var mouseInBounds = this.MousePos.X >= corner.X && this.MousePos.Y < corner.X + size.X && this.MousePos.Y >= corner.Y && this.MousePos.Y < corner.Y + size.Y;
+            if (this.MouseShown && mouseInBounds) {
+                this.BoardSelected = true;
+                var oldPos = this.BoardSelSlot;
+                this.BoardSelX = (int) Math.Floor((this.MousePos.X - corner.X) / size.X * 5);
+                this.BoardSelY = (int) Math.Floor((this.MousePos.Y - corner.Y) / size.Y * 5);
+                if (oldPos != this.BoardSelSlot) {
+                    this.OnMotion();
+                }
             }
             
             this.Wiggle.UseRawDeltaTime = true;
@@ -320,6 +332,7 @@ namespace Celeste.Mod.BingoClient {
                 
                 if (this.BoardSelected) {
                     if (Input.MenuUp.Pressed) {
+                        this.MouseShown = false;
                         this.BoardSelY--;
                         if (this.BoardSelY < 0) {
                             this.BoardSelY = 4;
@@ -327,24 +340,26 @@ namespace Celeste.Mod.BingoClient {
                         this.OnMotion();
                     }
                     if (Input.MenuDown.Pressed) {
+                        this.MouseShown = false;
                         this.BoardSelY++;
                         if (this.BoardSelY >= 5) {
                             this.BoardSelY = 0;
                         }
                         this.OnMotion();
                     }
-                    if (Input.MenuConfirm.Pressed) {
+                    if (Input.MenuConfirm.Pressed || (this.MouseShown && mouseInBounds && MInput.Mouse.PressedLeftButton)) {
                         Audio.Play(SFX.ui_main_button_select);
                         this.Wiggle.Start();
                         this.ToggleSquare(this.BoardSelSlot);
                     }
-                    if (this.ModSettings.PinObjective.Pressed) {
+                    if (this.ModSettings.PinObjective.Pressed || (this.MouseShown && mouseInBounds && MInput.Mouse.PressedRightButton)) {
                         Audio.Play(SFX.ui_main_button_select);
                         this.Wiggle.Start();
                         this.PinSquare(this.BoardSelSlot);
                     }
                 }
                 if (Input.MenuLeft.Pressed) {
+                    this.MouseShown = false;
                     this.OnMotion();
                     if (!this.BoardSelected) {
                         this.BoardSelX = 4;
@@ -359,6 +374,7 @@ namespace Celeste.Mod.BingoClient {
                     }
                 }
                 if (Input.MenuRight.Pressed) {
+                    this.MouseShown = false;
                     this.OnMotion();
                     if (!this.BoardSelected) {
                         this.BoardSelX = 0;
@@ -377,6 +393,13 @@ namespace Celeste.Mod.BingoClient {
         #endregion
         
         #region render
+        
+        public static readonly Vector2 size = Vector2.One * 1080f * 4f / 5f;
+        public static readonly Vector2 subsize = size / 5f;
+        public static readonly Vector2 corner = new Vector2(1920f * 1f / 12f, 1080f / 2f - size.Y / 2f);
+        public static readonly float margin = 1f / 20f;
+        public static readonly float padding = 1f / 10f;
+        
         private void RenderMenu() {
             if (!this.MenuTriggered && !this.MenuToggled) {
                 return;
@@ -409,6 +432,10 @@ namespace Celeste.Mod.BingoClient {
                     Color.White,
                     1,
                     Color.Black);
+
+                if (this.MouseShown) {
+                    GFX.Gui["menu/bingo/cursor"].Draw(this.MousePos, Vector2.Zero, Color.White, 0.5f);
+                }
                 Draw.SpriteBatch.End();
                 return;
             }
@@ -422,15 +449,14 @@ namespace Celeste.Mod.BingoClient {
                     Color.White,
                     1,
                     Color.Black);
+
+                if (this.MouseShown) {
+                    GFX.Gui["menu/bingo/cursor"].Draw(this.MousePos, Vector2.Zero, Color.White, 0.5f);
+                }
                 Draw.SpriteBatch.End();
                 return;
             }
             
-            var size = Vector2.One * 1080f * 4f / 5f;
-            var subsize = size / 5f;
-            var corner = new Vector2(1920f * 1f / 12f, 1080f / 2f - size.Y / 2f);
-            var margin = 1f / 20f;
-            var padding = 1f / 10f;
             var wiggle = this.Wiggle.Value;
             
             // draw boxes and text
@@ -484,6 +510,11 @@ namespace Celeste.Mod.BingoClient {
             if (!this.MenuTriggered) {
                 this.Menu?.Render();
             }
+
+            if (this.MouseShown) {
+                GFX.Gui["menu/bingo/cursor"].Draw(this.MousePos, Vector2.Zero, Color.White, 0.5f);
+            }
+            
             Draw.SpriteBatch.End();
         }
 
