@@ -32,9 +32,11 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.Key.OnPlayer += TrackKeys;
             On.Celeste.Level.LoadLevel += HookLoadLevel;
             On.Celeste.Level.StartCutscene += OnStartCutscene;
+            On.Celeste.CutsceneEntity.Added += OnStartCutscene2;
             On.Celeste.Level.SkipCutscene += OnSkipCutscene;
 
             IL.Celeste.CutsceneEntity.Start += FuckedUpIfTrue;
+            IL.Celeste.CutsceneEntity.Added += FuckedUpIfTrue;
             IL.Celeste.NPC01_Theo.OnTalk += FuckedUpIfTrue;
             IL.Celeste.NPC02_Theo.OnTalk += FuckedUpIfTrue;
             IL.Celeste.NPC02_Theo.OnTalk += FuckedUpIfTrue;
@@ -62,9 +64,11 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.Key.OnPlayer -= TrackKeys;
             On.Celeste.Level.LoadLevel += HookLoadLevel;
             On.Celeste.Level.StartCutscene += OnStartCutscene;
+            On.Celeste.CutsceneEntity.Added += OnStartCutscene2;
             On.Celeste.Level.SkipCutscene += OnSkipCutscene;
             
             IL.Celeste.CutsceneEntity.Start -= FuckedUpIfTrue;
+            IL.Celeste.CutsceneEntity.Added -= FuckedUpIfTrue;
             IL.Celeste.NPC01_Theo.OnTalk -= FuckedUpIfTrue;
             IL.Celeste.NPC02_Theo.OnTalk -= FuckedUpIfTrue;
             IL.Celeste.NPC02_Theo.OnTalk -= FuckedUpIfTrue;
@@ -78,7 +82,10 @@ namespace Celeste.Mod.BingoClient {
 
         private static void FuckedUpIfTrue(ILContext il) {
             var cursor = new ILCursor(il);
-            foreach (var call in new[] {Tuple.Create(typeof(Level), "StartCutscene")}) {
+            foreach (var call in new[] {
+                Tuple.Create(typeof(Level), "StartCutscene"),
+                Tuple.Create(typeof(CutsceneEntity), "Start"),
+            }) {
                 cursor.Index = 0;
                 while (cursor.TryGotoNext(MoveType.Before, insn => insn.MatchCall(call.Item1, call.Item2))) {
                     cursor.EmitDelegate<Action>(() => { });
@@ -199,13 +206,22 @@ namespace Celeste.Mod.BingoClient {
             BingoClient.Instance.DowngradeObjectives();
         }
 
-        private static void OnStartCutscene(On.Celeste.Level.orig_StartCutscene orig, Level self, Action<Level> onSkip, bool fadeInOnSkip, bool endingChapterAfterCutscene, bool resetZoomOnSkip) {
-            orig(self, onSkip, fadeInOnSkip, endingChapterAfterCutscene, resetZoomOnSkip);
+        private static void OnStartCutsceneCommon(Level self) {
             var where = self.Session.Level;
             if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.Y > 1300) {
                 where = "search";
             }
             BingoClient.Instance.ModSaveData.AddFlag($"cutscene:{self.Session.Area.ID}:{where}");
+        }
+
+        private static void OnStartCutscene(On.Celeste.Level.orig_StartCutscene orig, Level self, Action<Level> onSkip, bool fadeInOnSkip, bool endingChapterAfterCutscene, bool resetZoomOnSkip) {
+            orig(self, onSkip, fadeInOnSkip, endingChapterAfterCutscene, resetZoomOnSkip);
+            OnStartCutsceneCommon(self);
+        }
+
+        private static void OnStartCutscene2(On.Celeste.CutsceneEntity.orig_Added orig, CutsceneEntity self, Scene scene) {
+            orig(self, scene);
+            OnStartCutsceneCommon(self.Scene as Level);
         }
 
         private static void OnComplete(Level level) {
