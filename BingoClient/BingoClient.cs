@@ -7,8 +7,12 @@ using System.Threading.Tasks;
 using Celeste.Mod.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
+using MonoMod.Utils;
 
 namespace Celeste.Mod.BingoClient {
     public partial class BingoClient : EverestModule {
@@ -42,6 +46,8 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private bool StuffIsHooked;
+        private List<IDetour> SpecialHooks = new List<IDetour>();
+        
         internal void HookStuff() {
             if (this.StuffIsHooked) {
                 return;
@@ -55,6 +61,8 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.SaveData.Start += OnSaveStart;
             On.Celeste.SaveData.InitializeDebugMode += WipeDebugFile;
             On.Celeste.SaveData.Start += WipeObjectiveCache;
+
+            this.SpecialHooks.Add(new ILHook(typeof(OuiFileSelect).GetMethod("orig_Enter").GetStateMachineTarget(), ReturnToFile));
             
             BingoWatches.HookStuff();
             
@@ -74,10 +82,38 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.SaveData.Start -= OnSaveStart;
             On.Celeste.SaveData.InitializeDebugMode -= WipeDebugFile;
             On.Celeste.SaveData.Start -= WipeObjectiveCache;
+
+            foreach (var detour in this.SpecialHooks) {
+                detour.Dispose();
+            }
+            this.SpecialHooks.Clear();
             
             BingoWatches.UnhookStuff();
             
             this.StuffIsHooked = false;
+        }
+
+        private void ReturnToFile(ILContext il) {
+            var cursor = new ILCursor(il);
+            var found = false;
+            FieldReference field = null;
+            ILLabel label = null;
+            while (cursor.TryGotoNext(MoveType.After,
+                insn => insn.MatchLdfld(out field),
+                insn => insn.MatchIsinst(typeof(OuiFileNaming)),
+                insn => insn.MatchBrtrue(out label))
+            ) {
+                found = true;
+
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.Emit(OpCodes.Ldfld, field);
+                cursor.Emit(OpCodes.Isinst, typeof(OuiBingoConnecting));
+                cursor.Emit(OpCodes.Brtrue, label);
+            }
+
+            if (!found) {
+                throw new Exception("Could not find patch point");
+            }
         }
 
         public override void CreateModMenuSection(TextMenu menu, bool inGame, EventInstance snapshot) {
