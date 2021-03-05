@@ -114,6 +114,10 @@ namespace Celeste.Mod.BingoClient {
                 return;
             }
 
+            if (this.IsBoardHidden) {
+                return;
+            }
+
             if (!(Engine.Scene is Level)) {
                 return;
             }
