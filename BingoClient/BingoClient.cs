@@ -357,7 +357,10 @@ namespace Celeste.Mod.BingoClient {
     }
 
     public class BingoSaveData : EverestModuleSaveData {
-        public int[] OneUps = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        public int[] OneUps = new int[11];
+        public int[] SnowballBonks = new int[11*2];
+        public int[] OshiroBonks = new int[11*2];
+        public int[] SeekerBonks = new int[11*2];
         public List<string> SeekerKills = new List<string>();
         public List<string> HugeMessOrders = new List<string>();
         public int PicoBerries;
@@ -366,7 +369,10 @@ namespace Celeste.Mod.BingoClient {
         public List<string> VariantCompletions = new List<string>();
 
         public void Reset() {
-            this.OneUps = new [] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            this.OneUps = new int[11];
+            this.SnowballBonks = new int[11*2];
+            this.OshiroBonks = new int[11*2];
+            this.SeekerBonks = new int[11*2];
             this.SeekerKills = new List<string>();
             this.HugeMessOrders = new List<string>();
             this.PicoBerries = 0;

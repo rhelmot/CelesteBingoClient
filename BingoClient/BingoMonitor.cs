@@ -112,7 +112,7 @@ namespace Celeste.Mod.BingoClient {
             { "Stun Oshiro 10 times", () => HasOshiroBonks(10) },
             { "Golden Ridge B-Side", () => HasHeart(4, 1) },
             { "Winged Golden Berry", () => HasParticularStrawberries(1, "end:4") },
-            { "Mirror Temple A-Side", () => HasASide(5) },
+            { "Mirror Temple A-Side", () => HasChapterComplete(5, 0) },
             { "Grabless Depths", null }, // generated
             { "10 Berries in 3A", () => HasNBerriesInChapter(10, 3) },
             { "Complete 2 B-Sides", () => HasNHeartsColor(2, 1) },
@@ -186,7 +186,7 @@ namespace Celeste.Mod.BingoClient {
             { "All Berries in Heart of the Mountain (1)", () => HasCheckpointBerries(9, 3) },
             { "Use all Binoculars in 500M (3)", () => HasParticularBinos(7, 0, "b-01", "b-02", "b-02b") },
             { "All Berries in 0M (4)", () => HasCheckpointBerries(7, 0) },
-            { "Reflection A-Side", () => HasASide(6) },
+            { "Reflection A-Side", () => HasChapterComplete(6, 0) },
             { "All Collectibles in 4A", () => (HasNBerriesInChapter(29, 4, false)*29f + HasCassette(4) + HasHeart(4, 0)) / 31f },
             { "8 Winged Berries", () => HasNWingBerries(8) },
             { "9 Winged Berries", () => HasNWingBerries(9) },
@@ -277,171 +277,288 @@ namespace Celeste.Mod.BingoClient {
             { "20 Berries in 4A", () => HasNBerriesInChapter(20, 4) },
             { "Complete Resolution without jumping", null }, // generated
             { "Empty Space", () => HasFlag("empty_space") },
-            { "Clear Core", () => HasASide(9) },
+            { "Clear Core", () => HasHeart(9, 0) },
 
-            { "Triple 1-Up", null },
-            { "Crossing Dashless", null },
-            { "Jumpless Dashless Awake", null },
-            { "Complete Forsaken City with Low Friction", null },
-            { "2 Chapters Grabless", null },
-            { "Two Blue and Two Red Hearts", null },
+            { "Triple 1-Up", () => Has1upCombo(3) },
+            { "Crossing Dashless", null }, // generated
+            { "Jumpless Dashless Awake", null }, // generated
+            { "Complete Forsaken City with Low Friction", null }, // generated
+            { "2 Chapters Grabless", () => HasChaptersVariant(2, BingoVariant.NoGrab) },
+            { "Two Blue and Two Red Hearts", () => (HasNHeartsColor(2, 0) + HasNHeartsColor(2, 1)) / 2f },
             { "3 B-Sides", () => HasNHeartsColor(3, 1) },
-            { "Complete Forsaken City with 70% Speed", null },
-            { "Complete Forsaken City with 160% Speed", null },
-            { "Complete Old Site with Low Friction", null },
-            { "Full Clear 1A", null },
-            { "Quintuple 1-Up", null },
-            { "Winged Golden", null },
-            { "Complete 2 Chapters Mirrored", null },
-            { "Complete Pico-8", null },
+            { "Complete Forsaken City with 70% Speed", null }, // generated
+            { "Complete Forsaken City with 160% Speed", null }, // generated
+            { "Complete Old Site with Low Friction", null }, // generated
+            { "Full Clear 1A", () => HasChapterClear(1) },
+            { "Quintuple 1-Up", () => Has1upCombo(5) },
+            { "Winged Golden", () => HasParticularStrawberries(1, "end:4") },
+            { "Complete 2 Chapters Mirrored", () => HasChaptersVariant(2, BingoVariant.Mirrored) },
+            { "Complete Pico-8", () => HasFlag("pico_complete") },
             { "Get a 1-Up in 4 Chapters", () => HasN1upsInChapters(1, 4) },
             { "Complete Intervention without Jumping", null }, // generated
-            { "Complete Old Trail with Low Friction", null },
-            { "100% Pico-8", null },
-            { "Complete Presidential Suite with Low Friction", null },
-            { "Bop Oshiro 10 Times in Two Chapters", null },
-            { "All Berries in Start and Depths of 5A (23)", null },
-            { "Invisible Huge Mess", null },
-            { "Complete Elevator Shaft with Low Friction", null },
-            { "Complete 4 Chapters Mirrored", null },
-            { "Get 4 Hearts and 4 Cassettes", null },
-            { "Invisible Forsaken City", null },
-            { "4 Chapters Hiccups", null },
+            { "Complete Old Trail with Low Friction", null }, // generated
+            { "100% Pico-8", () => (HasFlag("pico_complete") + HasPicoBerries(18)) / 2f },
+            { "Complete Presidential Suite with Low Friction", null }, // generated
+            { "Bop Oshiro 10 Times in Two Chapters", () => HasOshiroBonksInChapters(10, 2) },
+            { "All Berries in Start and Depths of 5A (23)", () => (HasCheckpointBerries(5, 0) + HasCheckpointBerries(5, 1)) / 2f },
+            { "Invisible Huge Mess", null }, // generated
+            { "Complete Elevator Shaft with Low Friction", null }, // generated
+            { "Complete 4 Chapters Mirrored", () => HasChaptersVariant(4, BingoVariant.Mirrored) },
+            { "Get 4 Hearts and 4 Cassettes", () => (HasNHearts(4) + HasNCassettes(4)) / 2f },
+            { "Invisible Forsaken City", null }, // generated
+            { "4 Chapters Hiccups", () => HasChaptersVariant(4, BingoVariant.Hiccups) },
             { "Get a 1-Up in 3A", () => HasN1upsInChapter(1, 3) },
-            { "Bop Seekers 10 Times in 2 Chapters", null },
-            { "Complete 3A Start with Low Friction", null },
-            { "Invisible Unravelled", null },
-            { "Invisible Cliff Face", null },
-            { "Complete Start of Mirror Temple with Low Friction", null },
-            { "Invisible Start of Celestial Resort", null },
-            { "Invisible Old Site", null },
-            { "Grabless Huge Mess with the Heart", null },
-            { "Complete 3 Chapters with Low Friction", null },
-            { "Full Clear 8A", null },
-            { "Grabless Celestial Resort", null },
+            { "Bop Seekers 10 Times in 2 Chapters", () => HasSeekerStunsInChapters(10, 2) },
+            { "Complete 3A Start with Low Friction", null }, // generated
+            { "Invisible Unravelled", null }, // generated
+            { "Invisible Cliff Face", null }, // generated
+            { "Complete Start of Mirror Temple with Low Friction", null }, // generated
+            { "Invisible Start of Celestial Resort", null }, // generated
+            { "Invisible Old Site", null }, // generated
+            { "Grabless Huge Mess with the Heart", () => HasFlag("grabless_huge_mess_with_heart") },
+            { "Complete 3 Chapters with Low Friction", () => HasChaptersVariant(3, BingoVariant.LowFriction) },
+            { "Full Clear 8A", () => HasChapterClear(9) },
+            { "Grabless Celestial Resort", null }, // generated
             { "Kill 5 Different Seekers", () => HasSeekerKills(5) },
-            { "Complete Mirror Temple with Low Friction", null },
-            { "Kill 3 Different Seekers in Two Chapters", null },
+            { "Complete Mirror Temple with Low Friction", null }, // generated
+            { "Kill 3 Different Seekers in Two Chapters", () => HasSeekerKillsInChapters(3, 2) },
             { "Get 15 Berries in 4 Chapters", () => HasNBerriesInChapters(15, 4) },
-            { "Intro Car in Remembered", null },
+            { "Intro Car in Remembered", () => HasFlag("remembered_intro_car") },
             { "1-Up in 7A", () => HasN1upsInChapter(1, 7) },
-            { "Jumpless Reflection (Checkpoint)", null },
-            { "Jumpless Resolution", null },
-            { "Grabless Mirror Temple", null },
-            { "Invisible Mirror Temple", null },
-            { "Grabless Repreive", null },
+            { "Jumpless Reflection (Checkpoint)", null }, // generated
+            { "Jumpless Resolution", null }, // generated
+            { "Grabless Mirror Temple", null }, // generated
+            { "Invisible Mirror Temple", null }, // generated
+            { "Grabless Repreive", null }, // generated
             { "5 Berries in 7 Chapters", () => HasN1upsInChapters(5, 7) },
-            { "Invisible Presidential Suite", null },
-            { "Bounce on 10 Snowballs in 2 Chapters", null },
-            { "3000M Grabless", null },
-            { "Complete 2 Chapters Invisible", null },
-            { "Invisible 1500M", null },
-            { "Invisible 2500M", null },
-            { "Every Different Seeker Kill (12)", null }, // do the two seekers in the same room count?
-            { "Complete 5 Chapters Grabless", null },
+            { "Invisible Presidential Suite", null }, // generated
+            { "Bounce on 10 Snowballs in 2 Chapters", () => HasSnowballsInChapters(10, 2) },
+            { "3000M Grabless", null }, // generated
+            { "Complete 2 Chapters Invisible", () => HasChaptersVariant(2, BingoVariant.Invisible) },
+            { "Invisible 1500M", null }, // generated
+            { "Invisible 2500M", null }, // generated
+            { "Every Different Seeker Kill (12)", () => HasSeekerKills(12) },
+            { "Complete 5 Chapters Grabless", () => HasChaptersVariant(5, BingoVariant.NoGrab) },
             { "Use 4 Binoculars in 8 Chapters", () => HasNBinosInChapters(4, 8) },
-            { "Full Clear Three Chapters", null },
-            { "Invisible 3000M", null },
+            { "Full Clear Three Chapters", () => HasChaptersClear(3) },
+            { "Invisible 3000M", null }, // generated
             { "69 Berries", () => HasNBerries(69) },
             { "Blue Heart in The Summit", () => HasHeart(7, 0) },
             { "Find the Bird's Nest in Epilogue", () => HasFlag("room:birdnest") },
             { "20 Berries in 3 Chapters", () => HasNBerriesInChapters(20, 3) },
-            { "Invisible Power Source", null },
-            { "Complete 5 Chapters with Low Friction", null },
-            { "Complete 3000M with no Badeline Orbs", null },
+            { "Invisible Power Source", null }, // generated
+            { "Complete 5 Chapters with Low Friction", () => HasChaptersVariant(5, BingoVariant.LowFriction) },
+            { "Complete 3000M with no Badeline Orbs", () => HasFlag("orbless_3000m") },
             { "20 Berries in 4 Chapters", () => HasNBerriesInChapters(20, 4) },
             { "Use 2 Binoculars in 8 Chapters", () => HasNBinosInChapters(2, 8) },
             { "All Winged Berries (11)", () => HasNWingBerries(11) },
-            { "Complete 2B Grabless", null },
-            { "Complete Rooftop Jumpless", null },
-            { "Complete 6 Chapters Grabless", null },
+            { "Complete 2B Grabless", null }, // generated
+            { "Complete Rooftop Jumpless", null }, // generated
+            { "Complete 6 Chapters Grabless", () => HasChaptersVariant(6, BingoVariant.NoGrab) },
             { "Reach Event Horizon", () => HasCheckpoint(10, 0, 4) },
             { "Use All Binoculars in A-Sides (14)", () => HasNBinosInASides(14) },
-            { "Complete 6 Chapters Invisible", null },
+            { "Complete 6 Chapters Invisible", () => HasChaptersVariant(6, BingoVariant.Invisible) },
             { "Use All Binoculars in B-Sides (13)", () => HasNBinosInBSides(13) },
             { "Use 20 Binoculars in Farewell", () => HasNBinosInChapter(20, 10, 0) },
             { "10 Hearts", () => HasNHearts(10) },
             { "6 Hearts and 6 Cassettes", () => (HasNHearts(6) + HasNCassettes(6)) / 2f },
-            { "Full Clear 7A", null },
+            { "Full Clear 7A", () => HasChapterClear(7) },
             { "8 Cassettes", () => HasNCassettes(8) },
             { "Blue and Red Heart in The Summit", () => (HasHeart(7, 0) + HasHeart(7, 1)) / 2f },
-            { "Complete Remembered with Low Friction", null },
+            { "Complete Remembered with Low Friction", null }, // generated
             { "25 Berries in 4 Chapters", () => HasNBerriesInChapters(25, 4) },
-            { "Determination Demo Room", null },
+            { "Determination Demo Room", () => HasFlag("room:determinationdemo") },
             { "20 Berries in 5 Chapters", () => HasNBerriesInChapters(20, 5) },
-            { "Complete 10 Chapters", null },
-            { "4 A-Sides and 4 B-Sides", null },
+            { "Complete 10 Chapters", () => HasNChapters(10) },
+            { "4 A-Sides and 4 B-Sides", () => (HasNASides(4) + HasNHeartsColor(4, 1)) / 2f },
             { "12 Hearts", () => HasNHearts(12) },
             { "Unlock Reconciliation", () => HasCheckpoint(10, 0, 7) },
-            { "Five Full Clears", null },
+            { "Five Full Clears", () => HasChaptersClear(5) },
             { "Complete 6 B-Sides", () => HasNHeartsColor(6, 1) },
-            { "Grabless 6B", null },
-            { "Moon Berry", null },
+            { "Grabless 6B", null }, // generated
+            { "Moon Berry", () => HasParticularStrawberries(10, "j-19:9") },
             { "125 Berries", () => HasNBerries(125) },
             { "All Blue Hearts", () => HasNHeartsColor(8, 0) },
             { "7 Red Hearts", () => HasNHeartsColor(7, 1) },
-            { "Farewell", () => HasASide(10) },
+            { "Farewell", () => HasChapterComplete(10, 0) },
+        };
 
-        };
         public static Dictionary<string, List<Tuple<int, int, int, BingoVariant>>> ObjectiveVariants = new Dictionary<string, List<Tuple<int, int, int, BingoVariant>>> {
-            { "Complete 1A Start without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 0, BingoVariant.NoDash)} },
-            { "Complete Crossing without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 1, BingoVariant.NoDash)} },
-            { "Complete Chasm without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 2, BingoVariant.NoDash)} },
-            { "Complete Awake without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(2, 0, 2, BingoVariant.NoDash)} },
-            { "Complete Shrine without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(4, 0, 1, BingoVariant.NoDash)} },
-            { "Complete 1A Start without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 0, BingoVariant.NoJump)} },
-            { "Complete Intervention without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(2, 0, 1, BingoVariant.NoJump)} },
-            { "Complete Intervention without Jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(2, 0, 1, BingoVariant.NoJump)} },
-            { "Complete Awake without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(2, 0, 2, BingoVariant.NoJump)} },
-            { "Complete Start of 5A without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 0, BingoVariant.NoJump)} },
-            { "Complete Resolution without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 5, BingoVariant.NoJump)} },
-            { "Grabless Start of 3A", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 0, BingoVariant.NoGrab)} },
-            { "Grabless Huge Mess", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 1, BingoVariant.NoGrab)} },
-            { "Grabless Elevator Shaft", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 2, BingoVariant.NoGrab)} },
-            { "Grabless Presidential Suite", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 3, BingoVariant.NoGrab)} },
-            { "Grabless Start of 4A", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(4, 0, 0, BingoVariant.NoGrab)} },
-            { "Grabless Cliff Face", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(4, 0, 3, BingoVariant.NoGrab)} },
-            { "Grabless Depths", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 1, BingoVariant.NoGrab)} },
-            { "Grabless Unraveling", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 2, BingoVariant.NoGrab)} },
-            { "Grabless Search", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 3, BingoVariant.NoGrab)} },
-            { "Grabless Rescue", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 4, BingoVariant.NoGrab)} },
-            { "Grabless Lake", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 1, BingoVariant.NoGrab)} },
-            { "Grabless Hollows", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 2, BingoVariant.NoGrab)} },
-            { "Grabless Rock Bottom", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 4, BingoVariant.NoGrab)} },
-            { "Grabless 1A", new List<Tuple<int, int, int, BingoVariant>> {
-                Tuple.Create(1, 0, 0, BingoVariant.NoGrab),
-                Tuple.Create(1, 0, 1, BingoVariant.NoGrab),
-                Tuple.Create(1, 0, 2, BingoVariant.NoGrab),
-            } },
-            { "Grabless 2A", new List<Tuple<int, int, int, BingoVariant>> {
-                Tuple.Create(2, 0, 0, BingoVariant.NoGrab),
-                Tuple.Create(2, 0, 1, BingoVariant.NoGrab),
-                Tuple.Create(2, 0, 2, BingoVariant.NoGrab),
-            } },
-            { "Grabless 3A", new List<Tuple<int, int, int, BingoVariant>> {
-                Tuple.Create(3, 0, 0, BingoVariant.NoGrab),
-                Tuple.Create(3, 0, 1, BingoVariant.NoGrab),
-                Tuple.Create(3, 0, 2, BingoVariant.NoGrab),
-                Tuple.Create(3, 0, 3, BingoVariant.NoGrab),
-            } },
-            { "Grabless 5A", new List<Tuple<int, int, int, BingoVariant>> {
-                Tuple.Create(5, 0, 0, BingoVariant.NoGrab),
-                Tuple.Create(5, 0, 1, BingoVariant.NoGrab),
-                Tuple.Create(5, 0, 2, BingoVariant.NoGrab),
-                Tuple.Create(5, 0, 3, BingoVariant.NoGrab),
-                Tuple.Create(5, 0, 4, BingoVariant.NoGrab),
-            } },
-            { "Grabless 6A", new List<Tuple<int, int, int, BingoVariant>> {
-                Tuple.Create(6, 0, 0, BingoVariant.NoGrab),
-                Tuple.Create(6, 0, 1, BingoVariant.NoGrab),
-                Tuple.Create(6, 0, 2, BingoVariant.NoGrab),
-                Tuple.Create(6, 0, 3, BingoVariant.NoGrab),
-                Tuple.Create(6, 0, 4, BingoVariant.NoGrab),
-                Tuple.Create(6, 0, 5, BingoVariant.NoGrab),
-            } },
-            { "Complete 2 Chapters Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.NoGrab)} },
+            {"Complete 1A Start without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 0, BingoVariant.NoDash)}},
+            {"Complete 1A Start without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 0, BingoVariant.NoJump)}},
+            {"Complete Crossing without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 1, BingoVariant.NoDash)}},
+            {"Crossing Dashless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 1, BingoVariant.NoDash)}},
+            {"Complete Chasm without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(1, 0, 2, BingoVariant.NoDash)}},
+            {"Complete Intervention without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(2, 0, 1, BingoVariant.NoJump)}},
+            {"Complete Intervention without Jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(2, 0, 1, BingoVariant.NoJump)}},
+            {"Complete Awake without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(2, 0, 2, BingoVariant.NoDash)}},
+            {"Complete Awake without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(2, 0, 2, BingoVariant.NoJump)}},
+            {"Jumpless Dashless Awake", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(2, 0, 2, BingoVariant.NoJumpNoDash)}},
+            {"Grabless Start of 3A", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 0, BingoVariant.NoGrab)}},
+            {"Invisible Start of Celestial Resort", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 0, BingoVariant.Invisible)}},
+            {"Complete 3A Start with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 0, BingoVariant.LowFriction)}},
+            {"Grabless Huge Mess", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 1, BingoVariant.NoGrab)}},
+            {"Invisible Huge Mess", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 1, BingoVariant.Invisible)}},
+            {"Complete Elevator Shaft with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 2, BingoVariant.LowFriction)}},
+            {"Grabless Elevator Shaft", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 2, BingoVariant.NoGrab)}},
+            {"Grabless Presidential Suite", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 3, BingoVariant.NoGrab)}},
+            {"Invisible Presidential Suite", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 3, BingoVariant.Invisible)}},
+            {"Complete Presidential Suite with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 0, 3, BingoVariant.LowFriction)}},
+            {"Complete Rooftop Jumpless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(3, 1, 3, BingoVariant.NoJump)}},
+            {"Grabless Start of 4A", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(4, 0, 0, BingoVariant.NoGrab)}},
+            {"Complete Shrine without dashing", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(4, 0, 1, BingoVariant.NoDash)}},
+            {"Complete Old Trail with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(4, 0, 2, BingoVariant.NoJump)}},
+            {"Grabless Cliff Face", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(4, 0, 3, BingoVariant.NoGrab)}},
+            {"Invisible Cliff Face", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(4, 0, 3, BingoVariant.Invisible)}},
+            {"Complete Start of 5A without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 0, BingoVariant.NoJump)}},
+            {"Complete Start of Mirror Temple with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 0, BingoVariant.LowFriction)}},
+            {"Grabless Depths", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 1, BingoVariant.NoGrab)}},
+            {"Grabless Unraveling", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 2, BingoVariant.NoGrab)}},
+            {"Invisible Unravelled", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 2, BingoVariant.Invisible)}},
+            {"Grabless Search", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 3, BingoVariant.NoGrab)}},
+            {"Grabless Rescue", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(5, 0, 4, BingoVariant.NoGrab)}},
+            {"Grabless Lake", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 1, BingoVariant.NoGrab)}},
+            {"Grabless Hollows", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 2, BingoVariant.NoGrab)}},
+            {"Jumpless Reflection (Checkpoint)", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 3, BingoVariant.NoJump)}},
+            {"Grabless Rock Bottom", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 4, BingoVariant.NoGrab)}},
+            {"Complete Resolution without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 5, BingoVariant.NoJump)}},
+            {"Jumpless Resolution", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 5, BingoVariant.NoJump)}},
+            {"Grabless Repreive", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 1, 3, BingoVariant.NoGrab)}},
+            {"Invisible 1500M", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(7, 0, 3, BingoVariant.Invisible)}},
+            {"Invisible 2500M", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(7, 0, 5, BingoVariant.Invisible)}},
+            {"Invisible 3000M", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(7, 0, 6, BingoVariant.Invisible)}},
+            {"3000M Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(7, 0, 6, BingoVariant.NoGrab)}},
+            {"Invisible Power Source", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(10, 0, 2, BingoVariant.Invisible)}},
+            {"Complete Remembered with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(10, 0, 3, BingoVariant.LowFriction)}},
+            {
+                "Grabless 1A", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(1, 0, 0, BingoVariant.NoGrab),
+                    Tuple.Create(1, 0, 1, BingoVariant.NoGrab),
+                    Tuple.Create(1, 0, 2, BingoVariant.NoGrab),
+                }
+            }, {
+                "Complete Forsaken City with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(1, 0, 0, BingoVariant.LowFriction),
+                    Tuple.Create(1, 0, 1, BingoVariant.LowFriction),
+                    Tuple.Create(1, 0, 2, BingoVariant.LowFriction),
+                }
+            }, {
+                "Invisible Forsaken City", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(1, 0, 0, BingoVariant.Invisible),
+                    Tuple.Create(1, 0, 1, BingoVariant.Invisible),
+                    Tuple.Create(1, 0, 2, BingoVariant.Invisible),
+                }
+            }, {
+                "Complete Forsaken City with 70% Speed", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(1, 0, 0, BingoVariant.Speed70),
+                    Tuple.Create(1, 0, 1, BingoVariant.Speed70),
+                    Tuple.Create(1, 0, 2, BingoVariant.Speed70),
+                }
+            }, {
+                "Complete Forsaken City with 160% Speed", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(1, 0, 0, BingoVariant.Speed160),
+                    Tuple.Create(1, 0, 1, BingoVariant.Speed160),
+                    Tuple.Create(1, 0, 2, BingoVariant.Speed160),
+                }
+            }, {
+                "Grabless 2A", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(2, 0, 0, BingoVariant.NoGrab),
+                    Tuple.Create(2, 0, 1, BingoVariant.NoGrab),
+                    Tuple.Create(2, 0, 2, BingoVariant.NoGrab),
+                }
+            }, {
+                "Complete 2B Grabless", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(2, 1, 0, BingoVariant.NoGrab),
+                    Tuple.Create(2, 1, 1, BingoVariant.NoGrab),
+                    Tuple.Create(2, 1, 2, BingoVariant.NoGrab),
+                }
+            }, {
+                "Invisible Old Site", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(2, 0, 0, BingoVariant.Invisible),
+                    Tuple.Create(2, 0, 1, BingoVariant.Invisible),
+                    Tuple.Create(2, 0, 2, BingoVariant.Invisible),
+                }
+            }, {
+                "Complete Old Site with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(2, 0, 0, BingoVariant.LowFriction),
+                    Tuple.Create(2, 0, 1, BingoVariant.LowFriction),
+                    Tuple.Create(2, 0, 2, BingoVariant.LowFriction),
+                }
+            }, {
+                "Grabless 3A", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(3, 0, 0, BingoVariant.NoGrab),
+                    Tuple.Create(3, 0, 1, BingoVariant.NoGrab),
+                    Tuple.Create(3, 0, 2, BingoVariant.NoGrab),
+                    Tuple.Create(3, 0, 3, BingoVariant.NoGrab),
+                }
+            }, {
+                "Grabless Celestial Resort", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(3, 0, 0, BingoVariant.NoGrab),
+                    Tuple.Create(3, 0, 1, BingoVariant.NoGrab),
+                    Tuple.Create(3, 0, 2, BingoVariant.NoGrab),
+                    Tuple.Create(3, 0, 3, BingoVariant.NoGrab),
+                }
+            }, {
+                "Grabless 5A", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(5, 0, 0, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 1, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 2, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 3, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 4, BingoVariant.NoGrab),
+                }
+            }, {
+                "Grabless Mirror Temple", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(5, 0, 0, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 1, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 2, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 3, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 4, BingoVariant.NoGrab),
+                }
+            }, {
+                "Invisible Mirror Temple", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(5, 0, 0, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 1, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 2, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 3, BingoVariant.NoGrab),
+                    Tuple.Create(5, 0, 4, BingoVariant.NoGrab),
+                }
+            }, {
+                "Complete Mirror Temple with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(5, 0, 0, BingoVariant.LowFriction),
+                    Tuple.Create(5, 0, 1, BingoVariant.LowFriction),
+                    Tuple.Create(5, 0, 2, BingoVariant.LowFriction),
+                    Tuple.Create(5, 0, 3, BingoVariant.LowFriction),
+                    Tuple.Create(5, 0, 4, BingoVariant.LowFriction),
+                }
+            }, {
+                "Grabless 6A", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(6, 0, 0, BingoVariant.NoGrab),
+                    Tuple.Create(6, 0, 1, BingoVariant.NoGrab),
+                    Tuple.Create(6, 0, 2, BingoVariant.NoGrab),
+                    Tuple.Create(6, 0, 3, BingoVariant.NoGrab),
+                    Tuple.Create(6, 0, 4, BingoVariant.NoGrab),
+                    Tuple.Create(6, 0, 5, BingoVariant.NoGrab),
+                }
+            }, {
+                "Grabless 6B", new List<Tuple<int, int, int, BingoVariant>> {
+                    Tuple.Create(6, 1, 0, BingoVariant.NoGrab),
+                    Tuple.Create(6, 1, 1, BingoVariant.NoGrab),
+                    Tuple.Create(6, 1, 2, BingoVariant.NoGrab),
+                    Tuple.Create(6, 1, 3, BingoVariant.NoGrab),
+                }
+            },
+            {"2 Chapters Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.NoGrab)}},
+            {"Complete 2 Chapters Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.NoGrab)}},
+            {"Complete 5 Chapters Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.NoGrab)}},
+            {"Complete 6 Chapters Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.NoGrab)}},
+            {"Complete 2 Chapters Mirrored", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.Mirrored)}},
+            {"Complete 4 Chapters Mirrored", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.Mirrored)}},
+            {"Complete 2 Chapters Invisible", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.Invisible)}},
+            {"4 Chapters Hiccups", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.Hiccups)}},
+            {"Complete 3 Chapters with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.LowFriction)}},
+            {"Complete 5 Chapters with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.LowFriction)}},
         };
-        
+
         static BingoMonitor() {
             foreach (var kv in ObjectiveVariants) {
                 if (Objectives.TryGetValue(kv.Key, out var maybenull) && maybenull != null) {
@@ -475,6 +592,10 @@ namespace Celeste.Mod.BingoClient {
         #endregion
 
         #region checkers
+        private static float Has1upCombo(int i) {
+            return BingoClient.Instance.ModSaveData.MaxOneUpCombo - 4 >= i ? 1f : 0f;
+        }
+
         private static float HasParticularBinos(int chapter, int mode, params string[] levels) {
             return levels.Count(lvl => BinocularsList.Any(bino => {
                 var point = new Point((int) bino.pos.X, (int) bino.pos.Y);
@@ -552,13 +673,7 @@ namespace Celeste.Mod.BingoClient {
         };
     
         private static FieldInfo BinosField = typeof(BingoModule).GetField("BinocularsList", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static FieldInfo SeekersField = typeof(BingoModule).GetField("SeekersHit", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static FieldInfo SnowballsField = typeof(BingoModule).GetField("SnowballHits", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static FieldInfo OshiroField = typeof(BingoModule).GetField("OshiroHits", BindingFlags.NonPublic | BindingFlags.Instance);
         public static List<Binoculars> BinocularsList => (List<Binoculars>)BinosField.GetValue(BingoModule.Instance);
-        public static int SeekersHit => (int)SeekersField.GetValue(BingoModule.Instance);
-        public static int SnowballHits => (int)SnowballsField.GetValue(BingoModule.Instance);
-        public static int OshiroHits => (int)OshiroField.GetValue(BingoModule.Instance);
         
         private static float HasNSeedBerries(int n) {
             return Math.Min(1f, SeedBerryIDList.Count(id => SaveData.Instance.Areas[id.Item1].Modes[0].Strawberries.Contains(new EntityID {Key = id.Item2})) / (float) n);
@@ -575,21 +690,59 @@ namespace Celeste.Mod.BingoClient {
         private static float HasNWingBerriesInChapters(int n, int chapters) {
             return HasInNChapters((ch, mode) => mode == 0 ? HasNWingBerriesInChapter(n, ch) : 0f, chapters);
         }
-
-        private static float HasNBinos(int n) {
-            return Math.Min(1f, BinocularsList.Count / (float)n);
-        }
         
         private static float HasSeekerStuns(int n) {
-            return Math.Min(1f, SeekersHit / (float) n);
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.SeekerBonks.Sum() / (float) n);
+        }
+
+        private static float HasSeekerKillsInChapter(int n, int chapter, int mode) {
+            var count = 0;
+            foreach (var kill in BingoClient.Instance.ModSaveData.SeekerKills) {
+                if (kill.StartsWith(chapter + "-" + mode)) {
+                    count++;
+                }
+            }
+            return Math.Min(1f, count / (float) n);
+        }
+
+        private static float HasSeekerKillsInChapters(int n, int chapters) {
+            return HasInNChapters((ch, mode) => HasSeekerKillsInChapter(n, ch, mode), chapters);
+        }
+
+        private static float HasSeekerStunsInChapter(int n, int chapter, int mode) {
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.SeekerBonks[chapter + mode*11] / (float) n);
+        }
+
+        private static float HasSeekerStunsInChapters(int n, int chapters) {
+            return HasInNChapters((ch, mode) => HasSeekerStunsInChapter(n, ch, mode), chapters);
         }
         
         private static float HasOshiroBonks(int n) {
-            return Math.Min(1f, OshiroHits / (float) n);
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.OshiroBonks.Sum() / (float) n);
+        }
+
+        private static float HasOshiroBonksInChapter(int n, int chapter, int mode) {
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.OshiroBonks[chapter + mode*11] / (float) n);
+        }
+
+        private static float HasOshiroBonksInChapters(int n, int chapters) {
+            return HasInNChapters((ch, mode) => HasOshiroBonksInChapter(n, ch, mode), chapters);
         }
         
         private static float HasNSnowballs(int n) {
-            return Math.Min(1f, SnowballHits / (float) n);
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.SnowballBonks.Sum() / (float) n);
+        }
+
+        private static float HasSnowballsInChapter(int n, int chapter, int mode) {
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.SnowballBonks[chapter + mode*11] / (float) n);
+        }
+
+        private static float HasSnowballsInChapters(int n, int chapters) {
+            return HasInNChapters((ch, mode) => HasSnowballsInChapter(n, ch, mode), chapters);
+        }
+
+        private static float HasNBinos(int n) {
+            return Math.Min(1f, BinocularsList.Count / (float)n);
         }
 
         private static float HasNBinosInChapter(int n, int chapter, int mode) {
@@ -612,8 +765,20 @@ namespace Celeste.Mod.BingoClient {
             return Math.Min(1f, SaveData.Instance.Areas.Select(area => area.Cassette ? 1f : 0f).Sum() / n);
         }
 
-        private static float HasASide(int chapter) {
+        private static float HasChapterComplete(int chapter, int mode) {
             return SaveData.Instance.Areas[chapter].Modes[0].Completed ? 1f : 0f;
+        }
+
+        private static float HasChaptersComplete(int n) {
+            return HasInNChapters(HasChapterComplete, n);
+        }
+
+        private static float HasChapterClear(int chapter) {
+            return SaveData.Instance.Areas[chapter].Modes[0].FullClear ? 1f : 0f;
+        }
+
+        private static float HasChaptersClear(int n) {
+            return HasInNChapters((ch, mode) => mode != 0 ? 0f : HasChapterClear(ch), n);
         }
 
         private static float HasNHearts(int n) {
@@ -622,6 +787,10 @@ namespace Celeste.Mod.BingoClient {
 
         private static float HasNASides(int n) {
             return Math.Min(1f, SaveData.Instance.Areas.Select(area => area.Modes[0].Completed && area.ID != 0 && area.ID != 8 && area.ID != 10 ? 1f : 0f).Sum() / n);
+        }
+
+        private static float HasNChapters(int n) {
+            return HasInNChapters((ch, mode) => SaveData.Instance.Areas[ch].Modes[mode].Completed ? 1f : 0f, n);
         }
 
         private static float HasNSummitGems(int n) {
@@ -651,8 +820,8 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private static float HasInNChapters(Func<int, int, float> predicate, int chapters) {
-            var map = new[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}.Select(ch => predicate(ch, 0)).ToList();
-            map.AddRange(new[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}.Select(ch => predicate(ch, 1)));
+            var map = new[] {1, 2, 3, 4, 5, 6, 7, 9, 10}.Select(ch => predicate(ch, 0)).ToList();
+            map.AddRange(new[] {1, 2, 3, 4, 5, 6, 7, 9}.Select(ch => predicate(ch, 1)));
             map.Sort();
             map.Reverse();
             return map.Take(chapters).Sum() / chapters;
@@ -714,7 +883,7 @@ namespace Celeste.Mod.BingoClient {
         
         #region variants
         public static IEnumerable<BingoVariant> EnabledVariants() {
-            return typeof(BingoVariant).GetEnumValues().Cast<BingoVariant>().Where(variant => IsVariantEnabled(variant));
+            return typeof(BingoVariant).GetEnumValues().Cast<BingoVariant>().Where(IsVariantEnabled);
         }
 
         public static bool IsVariantEnabled(BingoVariant variant) {
@@ -730,6 +899,20 @@ namespace Celeste.Mod.BingoClient {
                     return extvar.MasterSwitch && extvar.JumpCount == 0 && extvar.DisableClimbJumping && extvar.DisableNeutralJumping && extvar.DisableWallJumping;
                 case BingoVariant.NoDash:
                     return extvar.MasterSwitch && extvar.DashCount == 0;
+                case BingoVariant.Invisible:
+                    return SaveData.Instance.VariantMode && SaveData.Instance.Assists.InvisibleMotion;
+                case BingoVariant.LowFriction:
+                    return SaveData.Instance.VariantMode && SaveData.Instance.Assists.LowFriction;
+                case BingoVariant.Speed70:
+                    return SaveData.Instance.VariantMode && SaveData.Instance.Assists.GameSpeed == 7;
+                case BingoVariant.Speed160:
+                    return SaveData.Instance.VariantMode && SaveData.Instance.Assists.GameSpeed == 16;
+                case BingoVariant.NoJumpNoDash:
+                    return IsVariantEnabled(BingoVariant.NoDash) && IsVariantEnabled(BingoVariant.NoJump);
+                case BingoVariant.Mirrored:
+                    return SaveData.Instance.VariantMode && SaveData.Instance.Assists.MirrorMode;
+                case BingoVariant.Hiccups:
+                    return SaveData.Instance.VariantMode && SaveData.Instance.Assists.Hiccups;
             }
 
             return false;
@@ -754,10 +937,40 @@ namespace Celeste.Mod.BingoClient {
                 case BingoVariant.NoDash:
                     if (enabled) extvar.MasterSwitch = true;
                     extvar.DashCount = enabled ? 0 : -1;
-                    var player = Engine.Scene.Tracker.GetEntity<Player>();
-                    if (player != null) {
-                        player.Dashes = 0;
+                    if (enabled) {
+                        var player = Engine.Scene.Tracker.GetEntity<Player>();
+                        if (player != null) {
+                            player.Dashes = 0;
+                        }
                     }
+                    break;
+                case BingoVariant.Invisible:
+                    if (enabled) SaveData.Instance.VariantMode = true;
+                    SaveData.Instance.Assists.InvisibleMotion = enabled;
+                    break;
+                case BingoVariant.LowFriction:
+                    if (enabled) SaveData.Instance.VariantMode = true;
+                    SaveData.Instance.Assists.LowFriction = enabled;
+                    break;
+                case BingoVariant.Speed70:
+                    if (enabled) SaveData.Instance.VariantMode = true;
+                    SaveData.Instance.Assists.GameSpeed = enabled ? 7 : 10;
+                    break;
+                case BingoVariant.Speed160:
+                    if (enabled) SaveData.Instance.VariantMode = true;
+                    SaveData.Instance.Assists.GameSpeed = enabled ? 16 : 10;
+                    break;
+                case BingoVariant.NoJumpNoDash:
+                    SetVariantEnabled(BingoVariant.NoJump, enabled);
+                    SetVariantEnabled(BingoVariant.NoDash, enabled);
+                    break;
+                case BingoVariant.Mirrored:
+                    if (enabled) SaveData.Instance.VariantMode = true;
+                    SaveData.Instance.Assists.MirrorMode = enabled;
+                    break;
+                case BingoVariant.Hiccups:
+                    if (enabled) SaveData.Instance.VariantMode = true;
+                    SaveData.Instance.Assists.Hiccups = enabled;
                     break;
             }
         }

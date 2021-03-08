@@ -34,6 +34,11 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.Level.StartCutscene += OnStartCutscene;
             On.Celeste.CutsceneEntity.Added += OnStartCutscene2;
             On.Celeste.Level.SkipCutscene += OnSkipCutscene;
+            On.Celeste.BadelineBoost.OnPlayer += MarkUsedOrb;
+            On.Celeste.Seeker.RegenerateBegin += TrackSeekerBonks;
+            On.Celeste.AngryOshiro.HurtBegin += TrackOshiroBonks;
+            On.Celeste.Snowball.OnPlayerBounce += TrackSnowballBonks;
+            On.Celeste.Seeker.ctor_EntityData_Vector2 += TrackSeekerLife;
 
             IL.Celeste.CutsceneEntity.Start += FuckedUpIfTrue;
             IL.Celeste.CutsceneEntity.Added += FuckedUpIfTrue;
@@ -62,10 +67,15 @@ namespace Celeste.Mod.BingoClient {
             IL.Celeste.SummitCheckpoint.Update -= TrackSummitCheckpoints;
             On.Celeste.IntroCar.Update -= TrackIntroCar;
             On.Celeste.Key.OnPlayer -= TrackKeys;
-            On.Celeste.Level.LoadLevel += HookLoadLevel;
-            On.Celeste.Level.StartCutscene += OnStartCutscene;
-            On.Celeste.CutsceneEntity.Added += OnStartCutscene2;
-            On.Celeste.Level.SkipCutscene += OnSkipCutscene;
+            On.Celeste.Level.LoadLevel -= HookLoadLevel;
+            On.Celeste.Level.StartCutscene -= OnStartCutscene;
+            On.Celeste.CutsceneEntity.Added -= OnStartCutscene2;
+            On.Celeste.Level.SkipCutscene -= OnSkipCutscene;
+            On.Celeste.BadelineBoost.OnPlayer -= MarkUsedOrb;
+            On.Celeste.Seeker.RegenerateBegin -= TrackSeekerBonks;
+            On.Celeste.AngryOshiro.HurtBegin -= TrackOshiroBonks;
+            On.Celeste.Snowball.OnPlayerBounce -= TrackSnowballBonks;
+            On.Celeste.Seeker.ctor_EntityData_Vector2 -= TrackSeekerLife;
             
             IL.Celeste.CutsceneEntity.Start -= FuckedUpIfTrue;
             IL.Celeste.CutsceneEntity.Added -= FuckedUpIfTrue;
@@ -78,6 +88,32 @@ namespace Celeste.Mod.BingoClient {
                 hook.Dispose();
             }
             SpecialHooks.Clear();
+        }
+
+        private static void TrackSnowballBonks(On.Celeste.Snowball.orig_OnPlayerBounce orig, Snowball self, Player player) {
+            orig(self, player);
+
+            var area = SaveData.Instance.CurrentSession.Area;
+            BingoClient.Instance.ModSaveData.SnowballBonks[area.ID + (int) area.Mode*11]++;
+        }
+
+        private static void TrackOshiroBonks(On.Celeste.AngryOshiro.orig_HurtBegin orig, AngryOshiro self) {
+            orig(self);
+
+            var area = SaveData.Instance.CurrentSession.Area;
+            BingoClient.Instance.ModSaveData.OshiroBonks[area.ID + (int) area.Mode*11]++;
+        }
+
+        private static void TrackSeekerBonks(On.Celeste.Seeker.orig_RegenerateBegin orig, Seeker self) {
+            orig(self);
+
+            var area = SaveData.Instance.CurrentSession.Area;
+            BingoClient.Instance.ModSaveData.SeekerBonks[area.ID + (int) area.Mode*11]++;
+        }
+
+        private static void MarkUsedOrb(On.Celeste.BadelineBoost.orig_OnPlayer orig, BadelineBoost self, Player player) {
+            orig(self, player);
+            SaveData.Instance.CurrentSession.SetFlag("usedOrb");
         }
 
         private static void FuckedUpIfTrue(ILContext il) {
@@ -227,6 +263,10 @@ namespace Celeste.Mod.BingoClient {
         private static void OnComplete(Level level) {
             var checkpoint = BingoMonitor.CountCheckpoints(level.Session.Area);
             UpdateOnCheckpoint(level.Session.Area, checkpoint);
+
+            if (level.Session.Area == new AreaKey(7) && !level.Session.GetFlag("usedOrb")) {
+                BingoClient.Instance.ModSaveData.AddFlag("orbless_3000m");
+            }
         }
         
         private static void HookLoadLevel(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerintro, bool isfromloader) {
@@ -243,6 +283,10 @@ namespace Celeste.Mod.BingoClient {
 
             var checkpoint = BingoMonitor.IsCheckpointRoom(next.Name);
             UpdateOnCheckpoint(level.Session.Area, checkpoint);
+
+            if (checkpoint == 2 && area == new AreaKey(3) && (BingoClient.Instance.ModSession.CheckpointStartedVariant ?? 2) < 2 && BingoMonitor.IsVariantEnabled(BingoVariant.NoGrab)) {
+                BingoClient.Instance.ModSaveData.AddFlag("grabless_huge_mess_with_heart");
+            }
         
             switch (next.Name) {
                 case "b-00c" when area == new AreaKey(6):
@@ -267,8 +311,14 @@ namespace Celeste.Mod.BingoClient {
                 case "d-00" when prev.Name == "c-10" && area == new AreaKey(4):
                     BingoClient.Instance.ModSaveData.AddFlag("room:oldtrailsecret");
                     break;
+                case "h-05" when prev.Name == "h-04b" && area == new AreaKey(10):
+                    BingoClient.Instance.ModSaveData.AddFlag("room:determinationdemo");
+                    break;
                 case "secret" when area == new AreaKey(8):
                     BingoClient.Instance.ModSaveData.AddFlag("room:birdnest");
+                    break;
+                case "g-00" when area == new AreaKey(7) :
+                    level.Session.SetFlag("usedOrb", false);
                     break;
             }
         }
@@ -320,16 +370,21 @@ namespace Celeste.Mod.BingoClient {
             });
         }
 
+        private static void TrackSeekerLife(On.Celeste.Seeker.orig_ctor_EntityData_Vector2 orig, Seeker self, EntityData data, Vector2 offset) {
+            orig(self, data, offset);
+            new DynData<Seeker>(self).Set("ID", data.ID);
+        }
+
         private static void TrackSeekerDeath(ILContext il) {
             var cursor = new ILCursor(il);
-            if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchCall<Entity>("RemoveSelf"))) {
+            if (!cursor.TryGotoNext(MoveType.Before, insn => insn.MatchCall<Entity>("RemoveSelf"))) {
                 throw new Exception("Could not find patch point");
             }
 
-            cursor.EmitDelegate<Action>(() => {
-                // technically BingoClient.Instance can't account for killing two different seekers in the same room (technically possible in 5a but stupid hard)
-                // but who cares
-                var ident = SaveData.Instance.CurrentSession.Level;
+            cursor.Emit(OpCodes.Dup);
+            cursor.EmitDelegate<Action<Seeker>>(seeker => {
+                var session = SaveData.Instance.CurrentSession;
+                var ident = session.Area.ID + "-" + (int)session.Area.Mode + ":" + session.Level + ":" + new DynData<Seeker>(seeker).Get<int>("ID");
                 BingoClient.Instance.ModSaveData.AddSeekerKill(ident);
             });
         }

@@ -24,6 +24,13 @@ namespace Celeste.Mod.BingoClient {
         NoGrab,
         NoDash,
         NoJump,
+        Invisible,
+        LowFriction,
+        Speed70,
+        Speed160,
+        NoJumpNoDash,
+        Mirrored,
+        Hiccups,
     }
     
     public static class BingoEnumExtensions {
