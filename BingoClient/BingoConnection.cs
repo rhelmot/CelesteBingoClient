@@ -40,7 +40,7 @@ namespace Celeste.Mod.BingoClient {
         private ClientWebSocket Sock;
         private CancellationTokenSource CancelToken;
         private SemaphoreSlim Lock = new SemaphoreSlim(1);
-        
+
         public void Connect() {
             string sessionKey;
             if (this.Session == null || this.Password != this.SavedPassword || this.RoomId != this.SavedRoomId) {
@@ -79,13 +79,13 @@ namespace Celeste.Mod.BingoClient {
                     sessionKey = RecoverFormValue("temporarySocketKey", r2);
                 }
             }
-            
+
             this.CancelToken = new CancellationTokenSource();
             this.Chat.SetHistory(this.GetHistory().events.Select(x => x.Render()));
-            
+
             // https://stackoverflow.com/questions/40502921/net-websockets-forcibly-closed-despite-keep-alive-and-activity-on-the-connectio
             ServicePointManager.MaxServicePointIdleTime = 1000 * 60 * 60 * 24;
-            
+
             this.Sock = new ClientWebSocket();
             Uri uri = new Uri("wss://sockets.bingosync.com/broadcast");
             //Uri uri = new Uri("ws://localhost:8902/");
@@ -99,14 +99,14 @@ namespace Celeste.Mod.BingoClient {
                 this.CancelToken.Token).Wait();
 
             new Task(this.RecvThreadFunc).Start();
-            
+
             while (!this.Connected) {
                 if (this.Sock == null) {
                     throw new Exception("Encountered something wrong while logging in");
                 }
                 Thread.Sleep(10);
             }
-            
+
             this.RefreshBoard();
             this.SendColor();
         }
@@ -157,7 +157,7 @@ namespace Celeste.Mod.BingoClient {
                 }).Start();
             }
         }
-        
+
         public void SendChat(string text) {
             new Task(() => {
                 using (this.Lock.Use(this.CancelToken.Token)) {
@@ -269,7 +269,7 @@ namespace Celeste.Mod.BingoClient {
             public string event_type;
             public PlayerMsg player;
             public string player_color;
-            
+
             public string text;
             public string error;
             public string error_src = "server";
@@ -306,7 +306,7 @@ namespace Celeste.Mod.BingoClient {
                 }
             }
         }
-        
+
         public class PlayerMsg {
             public string uuid;
             public bool is_spectator;

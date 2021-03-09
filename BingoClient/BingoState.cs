@@ -22,7 +22,7 @@ namespace Celeste.Mod.BingoClient {
                 this.Board[i].Colors = new List<BingoColors>(BingoEnumExtensions.ParseColors(square.colors));
                 this.Board[i].Text = square.name;
             }
-            
+
             this.RefreshObjectives();
         }
 
@@ -121,7 +121,7 @@ namespace Celeste.Mod.BingoClient {
             if (!(Engine.Scene is Level)) {
                 return;
             }
-            
+
             for (var i = 0; i < 25; i++) {
                 if (this.GetObjectiveStatus(i) != ObjectiveStatus.Completed) {
                     continue;
@@ -131,7 +131,7 @@ namespace Celeste.Mod.BingoClient {
                     this.ObjectivesCompleted[i] = true;
                     this.LogChat(string.Format(Dialog.Get("bingoclient_objective_claimable"), this.Board[i].Text));
                 }
-                
+
                 if (this.ModSettings.ClaimAssist && this.ModSettings.QuickClaim.Pressed) {
                     this.SendClaim(i);
                 }
@@ -154,7 +154,7 @@ namespace Celeste.Mod.BingoClient {
             if (this.Board == null || this.Board.Count <= i || this.Board[i] == null || this.ObjectivesCompleted == null) {
                 return ObjectiveStatus.Nothing;
             }
-            
+
             if (this.Board[i].Colors.Contains(this.ModSettings.PlayerColor) || (this.IsLockout && this.Board[i].Colors.Count != 0)) {
                 return ObjectiveStatus.Claimed;
             }
@@ -166,11 +166,11 @@ namespace Celeste.Mod.BingoClient {
             if (SaveData.Instance == null) {
                 return ObjectiveStatus.Nothing;
             }
-            
+
             if (!BingoMonitor.Objectives.ContainsKey(this.Board[i].Text)) {
                 return ObjectiveStatus.Unknown;
             }
-            
+
             var progress = BingoMonitor.ObjectiveProgress(this.Board[i].Text);
             if (progress < 0.001f) {
                 return ObjectiveStatus.Nothing;
@@ -186,7 +186,7 @@ namespace Celeste.Mod.BingoClient {
         public bool IsObjectiveClaimable(int i) {
             return this.Board[i].Colors.Count == 0 && this.ObjectivesCompleted[i];
         }
-        
+
         public IEnumerable<BingoVariant> RelevantVariants() {
             var checkpoint = BingoMonitor.AtCheckpoint();
             if (checkpoint == null) {

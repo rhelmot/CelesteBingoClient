@@ -29,7 +29,7 @@ namespace Celeste.Mod.BingoClient {
         public BingoClient() {
             Instance = this;
         }
-        
+
         public override void LoadContent(bool firstLoad) {
         }
 
@@ -37,7 +37,7 @@ namespace Celeste.Mod.BingoClient {
             if (this.ModSettings.MasterSwitch) {
                 this.HookStuff();
             }
-            
+
             this.Chat = new BingoChat(this.SendChat);
         }
 
@@ -47,12 +47,12 @@ namespace Celeste.Mod.BingoClient {
 
         private bool StuffIsHooked;
         private List<IDetour> SpecialHooks = new List<IDetour>();
-        
+
         internal void HookStuff() {
             if (this.StuffIsHooked) {
                 return;
             }
-            
+
             On.Celeste.OuiFileSelectSlot.CreateButtons += CreateBingoButton;
             On.Monocle.Engine.RenderCore += this.Render;
             IL.Monocle.Engine.Update += HookUpdateEarly;
@@ -63,9 +63,9 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.SaveData.Start += WipeObjectiveCache;
 
             this.SpecialHooks.Add(new ILHook(typeof(OuiFileSelect).GetMethod("orig_Enter").GetStateMachineTarget(), ReturnToFile));
-            
+
             BingoWatches.HookStuff();
-            
+
             this.StuffIsHooked = true;
         }
 
@@ -73,7 +73,7 @@ namespace Celeste.Mod.BingoClient {
             if (!this.StuffIsHooked) {
                 return;
             }
-            
+
             On.Celeste.OuiFileSelectSlot.CreateButtons -= CreateBingoButton;
             On.Monocle.Engine.RenderCore -= this.Render;
             IL.Monocle.Engine.Update -= HookUpdateEarly;
@@ -87,9 +87,9 @@ namespace Celeste.Mod.BingoClient {
                 detour.Dispose();
             }
             this.SpecialHooks.Clear();
-            
+
             BingoWatches.UnhookStuff();
-            
+
             this.StuffIsHooked = false;
         }
 
@@ -135,7 +135,7 @@ namespace Celeste.Mod.BingoClient {
                 btn.OnLeave = () => messageHeader.FadeVisible = false;
                 break;
             }
-            
+
             foreach (var item in menu.Items) {
                 if (!(item is TextMenu.OnOff btn) || !btn.Label.StartsWith(Dialog.Clean("modoptions_bingoclient_claimassist"))) {
                     continue;
@@ -235,7 +235,7 @@ namespace Celeste.Mod.BingoClient {
                 }
             }
         }
-        
+
         private void HookUpdateEarly(ILContext il) {
             var cursor = new ILCursor(il);
             if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchCall(typeof(MInput), "Update"))) {
@@ -261,7 +261,7 @@ namespace Celeste.Mod.BingoClient {
             this.UpdateMenu();
             this.Chat.Update();
             this.UpdateObjectives();
-            
+
             if (gameSeesNothing) {
                 this.EatInput();
             }
@@ -292,7 +292,7 @@ namespace Celeste.Mod.BingoClient {
             if (Dialog.Language == null || ActiveFont.Font == null || ActiveFont.Font.Sizes.Count == 0) {
                 return;
             }
-            
+
             this.RenderMenu();
             this.Chat?.Render();
         }
@@ -325,7 +325,7 @@ namespace Celeste.Mod.BingoClient {
             this.Chat?.Chat(message);
         }
     }
-    
+
     public class OuiBingoConnecting : Oui {
         public override IEnumerator Enter(Oui from) {
             if (!OuiModOptionString.Cancelled) {
@@ -387,14 +387,14 @@ namespace Celeste.Mod.BingoClient {
             }
             this.SeekerKills.Add(seeker);
         }
-        
+
         public void AddFlag(string cp) {
             if (this.FileFlags.Contains(cp)) {
                 return;
             }
             this.FileFlags.Add(cp);
         }
-        
+
         public void AddHugeMessOrder(int a, int b, int c) {
             var order = string.Join(",", a.ToString(), b.ToString(), c.ToString());
             if (this.HugeMessOrders.Contains(order)) {
@@ -469,7 +469,7 @@ namespace Celeste.Mod.BingoClient {
             if (inGame) {
                 return;
             }
-            
+
             var toggle = new TextMenu.OnOff(Dialog.Clean("modoptions_bingoclient_masterswitch"), this.MasterSwitch);
             toggle.OnValueChange = v => {
                 this.MasterSwitch = v;

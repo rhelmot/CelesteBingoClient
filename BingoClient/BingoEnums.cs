@@ -19,7 +19,7 @@ namespace Celeste.Mod.BingoClient {
     public enum ObjectiveStatus {
         Nothing, Unknown, Progress, Completed, Claimed
     }
-    
+
     public enum BingoVariant {
         NoGrab,
         NoDash,
@@ -32,7 +32,7 @@ namespace Celeste.Mod.BingoClient {
         Mirrored,
         Hiccups,
     }
-    
+
     public static class BingoEnumExtensions {
         public static Dictionary<BingoColors, Color> SquareColors = new Dictionary<BingoColors, Color> {
             {BingoColors.Blank, Color.Black},
@@ -61,7 +61,7 @@ namespace Celeste.Mod.BingoClient {
             {"pink", BingoColors.Pink},
             {"yellow", BingoColors.Yellow},
         };
-        
+
         public static Color ToSquareColor(this BingoColors self) {
             return SquareColors[self];
         }

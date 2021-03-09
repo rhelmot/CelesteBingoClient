@@ -564,7 +564,7 @@ namespace Celeste.Mod.BingoClient {
                 if (Objectives.TryGetValue(kv.Key, out var maybenull) && maybenull != null) {
                     continue;
                 }
-                
+
                 Func<float> close(List<Tuple<int, int, int, BingoVariant>> reqs) {
                     return () => {
                         if (SaveData.Instance == null) {
@@ -623,11 +623,11 @@ namespace Celeste.Mod.BingoClient {
         private static float HasChaptersVariant(int chapters, BingoVariant variant) {
             return HasInNChapters((chapter, mode) => HasChapterVariant(chapter, mode, variant), chapters);
         }
-        
+
         private static float HasFlag(string flag) {
             return BingoClient.Instance.ModSaveData.FileFlags.Contains(flag) ? 1f : 0f;
         }
-        
+
         private static float HasPicoBerries(int n) {
             return Math.Min(1f, BingoClient.Instance.ModSaveData.PicoBerries / (float) n);
         }
@@ -671,26 +671,26 @@ namespace Celeste.Mod.BingoClient {
             Tuple.Create(5, "b-17:10"),
             Tuple.Create(7, "e-12:504"),
         };
-    
+
         private static FieldInfo BinosField = typeof(BingoModule).GetField("BinocularsList", BindingFlags.NonPublic | BindingFlags.Instance);
         public static List<Binoculars> BinocularsList => (List<Binoculars>)BinosField.GetValue(BingoModule.Instance);
-        
+
         private static float HasNSeedBerries(int n) {
             return Math.Min(1f, SeedBerryIDList.Count(id => SaveData.Instance.Areas[id.Item1].Modes[0].Strawberries.Contains(new EntityID {Key = id.Item2})) / (float) n);
         }
-        
+
         private static float HasNWingBerries(int n) {
             return Math.Min(1f, WingedBerryIDList.Count(id => SaveData.Instance.Areas[id.Item1].Modes[0].Strawberries.Contains(new EntityID {Key = id.Item2})) / (float) n);
         }
-        
+
         private static float HasNWingBerriesInChapter(int n, int chapter) {
             return Math.Min(1f, WingedBerryIDList.Count(id => id.Item1 == chapter && SaveData.Instance.Areas[id.Item1].Modes[0].Strawberries.Contains(new EntityID {Key = id.Item2})) / (float) n);
         }
-        
+
         private static float HasNWingBerriesInChapters(int n, int chapters) {
             return HasInNChapters((ch, mode) => mode == 0 ? HasNWingBerriesInChapter(n, ch) : 0f, chapters);
         }
-        
+
         private static float HasSeekerStuns(int n) {
             return Math.Min(1f, BingoClient.Instance.ModSaveData.SeekerBonks.Sum() / (float) n);
         }
@@ -716,7 +716,7 @@ namespace Celeste.Mod.BingoClient {
         private static float HasSeekerStunsInChapters(int n, int chapters) {
             return HasInNChapters((ch, mode) => HasSeekerStunsInChapter(n, ch, mode), chapters);
         }
-        
+
         private static float HasOshiroBonks(int n) {
             return Math.Min(1f, BingoClient.Instance.ModSaveData.OshiroBonks.Sum() / (float) n);
         }
@@ -728,7 +728,7 @@ namespace Celeste.Mod.BingoClient {
         private static float HasOshiroBonksInChapters(int n, int chapters) {
             return HasInNChapters((ch, mode) => HasOshiroBonksInChapter(n, ch, mode), chapters);
         }
-        
+
         private static float HasNSnowballs(int n) {
             return Math.Min(1f, BingoClient.Instance.ModSaveData.SnowballBonks.Sum() / (float) n);
         }
@@ -748,7 +748,7 @@ namespace Celeste.Mod.BingoClient {
         private static float HasNBinosInChapter(int n, int chapter, int mode) {
             return Math.Min(1f, BinocularsList.Count(bino => bino.areaID == chapter && bino.areaMode == mode) / (float) n);
         }
-        
+
         private static float HasNBinosInASides(int n) {
             return Math.Min(1f, BinocularsList.Count(bino => bino.areaMode == 0 && bino.areaID != 10) / (float) n);
         }
@@ -756,7 +756,7 @@ namespace Celeste.Mod.BingoClient {
         private static float HasNBinosInBSides(int n) {
             return Math.Min(1f, BinocularsList.Count(bino => bino.areaMode == 1) / (float) n);
         }
-        
+
         private static float HasNBinosInChapters(int n, int chapters) {
             return HasInNChapters((ch, mode) => Math.Min(1f, BinocularsList.Count(bino => bino.areaID == ch && bino.areaMode == mode) / (float) n), chapters);
         }
@@ -880,7 +880,7 @@ namespace Celeste.Mod.BingoClient {
             ) / (float) entities.Length;
         }
         #endregion
-        
+
         #region variants
         public static IEnumerable<BingoVariant> EnabledVariants() {
             return typeof(BingoVariant).GetEnumValues().Cast<BingoVariant>().Where(IsVariantEnabled);
@@ -1023,7 +1023,7 @@ namespace Celeste.Mod.BingoClient {
             if (level == null) {
                 return null;
             }
-            
+
             var checkpointList = AreaData.Get(level.Session.Area)
                 .Mode[(int) level.Session.Area.Mode]
                 .Checkpoints;

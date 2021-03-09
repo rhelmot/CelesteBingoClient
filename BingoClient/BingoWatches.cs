@@ -14,7 +14,7 @@ using MonoMod.Utils;
 namespace Celeste.Mod.BingoClient {
     public static class BingoWatches {
         private static List<IDetour> SpecialHooks = new List<IDetour>();
-        
+
         internal static void HookStuff() {
             IL.Celeste.StrawberryPoints.Added += Track1up;
             IL.Celeste.ClutterSwitch.OnDashed += TrackClutter;
@@ -76,7 +76,7 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.AngryOshiro.HurtBegin -= TrackOshiroBonks;
             On.Celeste.Snowball.OnPlayerBounce -= TrackSnowballBonks;
             On.Celeste.Seeker.ctor_EntityData_Vector2 -= TrackSeekerLife;
-            
+
             IL.Celeste.CutsceneEntity.Start -= FuckedUpIfTrue;
             IL.Celeste.CutsceneEntity.Added -= FuckedUpIfTrue;
             IL.Celeste.NPC01_Theo.OnTalk -= FuckedUpIfTrue;
@@ -145,7 +145,7 @@ namespace Celeste.Mod.BingoClient {
                 if (BingoClient.Instance.ModSaveData == null) {
                     return;
                 }
-                
+
                 BingoClient.Instance.ModSaveData.AddFlag("pico_orb");
             });
         }
@@ -268,7 +268,7 @@ namespace Celeste.Mod.BingoClient {
                 BingoClient.Instance.ModSaveData.AddFlag("orbless_3000m");
             }
         }
-        
+
         private static void HookLoadLevel(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerintro, bool isfromloader) {
             orig(self, playerintro, isfromloader);
             if (!isfromloader && playerintro != Player.IntroTypes.Transition) {
@@ -287,7 +287,7 @@ namespace Celeste.Mod.BingoClient {
             if (checkpoint == 2 && area == new AreaKey(3) && (BingoClient.Instance.ModSession.CheckpointStartedVariant ?? 2) < 2 && BingoMonitor.IsVariantEnabled(BingoVariant.NoGrab)) {
                 BingoClient.Instance.ModSaveData.AddFlag("grabless_huge_mess_with_heart");
             }
-        
+
             switch (next.Name) {
                 case "b-00c" when area == new AreaKey(6):
                     BingoClient.Instance.ModSaveData.AddFlag("room:easteregg");
@@ -322,7 +322,7 @@ namespace Celeste.Mod.BingoClient {
                     break;
             }
         }
-        
+
         private static void TrackPicoBerries(ILContext il) {
             var cursor = new ILCursor(il);
             if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchLdfld(typeof(Pico8.Classic), "got_fruit"))) {
@@ -334,7 +334,7 @@ namespace Celeste.Mod.BingoClient {
                 if (BingoClient.Instance.ModSaveData == null) {
                     return;
                 }
-                
+
                 BingoClient.Instance.ModSaveData.PicoBerries = Math.Max(BingoClient.Instance.ModSaveData.PicoBerries, set.Count + 1);
             });
         }

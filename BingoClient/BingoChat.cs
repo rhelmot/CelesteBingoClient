@@ -40,8 +40,8 @@ namespace Celeste.Mod.BingoClient {
                     this.ChatOpen = false;
                 }
             } else {
-                if (BingoClient.Instance.ModSettings.OpenChat.Pressed && 
-                    !Engine.Commands.Open && 
+                if (BingoClient.Instance.ModSettings.OpenChat.Pressed &&
+                    !Engine.Commands.Open &&
                     !BingoClient.IsInappropriateTimeForMenu() &&
                     (this.ChatHistory.Count > 0 || BingoClient.Instance.Connected)) {
                     this.ChatOpen = true;
@@ -49,7 +49,7 @@ namespace Celeste.Mod.BingoClient {
                     Engine.Scene.OnEndOfFrame += () => this.InhibitOne = false;
                 }
             }
-            
+
             this.UnderscoreCounter += Engine.RawDeltaTime;
             while (this.UnderscoreCounter >= 0.5f) {
               this.UnderscoreCounter -= 0.5f;
@@ -66,7 +66,7 @@ namespace Celeste.Mod.BingoClient {
             if (!this.ChatOpen) {
                 return;
             }
-            
+
             this.Underscore = false;
             this.UnderscoreCounter = 0f;
             if (ch == '\r' || ch == '\n') {
@@ -154,7 +154,7 @@ namespace Celeste.Mod.BingoClient {
             }
             Draw.SpriteBatch.End();
         }
-        
+
         public void Chat(string text) {
             lock (this.ChatMessages) {
                 this.ChatHistory.Add(text);

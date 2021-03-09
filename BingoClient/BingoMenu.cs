@@ -131,7 +131,7 @@ namespace Celeste.Mod.BingoClient {
                 var button = this.Menu.Items[PINNED_OFFSET + idx] as PieButton ?? throw new Exception("programming error");
                 button.OnPressed += makePinnedCallback(idx);
             }
-            
+
             foreach (BingoVariant variant in typeof(BingoVariant).GetEnumValues()) {
                 this.GetDisableButton(variant).OnPressed = makeVariantCallback(variant, false);
                 this.GetEnableButton(variant).OnPressed = makeVariantCallback(variant, true);
@@ -144,25 +144,25 @@ namespace Celeste.Mod.BingoClient {
                     }
                 }
             };
-            
+
             this.Menu.Justify = new Vector2(0.0f, 0.5f);
             this.Menu.InnerContent = TextMenu.InnerContentMode.TwoColumn;
             this.Menu.Position = new Vector2(1100f, 0f);
             this.Menu.ItemSpacing = 3f;
         }
-        
+
         public TextMenuExt.ButtonExt GetSlotButton(int idx) {
             return (TextMenuExt.ButtonExt) this.Menu.Items[OBJECTIVE_OFFSET + idx];
         }
-        
+
         public TextMenuExt.ButtonExt GetEnableButton(BingoVariant idx) {
             return (TextMenuExt.ButtonExt) this.Menu.Items[ENABLE_OFFSET + (int)idx];
         }
-        
+
         public TextMenuExt.ButtonExt GetDisableButton(BingoVariant idx) {
             return (TextMenuExt.ButtonExt) this.Menu.Items[DISABLE_OFFSET + (int)idx];
         }
-        
+
         public PieButton GetPinnedButton(int idx) {
             return (PieButton) this.Menu.Items[PINNED_OFFSET + idx];
         }
@@ -224,7 +224,7 @@ namespace Celeste.Mod.BingoClient {
                 Input.MenuConfirm.ConsumePress();
                 MInput.Mouse.PreviousState = MInput.Mouse.CurrentState; // hack to consume press
             }
-            
+
             this.MousePos = MInput.Mouse.Position;
             this.MouseShown |= MInput.Mouse.WasMoved;
 
@@ -242,7 +242,7 @@ namespace Celeste.Mod.BingoClient {
                     this.OnMotion();
                 }
             }
-            
+
             this.Wiggle.UseRawDeltaTime = true;
             this.Wiggle.Update();
 
@@ -250,7 +250,7 @@ namespace Celeste.Mod.BingoClient {
                 this.InitMenu();
             }
             this.Menu.Focused = !this.BoardSelected && !this.MenuTriggered;
-            
+
             // visibility and text for claim buttons
             var anyVisible = false;
             if (this.Board != null) {
@@ -261,7 +261,7 @@ namespace Celeste.Mod.BingoClient {
                     anyVisible |= visible;
                 }
             }
-            
+
             // visibility and status for pinned buttons
             if (this.Board != null) {
                 for (var i = 0; i < 25; i++) {
@@ -272,7 +272,7 @@ namespace Celeste.Mod.BingoClient {
                         var btn = this.GetPinnedButton(i);
                         btn.Visible = true;
                         btn.Label = this.Board[j].Text;
-                        
+
                         switch (this.GetObjectiveStatus(j)) {
                             case ObjectiveStatus.Unknown:
                                 btn.Progress = 0f;
@@ -305,7 +305,7 @@ namespace Celeste.Mod.BingoClient {
             // visibility for claim header and claimall
             this.Menu.Items[OBJECTIVE_OFFSET - 1].Visible = anyVisible;
             this.Menu.Items[OBJECTIVE_OFFSET - 2].Visible = anyVisible;
-            
+
             // visibility for pin header
             this.Menu.Items[PINNED_OFFSET - 1].Visible = this.Pinned.Count != 0;
 
@@ -321,15 +321,15 @@ namespace Celeste.Mod.BingoClient {
                     anyVisible = true;
                 }
             }
-            
+
             // visibility for variant button
             this.Menu.Items[0].Visible = anyVisible;
-            
+
             this.Menu.Update();
 
             if (!this.MenuTriggered) {
                 // only handle keypresses if we're not in trigger mode
-                
+
                 if (this.BoardSelected) {
                     if (Input.MenuUp.Pressed) {
                         this.MouseShown = false;
@@ -391,15 +391,15 @@ namespace Celeste.Mod.BingoClient {
             }
         }
         #endregion
-        
+
         #region render
-        
+
         public static readonly Vector2 size = Vector2.One * 1080f * 4f / 5f;
         public static readonly Vector2 subsize = size / 5f;
         public static readonly Vector2 corner = new Vector2(1920f * 1f / 12f, 1080f / 2f - size.Y / 2f);
         public static readonly float margin = 1f / 20f;
         public static readonly float padding = 1f / 10f;
-        
+
         private void RenderMenu() {
             if (!this.MenuTriggered && !this.MenuToggled) {
                 return;
@@ -413,14 +413,14 @@ namespace Celeste.Mod.BingoClient {
                 RasterizerState.CullNone,
                 null,
                 Engine.ScreenMatrix);
-            
+
             float masterAlpha;
             if (this.MenuTriggered) {
                 masterAlpha = this.ModSettings.TriggerAlpha == BingoClientSettings.TriggerAlphaMode.High ? 1f : this.ModSettings.TriggerAlpha == BingoClientSettings.TriggerAlphaMode.Medium ? 0.6f : 0.4f;
             } else {
                 masterAlpha = 1;
             }
-            
+
             Draw.Rect(0, 0, 1920f, 1080f, Color.Black * 0.5f * masterAlpha);
 
             if (!this.Connected) {
@@ -456,9 +456,9 @@ namespace Celeste.Mod.BingoClient {
                 Draw.SpriteBatch.End();
                 return;
             }
-            
+
             var wiggle = this.Wiggle.Value;
-            
+
             // draw boxes and text
             for (int x = 0; x < 5; x++) {
                 for (int y = 0; y < 5; y++) {
@@ -481,7 +481,7 @@ namespace Celeste.Mod.BingoClient {
                     DrawTextBox(this.Board[slot].Text, subcorner + subsize / 2, subsize.X * (1 - padding), subsize.Y * (1 - padding), 0.5f, 1.0f, Color.White, 1f, Color.Black);
                 }
             }
-            
+
             // draw notification icons
             for (int x = 0; x < 5; x++) {
                 for (int y = 0; y < 5; y++) {
@@ -514,7 +514,7 @@ namespace Celeste.Mod.BingoClient {
             if (this.MouseShown) {
                 GFX.Gui["menu/bingo/cursor"].Draw(this.MousePos, Vector2.Zero, Color.White, 0.5f);
             }
-            
+
             Draw.SpriteBatch.End();
         }
 
@@ -569,7 +569,7 @@ namespace Celeste.Mod.BingoClient {
         public class PieButton : TextMenuExt.ButtonExt {
             public float Progress;
             public string PieText;
-            
+
             public PieButton(string label) : base(label) {
             }
 
@@ -579,7 +579,7 @@ namespace Celeste.Mod.BingoClient {
                 base.Render(position, highlighted);
                 DrawPieAndText(position + PieOffset, this.Scale.Y * 0.5f, this.Progress, this.PieText);
             }
-            
+
             private static MTexture CircleDark => GFX.Gui["menu/bingo/dark"];
             private static MTexture CircleLight => GFX.Gui["menu/bingo/light"];
             private static MTexture CircleSlice => GFX.Gui["menu/bingo/slice"];
@@ -605,7 +605,7 @@ namespace Celeste.Mod.BingoClient {
 
             public static void DrawPieAndText(Vector2 position, float scale, float completion, string text) {
                 DrawPie(position, scale, completion);
-                
+
                 if (!string.IsNullOrEmpty(text)) {
                     ActiveFont.Draw(text, position, new Vector2(0.5f, 0.5f), Vector2.One * scale * 1.25f, Color.Black);
                 }
