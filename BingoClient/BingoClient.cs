@@ -247,6 +247,7 @@ namespace Celeste.Mod.BingoClient {
 
         private KeyboardState personalKeyboard;
         private GamePadState[] personalGamepads = {default, default, default, default};
+        private MouseState personalMouse;
         private bool gameSawNothing;
         private void Update() {
             if (Dialog.Language == null || ActiveFont.Font == null || ActiveFont.Font.Sizes.Count == 0) {
@@ -273,6 +274,10 @@ namespace Celeste.Mod.BingoClient {
             // but keep a copy so we can get accurate pressed/released data for ourselves
             this.personalKeyboard = MInput.Keyboard.CurrentState;
             MInput.Keyboard.CurrentState = new KeyboardState();
+
+            this.personalMouse = MInput.Mouse.CurrentState;
+            MInput.Mouse.CurrentState = new MouseState();
+
             for (var i = 0; i < 4; i++) {
                 this.personalGamepads[i] = MInput.GamePads[i].CurrentState;
                 MInput.GamePads[i].CurrentState = new GamePadState();
@@ -282,6 +287,7 @@ namespace Celeste.Mod.BingoClient {
 
         public void UneatInput() {
             MInput.Keyboard.PreviousState = this.personalKeyboard;
+            MInput.Mouse.PreviousState = this.personalMouse;
             for (var i = 0; i < 4; i++) {
                 MInput.GamePads[i].PreviousState = this.personalGamepads[i];
             }

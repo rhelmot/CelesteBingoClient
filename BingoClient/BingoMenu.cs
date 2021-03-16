@@ -18,9 +18,9 @@ namespace Celeste.Mod.BingoClient {
         private Wiggler Wiggle = Wiggler.Create(0.25f, 3f);
 
         private const int DISABLE_OFFSET = 1;
-        private const int ENABLE_OFFSET = 4;
-        private const int OBJECTIVE_OFFSET = 9;
-        private const int PINNED_OFFSET = 35;
+        private const int ENABLE_OFFSET = 11;
+        private const int OBJECTIVE_OFFSET = 23;
+        private const int PINNED_OFFSET = 49;
 
         public TextMenu Menu;
         public List<int> Pinned = new List<int>();
@@ -205,9 +205,15 @@ namespace Celeste.Mod.BingoClient {
                 Engine.Scene.Entities.FindFirst<KeyboardConfigUI>() != null;
         }
 
+        private bool FirstFrame = false;
         private void UpdateMenu() {
-            if ((this.ModSettings.MenuToggle.Pressed || (this.MenuToggled && (Input.MenuCancel.Pressed || Input.ESC.Pressed || MInput.Mouse.PressedMiddleButton))) && !IsInappropriateTimeForMenu()) {
+            this.FirstFrame = false;
+            if ((this.ModSettings.MenuToggle.Pressed
+                 || (!this.MenuToggled && (MInput.Mouse.PressedLeftButton || MInput.Mouse.PressedRightButton))
+                 || (this.MenuToggled && (Input.MenuCancel.Pressed || Input.ESC.Pressed)))
+                && !IsInappropriateTimeForMenu()) {
                 this.MenuToggled ^= true;
+                this.FirstFrame = true;
                 Audio.Play(this.MenuToggled ? SFX.ui_game_pause : SFX.ui_game_unpause);
                 if (this.MenuToggled) {
                     if (this.Menu != null) {
@@ -246,7 +252,7 @@ namespace Celeste.Mod.BingoClient {
                 return;
             }
 
-            var mouseInBounds = this.MousePos.X >= corner.X && this.MousePos.Y < corner.X + size.X && this.MousePos.Y >= corner.Y && this.MousePos.Y < corner.Y + size.Y;
+            var mouseInBounds = this.MousePos.X >= corner.X && this.MousePos.X < corner.X + size.X && this.MousePos.Y >= corner.Y && this.MousePos.Y < corner.Y + size.Y;
             if (this.MouseShown && mouseInBounds) {
                 this.BoardSelected = true;
                 var oldPos = this.BoardSelSlot;
@@ -341,8 +347,8 @@ namespace Celeste.Mod.BingoClient {
 
             this.Menu.Update();
 
-            if (!this.MenuTriggered) {
-                // only handle keypresses if we're not in trigger mode
+            if (!this.MenuTriggered && !this.FirstFrame && !this.Chat.ChatOpen) {
+                // only handle keypresses if we're not in trigger mode or on the first frame of input or have the chat open
 
                 if (this.BoardSelected) {
                     if (Input.MenuUp.Pressed) {
@@ -361,12 +367,12 @@ namespace Celeste.Mod.BingoClient {
                         }
                         this.OnMotion();
                     }
-                    if (Input.MenuConfirm.Pressed || (this.MouseShown && mouseInBounds && MInput.Mouse.PressedLeftButton)) {
+                    if (Input.MenuConfirm.Pressed) {
                         Audio.Play(SFX.ui_main_button_select);
                         this.Wiggle.Start();
                         this.ToggleSquare(this.BoardSelSlot);
                     }
-                    if (this.ModSettings.PinObjective.Pressed || (this.MouseShown && mouseInBounds && MInput.Mouse.PressedRightButton)) {
+                    if (this.ModSettings.PinObjective.Pressed) {
                         Audio.Play(SFX.ui_main_button_select);
                         this.Wiggle.Start();
                         this.PinSquare(this.BoardSelSlot);
@@ -401,6 +407,24 @@ namespace Celeste.Mod.BingoClient {
                             this.Menu.Current?.SelectWiggler.Start();
                         }
                     }
+                }
+            }
+
+            if (!this.FirstFrame && !this.Chat.ChatOpen) {
+                // handle mouse clicks even in trigger mode
+                if (this.MouseShown && !mouseInBounds && (MInput.Mouse.PressedLeftButton || MInput.Mouse.PressedRightButton)) {
+                    this.MenuToggled = false;
+                    Audio.Play(SFX.ui_game_unpause);
+                }
+                if (this.MouseShown && mouseInBounds && MInput.Mouse.PressedLeftButton) {
+                    Audio.Play(SFX.ui_main_button_select);
+                    this.Wiggle.Start();
+                    this.ToggleSquare(this.BoardSelSlot);
+                }
+                if (this.MouseShown && mouseInBounds && MInput.Mouse.PressedRightButton) {
+                    Audio.Play(SFX.ui_main_button_select);
+                    this.Wiggle.Start();
+                    this.PinSquare(this.BoardSelSlot);
                 }
             }
         }
@@ -521,9 +545,7 @@ namespace Celeste.Mod.BingoClient {
                 scoreCorner += new Vector2(0f, 120f);
             }
 
-            if (!this.MenuTriggered) {
-                this.Menu?.Render();
-            }
+            this.Menu?.Render();
 
             if (this.MouseShown) {
                 GFX.Gui["menu/bingo/cursor"].Draw(this.MousePos, Vector2.Zero, Color.White, 0.5f);
