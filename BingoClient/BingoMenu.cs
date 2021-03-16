@@ -206,7 +206,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private void UpdateMenu() {
-            if ((this.ModSettings.MenuToggle.Pressed || (this.MenuToggled && (Input.MenuCancel.Pressed || Input.ESC.Pressed))) && !IsInappropriateTimeForMenu()) {
+            if ((this.ModSettings.MenuToggle.Pressed || (this.MenuToggled && (Input.MenuCancel.Pressed || Input.ESC.Pressed || MInput.Mouse.PressedMiddleButton))) && !IsInappropriateTimeForMenu()) {
                 this.MenuToggled ^= true;
                 Audio.Play(this.MenuToggled ? SFX.ui_game_pause : SFX.ui_game_unpause);
                 if (this.MenuToggled) {
