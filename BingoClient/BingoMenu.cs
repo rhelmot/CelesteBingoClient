@@ -527,13 +527,11 @@ namespace Celeste.Mod.BingoClient {
                     var subcorner = corner + subsize * new Vector2(x, y) + Vector2.One * 15f;
 
                     var status = this.GetObjectiveStatus(slot);
-                    var origin = new Vector2(50f, 50f);
-                    var scale = Vector2.One * 0.4f;
-                    var textScale = Vector2.One * 0.5f;
                     if (status == ObjectiveStatus.Completed) {
                         PieButton.DrawPieAndText(subcorner, 0.5f, 1f, "!");
+                    } else if (this.ModSettings.ClaimAssist && status == ObjectiveStatus.Progress) {
+                        PieButton.DrawPieAndText(subcorner, 0.5f, BingoMonitor.ObjectiveProgress(this.Board[slot].Text), "");
                     }
-
                 }
             }
 
