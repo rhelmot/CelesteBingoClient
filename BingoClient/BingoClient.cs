@@ -449,6 +449,7 @@ namespace Celeste.Mod.BingoClient {
         public ButtonBinding QuickClaim { get; set; }
         [DefaultButtonBinding(Buttons.Back, Keys.T)]
         public ButtonBinding OpenChat { get; set; }
+        public bool MouseClickOpensMenu { get; set; } = false;
         public TriggerMode TriggerBehavior { get; set; } = TriggerMode.Hasty;
         public TriggerAlphaMode TriggerAlpha { get; set; } = TriggerAlphaMode.Medium;
         public bool AutoUnpin { get; set; } = true;

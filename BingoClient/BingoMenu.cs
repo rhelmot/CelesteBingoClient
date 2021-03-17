@@ -209,7 +209,7 @@ namespace Celeste.Mod.BingoClient {
         private void UpdateMenu() {
             this.FirstFrame = false;
             if ((this.ModSettings.MenuToggle.Pressed
-                 || (!this.MenuToggled && (MInput.Mouse.PressedLeftButton || MInput.Mouse.PressedRightButton))
+                 || (!this.MenuToggled && this.ModSettings.MouseClickOpensMenu && (MInput.Mouse.PressedLeftButton || MInput.Mouse.PressedRightButton))
                  || (this.MenuToggled && (Input.MenuCancel.Pressed || Input.ESC.Pressed)))
                 && !IsInappropriateTimeForMenu()) {
                 this.MenuToggled ^= true;
