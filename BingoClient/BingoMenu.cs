@@ -461,7 +461,7 @@ namespace Celeste.Mod.BingoClient {
 
             Draw.Rect(0, 0, 1920f, 1080f, Color.Black * 0.5f * masterAlpha);
 
-            if (!this.Connected) {
+            if (!this.Connected || this.Board == null) {
                 ActiveFont.DrawOutline(
                     Dialog.Clean("bingoclient_menu_noboard"),
                     new Vector2(1920f, 1080f) / 2f,
