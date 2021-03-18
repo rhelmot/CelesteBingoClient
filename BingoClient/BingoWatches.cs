@@ -94,21 +94,28 @@ namespace Celeste.Mod.BingoClient {
             orig(self, player);
 
             var area = SaveData.Instance.CurrentSession.Area;
-            BingoClient.Instance.ModSaveData.SnowballBonks[area.ID + (int) area.Mode*11]++;
+            try {
+                BingoClient.Instance.ModSaveData.SnowballBonks[area.ID + (int) area.Mode * 11]++;
+            } catch (IndexOutOfRangeException) { }
         }
 
         private static void TrackOshiroBonks(On.Celeste.AngryOshiro.orig_HurtBegin orig, AngryOshiro self) {
             orig(self);
 
             var area = SaveData.Instance.CurrentSession.Area;
-            BingoClient.Instance.ModSaveData.OshiroBonks[area.ID + (int) area.Mode*11]++;
+            try {
+                BingoClient.Instance.ModSaveData.OshiroBonks[area.ID + (int) area.Mode * 11]++;
+            } catch (IndexOutOfRangeException) { }
         }
 
         private static void TrackSeekerBonks(On.Celeste.Seeker.orig_RegenerateBegin orig, Seeker self) {
             orig(self);
 
             var area = SaveData.Instance.CurrentSession.Area;
-            BingoClient.Instance.ModSaveData.SeekerBonks[area.ID + (int) area.Mode*11]++;
+            try {
+                BingoClient.Instance.ModSaveData.SeekerBonks[area.ID + (int) area.Mode * 11]++;
+            } catch (IndexOutOfRangeException) {
+            }
         }
 
         private static void MarkUsedOrb(On.Celeste.BadelineBoost.orig_OnPlayer orig, BadelineBoost self, Player player) {
