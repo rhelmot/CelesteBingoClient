@@ -118,7 +118,7 @@ namespace Celeste.Mod.BingoClient {
                 return;
             }
 
-            if (!(Engine.Scene is Level)) {
+            if (Engine.Scene is Overworld) {
                 return;
             }
 
