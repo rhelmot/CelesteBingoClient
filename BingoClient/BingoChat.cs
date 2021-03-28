@@ -42,7 +42,7 @@ namespace Celeste.Mod.BingoClient {
             } else {
                 if (BingoClient.Instance.ModSettings.OpenChat.Pressed &&
                     !Engine.Commands.Open &&
-                    !BingoClient.IsInappropriateTimeForMenu() &&
+                    !BingoClient.Instance.IsInappropriateTimeForMenu() &&
                     (this.ChatHistory.Count > 0 || BingoClient.Instance.Connected)) {
                     this.ChatOpen = true;
                     this.InhibitOne = true;
