@@ -250,6 +250,7 @@ namespace Celeste.Mod.BingoClient {
 
             this.MousePos = MInput.Mouse.Position;
             this.MouseShown |= MInput.Mouse.WasMoved;
+            this.MouseShown &= !this.MenuTriggered;
 
             if (this.IsBoardHidden || !this.Connected) {
                 return;
@@ -476,9 +477,6 @@ namespace Celeste.Mod.BingoClient {
                     1,
                     Color.Black);
 
-                if (this.MouseShown) {
-                    GFX.Gui["menu/bingo/cursor"].Draw(this.MousePos, Vector2.Zero, Color.White, 0.5f);
-                }
                 Draw.SpriteBatch.End();
                 return;
             }
@@ -493,9 +491,6 @@ namespace Celeste.Mod.BingoClient {
                     1,
                     Color.Black);
 
-                if (this.MouseShown) {
-                    GFX.Gui["menu/bingo/cursor"].Draw(this.MousePos, Vector2.Zero, Color.White, 0.5f);
-                }
                 Draw.SpriteBatch.End();
                 return;
             }
