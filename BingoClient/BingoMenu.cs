@@ -264,6 +264,8 @@ namespace Celeste.Mod.BingoClient {
                 if (oldPos != this.BoardSelSlot) {
                     this.OnMotion();
                 }
+            } else if (this.MouseShown) {
+                this.BoardSelected = false;
             }
 
             this.Wiggle.UseRawDeltaTime = true;
@@ -506,16 +508,17 @@ namespace Celeste.Mod.BingoClient {
                     var slot = y * 5 + x;
                     var subcorner = corner + subsize * new Vector2(x, y);
 
-                    if (!this.MenuTriggered && x == this.BoardSelX && y == this.BoardSelY) {
+                    if (!this.MenuTriggered && x == this.BoardSelX && y == this.BoardSelY && this.BoardSelected) {
                         Draw.Rect(subcorner - Vector2.One * wiggle * 3f + Vector2.UnitY * wiggle * 2f, subsize.X + wiggle*3*2, subsize.Y + wiggle*3*2, Color.WhiteSmoke * masterAlpha);
                     }
 
+                    var selectedAlpha = this.MenuTriggered && this.BoardSelected && this.BoardSelX == x && this.BoardSelY == y ? 1f : masterAlpha;
                     if (this.Board[slot].Colors.Count == 0) {
-                        Draw.Rect(subcorner + subsize * margin / 2, subsize.X * (1 - margin), subsize.Y * (1 - margin), BingoColors.Blank.ToSquareColor() * masterAlpha);
+                        Draw.Rect(subcorner + subsize * margin / 2, subsize.X * (1 - margin), subsize.Y * (1 - margin), BingoColors.Blank.ToSquareColor() * selectedAlpha);
                     } else {
                         var chunkWidth = subsize.X * (1 - margin) / this.Board[slot].Colors.Count;
                         for (var i = 0; i < this.Board[slot].Colors.Count; i++) {
-                            Draw.Rect(subcorner + subsize * margin / 2 + Vector2.UnitX * chunkWidth * i, chunkWidth, subsize.Y * (1 - margin), this.Board[slot].Colors[i].ToSquareColor() * masterAlpha);
+                            Draw.Rect(subcorner + subsize * margin / 2 + Vector2.UnitX * chunkWidth * i, chunkWidth, subsize.Y * (1 - margin), this.Board[slot].Colors[i].ToSquareColor() * selectedAlpha);
                         }
                     }
 
