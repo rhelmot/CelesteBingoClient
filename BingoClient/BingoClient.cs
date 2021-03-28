@@ -38,7 +38,7 @@ namespace Celeste.Mod.BingoClient {
                 this.HookStuff();
             }
 
-            this.Chat = new BingoChat(this.SendChat);
+            this.Chat = new BingoChat(this.HandleChat);
         }
 
         public override void Unload() {
@@ -329,6 +329,36 @@ namespace Celeste.Mod.BingoClient {
 
         public void LogChat(string message) {
             this.Chat?.Chat(message);
+        }
+
+        public void HandleChat(string msg) {
+            if (msg.Length != 0 && msg[0] == '/') {
+                switch (msg) {
+                    case "/countdown":
+                        Engine.Scene.Add(new Entity {
+                            new Coroutine(this.CountdownRoutine())
+                        });
+                        break;
+                    default:
+                        this.Chat.Chat("Bad command. Valid commands are: /countdown");
+                        break;
+                }
+            } else {
+                this.SendChat(msg);
+            }
+        }
+
+        private IEnumerator CountdownRoutine(int countFrom = 5, float waitBetween = 3f) {
+            for (int i = countFrom; i > 0; i--) {
+                this.SendChat(i == countFrom ? $"Reveal in {i}" : $"{i}");
+                yield return 1f;
+            }
+            this.RevealBoard();
+            yield return waitBetween;
+            for (int i = countFrom; i > 0; i--) {
+                this.SendChat(i == countFrom ? $"Begin in {i}" : $"{i}");
+                yield return 1f;
+            }
         }
     }
 
