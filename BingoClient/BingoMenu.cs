@@ -213,6 +213,7 @@ namespace Celeste.Mod.BingoClient {
                  || (this.MenuToggled && (Input.MenuCancel.Pressed || Input.ESC.Pressed)))
                 && !IsInappropriateTimeForMenu()) {
                 this.MenuToggled ^= true;
+                this.MenuTriggered = false;
                 this.FirstFrame = true;
                 Audio.Play(this.MenuToggled ? SFX.ui_game_pause : SFX.ui_game_unpause);
                 if (this.MenuToggled) {
@@ -226,6 +227,7 @@ namespace Celeste.Mod.BingoClient {
                 this.MenuTriggered = this.ModSettings.MenuTrigger.Check && !IsInappropriateTimeForMenu();
             } else if (this.ModSettings.MenuTrigger.Pressed && !IsInappropriateTimeForMenu()) {
                 this.MenuTriggered ^= true;
+                this.MenuToggled = false;
             }
 
             if (this.MenuToggled || this.MenuTriggered) {
@@ -239,7 +241,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private void UpdateMenuOpen() {
-            if (this.IsBoardHidden && (Input.MenuConfirm.Pressed || MInput.Mouse.PressedLeftButton)) {
+            if (this.IsBoardHidden && !this.FirstFrame && !this.Chat.ChatOpen && (Input.MenuConfirm.Pressed || MInput.Mouse.PressedLeftButton)) {
                 this.RevealBoard();
                 Input.MenuConfirm.ConsumePress();
                 MInput.Mouse.PreviousState = MInput.Mouse.CurrentState; // hack to consume press
