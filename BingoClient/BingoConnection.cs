@@ -41,6 +41,35 @@ namespace Celeste.Mod.BingoClient {
         private CancellationTokenSource CancelToken;
         private SemaphoreSlim Lock = new SemaphoreSlim(1);
 
+        public static void Retry(Action action) {
+            Retry<object>(() => {
+                action();
+                return null;
+            });
+        }
+
+        public static T Retry<T>(Func<T> action) {
+            while (true) {
+                try {
+                    return action();
+                } catch (WebException e) {
+                    if (e.Status == WebExceptionStatus.NameResolutionFailure) {
+                        continue;
+                    }
+                    Logger.LogDetailed(e, "BingoClient");
+                    throw;
+                }
+            }
+        }
+
+        public void LockedTask(Action action) {
+            new Task(() => {
+                using (this.Lock.Use(this.CancelToken.Token)) {
+                    Retry(action);
+                }
+            }).Start();
+        }
+
         public void Connect() {
             string sessionKey;
             if (this.Session == null || this.Password != this.SavedPassword || this.RoomId != this.SavedRoomId) {
@@ -89,14 +118,7 @@ namespace Celeste.Mod.BingoClient {
             this.Sock = new ClientWebSocket();
             Uri uri = new Uri("wss://sockets.bingosync.com/broadcast");
             //Uri uri = new Uri("ws://localhost:8902/");
-            while (true) {
-                try {
-                    this.Sock.ConnectAsync(uri, this.CancelToken.Token).Wait();
-                    break;
-                } catch (Exception e) {
-                    Logger.LogDetailed(e, "BingoClient");
-                }
-            }
+            Retry(() => { this.Sock.ConnectAsync(uri, this.CancelToken.Token).Wait(); });
 
             string msg = JsonConvert.SerializeObject(new HelloMessage {
                 socket_key = sessionKey,
@@ -127,140 +149,78 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public void SendClaim(int slot) {
-            new Task(() => {
-                using (this.Lock.Use(this.CancelToken.Token)) {
-                    while (true) {
-                        try {
-                            this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
-                                color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
-                                remove_color = false,
-                                room = this.RoomId,
-                                slot = (slot + 1).ToString(),
-                            }));
-                            break;
-                        } catch (Exception e) {
-                            Logger.LogDetailed(e, "BingoClient");
-                        }
-                    }
-                }
-            }).Start();
+            LockedTask(() => {
+                this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
+                    color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
+                    remove_color = false,
+                    room = this.RoomId,
+                    slot = (slot + 1).ToString(),
+                }));
+            });
         }
 
         public void SendClear(int slot) {
-            new Task(() => {
-                using (this.Lock.Use(this.CancelToken.Token)) {
-                    while (true) {
-                        try {
-                            this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
-                                color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
-                                remove_color = true,
-                                room = this.RoomId,
-                                slot = (slot + 1).ToString(),
-                            }));
-                            break;
-                        } catch (Exception e) {
-                            Logger.LogDetailed(e, "BingoClient");
-                        }
-                    }
-                }
-            }).Start();
+            LockedTask(() => {
+                this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
+                    color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
+                    remove_color = true,
+                    room = this.RoomId,
+                    slot = (slot + 1).ToString(),
+                }));
+            });
         }
 
         public void SendColor() {
             if (this.SentColor != this.ModSettings.PlayerColor) {
-                new Task(() => {
-                    using (this.Lock.Use(this.CancelToken.Token)) {
-                        while (true) {
-                            try {
-                                this.Session.UploadString(this.ColorUrl, JsonConvert.SerializeObject(new ColorMessage {
-                                    color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
-                                    room = this.RoomId,
-                                }));
-                                break;
-                            } catch (Exception e) {
-                                Logger.LogDetailed(e, "BingoClient");
-                            }
-                        }
-                    }
+                LockedTask(() => {
+                    this.Session.UploadString(this.ColorUrl, JsonConvert.SerializeObject(new ColorMessage {
+                        color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
+                        room = this.RoomId,
+                    }));
                     this.SentColor = this.ModSettings.PlayerColor;
-                }).Start();
+                });
             }
         }
 
         public void SendChat(string text) {
-            new Task(() => {
-                using (this.Lock.Use(this.CancelToken.Token)) {
-                    while (true) {
-                        try {
-                            this.Session.UploadString(this.ChatUrl, JsonConvert.SerializeObject(new ChatMessage {
-                                text = text,
-                                room = this.RoomId,
-                            }));
-                            break;
-                        } catch (Exception e) {
-                            Logger.LogDetailed(e, "BingoClient");
-                        }
-                    }
-                }
-            }).Start();
+            LockedTask(() => {
+                this.Session.UploadString(this.ChatUrl, JsonConvert.SerializeObject(new ChatMessage {
+                    text = text,
+                    room = this.RoomId,
+                }));
+            });
         }
 
         public void RevealBoard() {
             if (this.IsBoardHidden) {
-                new Task(() => {
-                    using (this.Lock.Use(this.CancelToken.Token)) {
-                        while (true) {
-                            try {
-                                this.Session.UploadString(this.RevealUrl, JsonConvert.SerializeObject(new RevealMessage {
-                                    room = this.RoomId,
-                                }));
-                                break;
-                            } catch (Exception e) {
-                                Logger.LogDetailed(e, "BingoClient");
-                            }
-                        }
-                    }
-                }).Start();
+                LockedTask(() => {
+                    this.Session.UploadString(this.RevealUrl, JsonConvert.SerializeObject(new RevealMessage {
+                        room = this.RoomId,
+                    }));
+                });
                 this.IsBoardHidden = false;
             }
         }
 
         public List<SquareMsg> GetBoard() {
             using (this.Lock.Use(this.CancelToken.Token)) {
-                while (true) {
-                    try {
-                        return JsonConvert.DeserializeObject<List<SquareMsg>>(this.Session.DownloadString(this.RoomUrl + "/board"));
-                    } catch (Exception e) {
-                        Logger.LogDetailed(e, "BingoCLient");
-                    }
-                }
+                return Retry(() => JsonConvert.DeserializeObject<List<SquareMsg>>(this.Session.DownloadString(this.RoomUrl + "/board")));
             }
         }
 
         public HistoryMessage GetHistory() {
             using (this.Lock.Use(this.CancelToken.Token)) {
-                while (true) {
-                    try {
-                        var result = this.Session.DownloadString(this.RoomUrl + "/feed");
-                        return JsonConvert.DeserializeObject<HistoryMessage>(result);
-                    } catch (Exception e) {
-                        Logger.LogDetailed(e, "BingoCLient");
-                    }
-                }
+                return Retry(() => JsonConvert.DeserializeObject<HistoryMessage>(this.Session.DownloadString(this.RoomUrl + "/feed")));
             }
         }
 
         // returns (hide_card, lockout)
         public Tuple<bool, bool> GetSettings() {
             using (this.Lock.Use(this.CancelToken.Token)) {
-                while (true) {
-                    try {
-                        var result = this.Session.DownloadString(this.SettingsUrl);
-                        return Tuple.Create(result.Contains("\"hide_card\": true"), result.Contains("\"lockout_mode\": \"Lockout\""));
-                    } catch (Exception e) {
-                        Logger.LogDetailed(e, "BingoCLient");
-                    }
-                }
+                return Retry(() => {
+                    var result = this.Session.DownloadString(this.SettingsUrl);
+                    return Tuple.Create(result.Contains("\"hide_card\": true"), result.Contains("\"lockout_mode\": \"Lockout\""));
+                });
             }
         }
 
