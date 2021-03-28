@@ -199,10 +199,11 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
-        public static bool IsInappropriateTimeForMenu() {
+        public bool IsInappropriateTimeForMenu() {
             return (Engine.Scene is Overworld ow && (ow.Current is OuiModOptionString || ow.Current is OuiFileNaming)) ||
                 Engine.Scene.Entities.FindFirst<ButtonConfigUI>() != null ||
-                Engine.Scene.Entities.FindFirst<KeyboardConfigUI>() != null;
+                Engine.Scene.Entities.FindFirst<KeyboardConfigUI>() != null ||
+                this.Chat.ChatOpen;
         }
 
         private bool FirstFrame = false;

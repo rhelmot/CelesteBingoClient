@@ -339,6 +339,14 @@ namespace Celeste.Mod.BingoClient {
                             new Coroutine(this.CountdownRoutine())
                         });
                         break;
+                    case "/reconnect":
+                        this.Disconnect();
+                        try {
+                            this.Connect();
+                        } catch (Exception e) {
+                            Logger.LogDetailed(e, "BingoClient");
+                        }
+                        break;
                     default:
                         this.Chat.Chat("Bad command. Valid commands are: /countdown");
                         break;
