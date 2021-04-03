@@ -361,12 +361,14 @@ namespace Celeste.Mod.BingoClient {
                 this.SendChat(i == countFrom ? $"Reveal in {i}" : $"{i}");
                 yield return 1f;
             }
+            this.SendChat("Reveal");
             this.RevealBoard();
             yield return waitBetween;
             for (int i = countFrom; i > 0; i--) {
                 this.SendChat(i == countFrom ? $"Begin in {i}" : $"{i}");
                 yield return 1f;
             }
+            this.SendChat("Start!");
         }
     }
 
