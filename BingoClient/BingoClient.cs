@@ -33,6 +33,16 @@ namespace Celeste.Mod.BingoClient {
         public override void LoadContent(bool firstLoad) {
         }
 
+        public override void OnInputInitialize() {
+            base.OnInputInitialize();
+
+            this.ModSettings.MenuToggle.Button.BufferTime = 0;
+            this.ModSettings.MenuTrigger.Button.BufferTime = 0;
+            this.ModSettings.PinObjective.Button.BufferTime = 0;
+            this.ModSettings.QuickClaim.Button.BufferTime = 0;
+            this.ModSettings.OpenChat.Button.BufferTime = 0;
+        }
+
         public override void Load() {
             if (this.ModSettings.MasterSwitch) {
                 this.HookStuff();
@@ -282,7 +292,6 @@ namespace Celeste.Mod.BingoClient {
                 this.personalGamepads[i] = MInput.GamePads[i].CurrentState;
                 MInput.GamePads[i].CurrentState = new GamePadState();
             }
-            typeof(MInput).GetMethod("UpdateVirtualInputs", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { });
         }
 
         public void UneatInput() {
