@@ -118,6 +118,26 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
+        private static void Track1up(ILContext il) {
+            var cursor = new ILCursor(il);
+            if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchLdfld(typeof(StrawberryPoints), "index"))) {
+                throw new Exception("Could not find patch point");
+            }
+
+            cursor.Emit(OpCodes.Dup);
+            cursor.EmitDelegate<Action<int>>(idx => {
+                if (idx >= 5) {
+                    try {
+                        BingoClient.Instance.ModSaveData.OneUps[SaveData.Instance.CurrentSession.Area.ID]++;
+                    } catch (IndexOutOfRangeException) {
+                    }
+                }
+                BingoClient.Instance.ModSaveData.MaxOneUpCombo = Math.Max(idx, BingoClient.Instance.ModSaveData.MaxOneUpCombo);
+            });
+        }
+
+
+
         private static void MarkUsedOrb(On.Celeste.BadelineBoost.orig_OnPlayer orig, BadelineBoost self, Player player) {
             orig(self, player);
             SaveData.Instance.CurrentSession.SetFlag("usedOrb");
@@ -395,22 +415,6 @@ namespace Celeste.Mod.BingoClient {
                 BingoClient.Instance.ModSaveData.AddSeekerKill(ident);
             });
         }
-
-        private static void Track1up(ILContext il) {
-            var cursor = new ILCursor(il);
-            if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchLdfld(typeof(StrawberryPoints), "index"))) {
-                throw new Exception("Could not find patch point");
-            }
-
-            cursor.Emit(OpCodes.Dup);
-            cursor.EmitDelegate<Action<int>>(idx => {
-                if (idx >= 5) {
-                    BingoClient.Instance.ModSaveData.OneUps[SaveData.Instance.CurrentSession.Area.ID]++;
-                }
-                BingoClient.Instance.ModSaveData.MaxOneUpCombo = Math.Max(idx, BingoClient.Instance.ModSaveData.MaxOneUpCombo);
-            });
-        }
-
 
         public static void UpdateOnCheckpoint(AreaKey area, int? checkpoint) {
             if (checkpoint == null || BingoClient.Instance.ModSession.CheckpointStartedVariant == null) {
