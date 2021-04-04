@@ -283,15 +283,12 @@ namespace Celeste.Mod.BingoClient {
             // prevent game from seeing any inputs
             // but keep a copy so we can get accurate pressed/released data for ourselves
             this.personalKeyboard = MInput.Keyboard.CurrentState;
-            MInput.Keyboard.CurrentState = new KeyboardState();
-
             this.personalMouse = MInput.Mouse.CurrentState;
-            MInput.Mouse.CurrentState = new MouseState();
-
             for (var i = 0; i < 4; i++) {
                 this.personalGamepads[i] = MInput.GamePads[i].CurrentState;
-                MInput.GamePads[i].CurrentState = new GamePadState();
             }
+
+            MInput.UpdateNull();
         }
 
         public void UneatInput() {
