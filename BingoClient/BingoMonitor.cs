@@ -924,18 +924,25 @@ namespace Celeste.Mod.BingoClient {
             }
 
             var extvar = ExtendedVariants.Module.ExtendedVariantsModule.Settings;
+            var extvarmod = ExtendedVariants.Module.ExtendedVariantsModule.Instance;
             switch (variant) {
                 case BingoVariant.NoGrab:
                     if (enabled) SaveData.Instance.VariantMode = true;
                     SaveData.Instance.Assists.NoGrabbing = enabled;
                     break;
                 case BingoVariant.NoJump:
-                    if (enabled) extvar.MasterSwitch = true;
+                    if (enabled) {
+                        extvar.MasterSwitch = true;
+                        extvarmod.HookStuff();
+                    }
                     extvar.JumpCount = enabled ? 0 : 1;
                     extvar.DisableClimbJumping = extvar.DisableNeutralJumping = extvar.DisableWallJumping = enabled;
                     break;
                 case BingoVariant.NoDash:
-                    if (enabled) extvar.MasterSwitch = true;
+                    if (enabled) {
+                        extvar.MasterSwitch = true;
+                        extvarmod.HookStuff();
+                    }
                     extvar.DashCount = enabled ? 0 : -1;
                     if (enabled) {
                         var player = Engine.Scene.Tracker.GetEntity<Player>();
