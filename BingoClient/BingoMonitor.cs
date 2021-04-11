@@ -68,7 +68,7 @@ namespace Celeste.Mod.BingoClient {
             { "Blue and Red Heart in Old Site", () => (HasHeart(2, 0) + HasHeart(2, 1)) / 2 },
             { "All Collectibles in 2A", () => (HasNBerriesInChapter(18, 2, false)*18f + HasHeart(2, 0) + HasCassette(2)) / 20f },
             { "Celestial Resort Blue Heart", () => HasHeart(3, 0) },
-            { "All Berries in Presidential Suite (3)", () => HasCheckpointBerries(3, 2) },
+            { "All Berries in Presidential Suite (3)", () => HasCheckpointBerries(3, 3) },
             { "Mirror Temple Cassette", () => HasCassette(5) },
             { "Huge Mess: Chest -> Books -> Towel", () => HasHugeMessOrder(2, 1, 0) },
             { "Huge Mess: Chest -> Towel -> Books", () => HasHugeMessOrder(2, 0, 1) },
