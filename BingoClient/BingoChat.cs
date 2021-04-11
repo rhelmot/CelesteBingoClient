@@ -95,10 +95,14 @@ namespace Celeste.Mod.BingoClient {
 
             var currentBase = 1080f - 50f;
             var scale = 0.7f;
+            var nLines = 0;
             lock (this.ChatMessages) {
                 var chatTexts = this.ChatOpen ? this.ChatHistory : this.ChatMessages;
                 var chatTimers = this.ChatOpen ? null : this.ChatTimers;
                 for (int i = chatTexts.Count - 1; i >= 0 && currentBase > 0; i--) {
+                    if (nLines >= 5 && !this.ChatOpen) {
+                        this.ChatTimers[i] = Math.Max(this.ChatTimers[i], ChatTime - 0.5f);
+                    }
                     var timer = chatTimers?[i] ?? (ChatTime / 2f);
                     var text = chatTexts[i];
                     var alpha = timer < 0.25f ? timer * 4f : timer > (ChatTime - 0.5f) ? (ChatTime - timer) * 2 : 1f;
@@ -136,6 +140,7 @@ namespace Celeste.Mod.BingoClient {
                     for (var j = lines.Count - 1; j >= 0; j--) {
                         ActiveFont.DrawOutline(lines[j], new Vector2(1920f - 20, currentBase), new Vector2(1f, rise), Vector2.One * scale, Color.White * alpha, 2f, Color.Black * alpha);
                         currentBase -= textSize.Y * (j == 0 ? 1.1f : 0.9f) * rise;
+                        nLines++;
                     }
                 }
             }
