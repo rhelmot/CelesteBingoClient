@@ -4,15 +4,9 @@
 
 This is a Celeste mod which adds a client interface to the BingoSync website from within the game.
 
-## Beta Testing
+## Installing
 
-This mod is currently in a **beta testing phase**.
-You can help!
-
-1) For the time being, you need to be on the Everest *beta branch*. In the mod options menu, select "Change Everest Version" and select the largest number in the "beta" category.
-2) Install the mod from [GameBanana](https://gamebanana.com/guis/36684)
-3) Play some bingo games! See what happens!
-4) If you find anything wrong, tell me! There's a list of known bugs [here](https://github.com/rhelmot/CelesteBingoClient/issues). If you find a new bug, you can either open a new issue, or if you don't have a github account you can ping me on discord.
+Install the mod from [GameBanana](https://gamebanana.com/guis/36684). You will need Everest installed first.
 
 ## What to Expect
 
