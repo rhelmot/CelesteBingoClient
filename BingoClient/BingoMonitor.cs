@@ -104,7 +104,7 @@ namespace Celeste.Mod.BingoClient {
             { "Grabless Search", null }, // generated
             { "4 Winged Berries", () => HasNWingBerries(4) },
             { "5 Winged Berries", () => HasNWingBerries(5) },
-            { "Talk to Theo in Search", () => HasFlag("cutscene:5:e-00") },
+            { "Talk to Theo in Search", () => HasFlag("cutscene:5:search") },
             { "4 Cassettes", () => HasNCassettes(4) },
             { "15 Berries in 4A", () => HasNBerriesInChapter(15, 4) },
             { "Use 6 Binoculars in B-Sides", () => HasNBinosInBSides(6) },

@@ -262,7 +262,7 @@ namespace Celeste.Mod.BingoClient {
         private static void OnSkipCutscene(On.Celeste.Level.orig_SkipCutscene orig, Level self) {
             orig(self);
             var where = self.Session.Level;
-            if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.Y > 1300) {
+            if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.X > 3150) {
                 where = "search";
             }
             BingoClient.Instance.ModSaveData.FileFlags.Remove($"cutscene:{self.Session.Area.ID}:{where}");
