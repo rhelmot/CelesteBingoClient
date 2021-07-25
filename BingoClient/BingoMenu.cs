@@ -1,21 +1,22 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Celeste.Mod.UI;
 using Monocle;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 namespace Celeste.Mod.BingoClient {
     public partial class BingoClient {
         public bool MenuToggled, MenuTriggered;
         public bool BoardSelected = true;
+        public bool CheatSheetSelected = false;
+        public int CheatSheetPage = 0;
         public int BoardSelX, BoardSelY;
         private Vector2 MousePos;
         private bool MouseShown;
         public int BoardSelSlot => this.BoardSelX + this.BoardSelY * 5;
         private Wiggler Wiggle = Wiggler.Create(0.25f, 3f);
+        private float CheatSheetEase, CheatPageEase;
 
         private const int DISABLE_OFFSET = 1;
         private const int ENABLE_OFFSET = 11;
@@ -23,6 +24,7 @@ namespace Celeste.Mod.BingoClient {
         private const int PINNED_OFFSET = 49;
 
         public TextMenu Menu;
+        public List<List<DrawingDirective>> CheatSheetPages;
         public List<int> Pinned = new List<int>();
 
         #region init
@@ -180,6 +182,51 @@ namespace Celeste.Mod.BingoClient {
         public PieButton GetPinnedButton(int idx) {
             return (PieButton) this.Menu.Items[PINNED_OFFSET + idx];
         }
+
+        private void InitCheatSheet() {
+            this.CheatSheetPages = new List<List<DrawingDirective>> {
+                new List<DrawingDirective> {
+                    new TextDrawingDirective(Dialog.Clean("BINGO_CHEATSHEET_BERRIES_HEADER"), new Vector2(1920f / 2, 50), 1920, 1080, 2f),
+                    new RectangleDrawingDirective(new Vector2(1920f / 2, 1080 / 2 + 50), 1920f, 950, new Color(20, 20, 20, 200)),
+                    new BerriesTable(new Vector2(1920f / 2, 1080 / 2 + 50), 1600, 950),
+                },
+                new List<DrawingDirective> {
+                    new TextDrawingDirective(Dialog.Clean("BINGO_CHEATSHEET_BINOS_HEADER"), new Vector2(1920f / 2, 50), 1920, 1080, 2f),
+                    new RectangleDrawingDirective(new Vector2(1920f / 2, 1080 / 2 + 50), 1920f, 950, new Color(20, 20, 20, 200)),
+                    new BinosTable(new Vector2(1920f / 2, 1080 / 2 + 50), 1600, 950),
+                },
+                new List<DrawingDirective> {
+                    new TextDrawingDirective(Dialog.Clean("BINGO_CHEATSHEET_MISC_HEADER"), new Vector2(1920f / 2, 50), 1920, 1080, 2f),
+                    new ImageDrawingDirective("controls/directions/0x-1",  new Vector2(200, 200), 1f),
+                    new ImageDrawingDirective("controls/directions/-1x0",  new Vector2(300, 200), 1f),
+                    new ImageDrawingDirective("controls/directions/1x1",   new Vector2(400, 200), 1f),
+                    new ImageDrawingDirective("controls/directions/1x-1",  new Vector2(500, 200), 1f),
+                    new ImageDrawingDirective("controls/directions/-1x0",  new Vector2(600, 200), 1f),
+                    new ImageDrawingDirective("controls/directions/-1x-1", new Vector2(700, 200), 1f),
+
+                    new ImageDrawingDirective("controls/directions/0x-1",  new Vector2(200, 320), 1f),
+                    new ImageDrawingDirective("controls/directions/1x0",   new Vector2(300, 320), 1f),
+                    new ImageDrawingDirective("controls/directions/-1x1",  new Vector2(400, 320), 1f),
+                    new ImageDrawingDirective("controls/directions/-1x-1", new Vector2(500, 320), 1f),
+                    new ImageDrawingDirective("controls/directions/1x0",   new Vector2(600, 320), 1f),
+                    new ImageDrawingDirective("controls/directions/1x-1",  new Vector2(700, 320), 1f),
+
+                    new ImageDrawingDirective("controls/directions/0x1",   new Vector2(200, 440), 1f),
+                    new ImageDrawingDirective("controls/directions/-1x0",  new Vector2(300, 440), 1f),
+                    new ImageDrawingDirective("controls/directions/1x-1",  new Vector2(400, 440), 1f),
+                    new ImageDrawingDirective("controls/directions/1x1",   new Vector2(500, 440), 1f),
+                    new ImageDrawingDirective("controls/directions/-1x0",  new Vector2(600, 440), 1f),
+                    new ImageDrawingDirective("controls/directions/-1x1",  new Vector2(700, 440), 1f),
+
+                    new ImageDrawingDirective("controls/directions/0x1",   new Vector2(200, 560), 1f),
+                    new ImageDrawingDirective("controls/directions/1x0",   new Vector2(300, 560), 1f),
+                    new ImageDrawingDirective("controls/directions/-1x-1", new Vector2(400, 560), 1f),
+                    new ImageDrawingDirective("controls/directions/-1x1",  new Vector2(500, 560), 1f),
+                    new ImageDrawingDirective("controls/directions/1x0",   new Vector2(600, 560), 1f),
+                    new ImageDrawingDirective("controls/directions/1x1",   new Vector2(700, 560), 1f),
+                },
+            };
+        }
         #endregion
 
         #region update
@@ -257,6 +304,7 @@ namespace Celeste.Mod.BingoClient {
             }
 
             var mouseInBounds = this.MousePos.X >= corner.X && this.MousePos.X < corner.X + size.X && this.MousePos.Y >= corner.Y && this.MousePos.Y < corner.Y + size.Y;
+            mouseInBounds &= this.CheatSheetSelected;
             if (this.MouseShown && mouseInBounds) {
                 this.BoardSelected = true;
                 var oldPos = this.BoardSelSlot;
@@ -272,8 +320,12 @@ namespace Celeste.Mod.BingoClient {
             this.Wiggle.UseRawDeltaTime = true;
             this.Wiggle.Update();
 
+            this.CheatSheetEase = Calc.Approach(this.CheatSheetEase, this.CheatSheetSelected ? 1f : 0f, Engine.RawDeltaTime * 2);
+            this.CheatPageEase = Calc.Approach(this.CheatPageEase, 0, Engine.RawDeltaTime * 2);
+
             if (this.Menu == null) {
                 this.InitMenu();
+                this.InitCheatSheet(); // this is the wrong place to put this but whatever
             }
             this.Menu.Focused = !this.BoardSelected && !this.MenuTriggered;
 
@@ -356,22 +408,36 @@ namespace Celeste.Mod.BingoClient {
             if (!this.MenuTriggered && !this.FirstFrame && !this.Chat.ChatOpen) {
                 // only handle keypresses if we're not in trigger mode or on the first frame of input or have the chat open
 
-                if (this.BoardSelected) {
+                if (this.BoardSelected || this.CheatSheetSelected) {
                     if (Input.MenuUp.Pressed) {
                         this.MouseShown = false;
-                        this.BoardSelY--;
-                        if (this.BoardSelY < 0) {
+                        if (this.CheatSheetSelected) {
+                            this.CheatSheetSelected = false;
                             this.BoardSelY = 4;
+                            Audio.Play(SFX.ui_world_journal_page_cover_back);
+                        } else {
+                            this.OnMotion();
+                            this.BoardSelY--;
+                            if (this.BoardSelY < 0) {
+                                this.CheatSheetSelected = true;
+                                Audio.Play(SFX.ui_world_journal_page_cover_forward);
+                            }
                         }
-                        this.OnMotion();
                     }
                     if (Input.MenuDown.Pressed) {
                         this.MouseShown = false;
-                        this.BoardSelY++;
-                        if (this.BoardSelY >= 5) {
+                        if (this.CheatSheetSelected) {
+                            this.CheatSheetSelected = false;
                             this.BoardSelY = 0;
+                            Audio.Play(SFX.ui_world_journal_page_cover_back);
+                        } else {
+                            this.OnMotion();
+                            this.BoardSelY++;
+                            if (this.BoardSelY >= 5) {
+                                this.CheatSheetSelected = true;
+                                Audio.Play(SFX.ui_world_journal_page_cover_forward);
+                            }
                         }
-                        this.OnMotion();
                     }
                     if (Input.MenuConfirm.Pressed) {
                         Audio.Play(SFX.ui_main_button_select);
@@ -386,31 +452,47 @@ namespace Celeste.Mod.BingoClient {
                 }
                 if (Input.MenuLeft.Pressed) {
                     this.MouseShown = false;
-                    this.OnMotion();
-                    if (!this.BoardSelected) {
-                        this.BoardSelX = 4;
-                        this.BoardSelected = true;
+                    if (this.CheatSheetSelected) {
+                        if (this.CheatSheetPage != 0) {
+                            this.CheatSheetPage--;
+                            this.CheatPageEase = 1f;
+                            Audio.Play(SFX.ui_world_journal_page_main_back);
+                        }
                     } else {
-                        this.BoardSelX--;
-                        if (this.BoardSelX < 0) {
-                            this.BoardSelected = false;
-                            this.Menu.Selection = this.Menu.FirstPossibleSelection;
-                            this.Menu.Current?.SelectWiggler.Start();
+                        this.OnMotion();
+                        if (!this.BoardSelected) {
+                            this.BoardSelX = 4;
+                            this.BoardSelected = true;
+                        } else {
+                            this.BoardSelX--;
+                            if (this.BoardSelX < 0) {
+                                this.BoardSelected = false;
+                                this.Menu.Selection = this.Menu.FirstPossibleSelection;
+                                this.Menu.Current?.SelectWiggler.Start();
+                            }
                         }
                     }
                 }
                 if (Input.MenuRight.Pressed) {
                     this.MouseShown = false;
-                    this.OnMotion();
-                    if (!this.BoardSelected) {
-                        this.BoardSelX = 0;
-                        this.BoardSelected = true;
+                    if (this.CheatSheetSelected) {
+                        if (this.CheatSheetPage < this.CheatSheetPages.Count - 1) {
+                            this.CheatSheetPage++;
+                            this.CheatPageEase = -1f;
+                            Audio.Play(SFX.ui_world_journal_page_main_forward);
+                        }
                     } else {
-                        this.BoardSelX++;
-                        if (this.BoardSelX >= 5) {
-                            this.BoardSelected = false;
-                            this.Menu.Selection = this.Menu.FirstPossibleSelection;
-                            this.Menu.Current?.SelectWiggler.Start();
+                        this.OnMotion();
+                        if (!this.BoardSelected) {
+                            this.BoardSelX = 0;
+                            this.BoardSelected = true;
+                        } else {
+                            this.BoardSelX++;
+                            if (this.BoardSelX >= 5) {
+                                this.BoardSelected = false;
+                                this.Menu.Selection = this.Menu.FirstPossibleSelection;
+                                this.Menu.Current?.SelectWiggler.Start();
+                            }
                         }
                     }
                 }
@@ -496,12 +578,14 @@ namespace Celeste.Mod.BingoClient {
             }
 
             var wiggle = this.Wiggle.Value;
+            var screenOffset = (this.CheatSheetSelected ? Ease.CubeOut(this.CheatSheetEase) : Ease.CubeIn(this.CheatSheetEase)) * 1080f;
+            var currentCorner = corner - screenOffset * Vector2.UnitY;
 
             // draw boxes and text
             for (int x = 0; x < 5; x++) {
                 for (int y = 0; y < 5; y++) {
                     var slot = y * 5 + x;
-                    var subcorner = corner + subsize * new Vector2(x, y);
+                    var subcorner = currentCorner + subsize * new Vector2(x, y);
 
                     if (!this.MenuTriggered && x == this.BoardSelX && y == this.BoardSelY && this.BoardSelected) {
                         Draw.Rect(subcorner - Vector2.One * wiggle * 3f + Vector2.UnitY * wiggle * 2f, subsize.X + wiggle*3*2, subsize.Y + wiggle*3*2, Color.WhiteSmoke * masterAlpha);
@@ -525,7 +609,7 @@ namespace Celeste.Mod.BingoClient {
             for (int x = 0; x < 5; x++) {
                 for (int y = 0; y < 5; y++) {
                     var slot = y * 5 + x;
-                    var subcorner = corner + subsize * new Vector2(x, y) + Vector2.One * 15f;
+                    var subcorner = currentCorner + subsize * new Vector2(x, y) + Vector2.One * 15f;
 
                     var status = this.GetObjectiveStatus(slot);
                     if (status == ObjectiveStatus.Completed) {
@@ -536,7 +620,7 @@ namespace Celeste.Mod.BingoClient {
                 }
             }
 
-            var scoreCorner = new Vector2(20f, 20f);
+            var scoreCorner = new Vector2(20f, 20f - screenOffset);
             foreach (var entry in this.Score()) {
                 var scoreSize1 = new Vector2(100f, 100f);
                 Draw.Rect(scoreCorner, scoreSize1.X, scoreSize1.Y, entry.Item1.ToSquareColor());
@@ -544,7 +628,26 @@ namespace Celeste.Mod.BingoClient {
                 scoreCorner += new Vector2(0f, 120f);
             }
 
-            this.Menu?.Render();
+            if (this.Menu != null) {
+                this.Menu.Y -= screenOffset;
+                this.Menu.Render();
+                this.Menu.Y += screenOffset;
+            }
+
+            // render cheat sheet
+            // cheatpageease = 1 means LEFT was pressed and we're rendering the FOLLOWING page
+            // cheatpageease = -1 means RIGHT was pressed and we're rendering the PREVIOUS page
+            var pageOffset = -1920f * Ease.CubeIn(this.CheatPageEase);
+            foreach (var item in this.CheatSheetPages[this.CheatSheetPage]) {
+                item.Draw(new Vector2(pageOffset, 1080f - screenOffset), masterAlpha);
+            }
+            if (this.CheatPageEase != 0) {
+                var otherPageIdx = (this.CheatPageEase < 0 ? -1 : 1) + this.CheatSheetPage;
+                var otherPageOffset = (this.CheatPageEase < 0 ? -1 : 1) * 1920f;
+                foreach (var item in this.CheatSheetPages[otherPageIdx]) {
+                    item.Draw(new Vector2(pageOffset + otherPageOffset, 1080f - screenOffset), masterAlpha);
+                }
+            }
 
             if (this.MouseShown) {
                 GFX.Gui["menu/bingo/cursor"].Draw(this.MousePos, Vector2.Zero, Color.White, 0.5f);
@@ -553,7 +656,7 @@ namespace Celeste.Mod.BingoClient {
             Draw.SpriteBatch.End();
         }
 
-        public static void DrawTextBox(string text, Vector2 center, float width, float height, float scale, float lineHeight, Color color, float stroke, Color strokeColor) {
+        public static void DrawTextBox(string text, Vector2 center, float width, float height, float scale, float lineHeight, Color color, float stroke, Color strokeColor, bool verticalCenter=true) {
             var words = text.Split(' ');
             var singleHeight = ActiveFont.Measure(text).Y;
             while (true) {
@@ -590,9 +693,10 @@ namespace Celeste.Mod.BingoClient {
                         result.Add(line);
                     }
 
-                    var offsetY = -singleHeight * lineHeight * scale * (result.Count - 1) / 2;
+                    var offsetY = verticalCenter ? -singleHeight * lineHeight * scale * (result.Count - 1) / 2 : -height / 2;
+                    var justify = verticalCenter ? new Vector2(0.5f, 0.5f) : new Vector2(0.5f, 0f);
                     foreach (var finalline in result) {
-                        ActiveFont.DrawOutline(finalline, center + Vector2.UnitY * offsetY, new Vector2(0.5f, 0.5f), Vector2.One * scale, color, stroke, strokeColor);
+                        ActiveFont.DrawOutline(finalline, center + Vector2.UnitY * offsetY, justify, Vector2.One * scale, color, stroke, strokeColor);
                         offsetY += singleHeight * lineHeight * scale;
                     }
 
@@ -646,6 +750,180 @@ namespace Celeste.Mod.BingoClient {
                 }
             }
         }
+
+        public abstract class DrawingDirective {
+            public abstract void Draw(Vector2 offset, float alpha);
+        }
+
+        public class TextDrawingDirective : DrawingDirective {
+            private string Text;
+            private Vector2 Center;
+            private float Width, Height, Scale;
+            private bool VerticalCenter;
+            public TextDrawingDirective(string text, Vector2 center, float width, float height, float scale=1f, bool verticalCenter=true) {
+                this.Text = text;
+                this.Center = center;
+                this.Width = width;
+                this.Height = height;
+                this.Scale = scale;
+                this.VerticalCenter = verticalCenter;
+            }
+
+
+            public override void Draw(Vector2 offset, float alpha) {
+                var newCenter = offset + this.Center;
+                DrawTextBox(this.Text, newCenter, this.Width, this.Height, this.Scale, 1f, Color.White * alpha, this.Scale * 2f, Color.Black * alpha, this.VerticalCenter);
+            }
+        }
+
+        public class RectangleDrawingDirective : DrawingDirective {
+            private Vector2 Center;
+            private float Width, Height;
+            private Color Color, StrokeColor;
+            private float Stroke;
+            public RectangleDrawingDirective(Vector2 center, float width, float height, Color color, Color strokeColor=default, float stroke=1f) {
+                this.Center = center;
+                this.Width = width;
+                this.Height = height;
+                this.Color = color;
+                this.StrokeColor = strokeColor;
+                this.Stroke = stroke;
+            }
+
+            public override void Draw(Vector2 offset, float alpha) {
+                var corner = offset + this.Center - new Vector2(this.Width / 2, this.Height / 2);
+                Monocle.Draw.Rect(corner, this.Width, this.Height, this.Color * alpha);
+                Monocle.Draw.HollowRect(corner, this.Width, this.Height, this.StrokeColor * alpha);
+            }
+        }
+
+        public class ImageDrawingDirective : DrawingDirective {
+            private Vector2 Center;
+            private float Scale;
+            private string Texture;
+
+            public ImageDrawingDirective(string texture, Vector2 center, float scale) {
+                this.Center = center;
+                this.Texture = texture;
+                this.Scale = scale;
+            }
+
+            public override void Draw(Vector2 offset, float alpha) {
+                var txt = GFX.Game.Has(this.Texture) ? GFX.Game[this.Texture] : GFX.Gui[this.Texture];
+                txt.DrawCentered(this.Center + offset, Color.White * alpha, this.Scale);
+            }
+        }
+
+        public abstract class TableDrawing : DrawingDirective {
+            protected Vector2 Center;
+            protected float Width, Height;
+            protected int Rows, Cols;
+
+            protected TableDrawing(Vector2 center, float width, float height, int rows, int cols) {
+                this.Center = center;
+                this.Width = width;
+                this.Height = height;
+                this.Rows = rows;
+                this.Cols = cols;
+            }
+
+            protected float CellWidth => this.Width / this.Cols;
+            protected float CellHeight => this.Height / this.Rows;
+
+            protected Vector2 Cell(int col, int row) {
+                return this.Center
+                    - new Vector2(this.Width / 2, this.Height / 2)
+                    + new Vector2(this.CellWidth * col, this.CellHeight * row)
+                    + new Vector2(this.CellWidth / 2, this.CellHeight / 2);
+            }
+        }
+
+        public class BerriesTable : TableDrawing {
+            public BerriesTable(Vector2 center, float width, float height) : base(center, width, height, 7, 8) {
+            }
+
+            public override void Draw(Vector2 offset, float alpha) {
+                for (int chapterRow = 0; chapterRow < 7; chapterRow++) {
+                    int chapterIdx = chapterRow + 1;
+                    if (chapterIdx >= 6) {
+                        chapterIdx++;
+                    }
+                    if (chapterIdx >= 8) {
+                        chapterIdx++;
+                    }
+
+                    var chapterObj = AreaData.Areas[chapterIdx].Mode[0];
+
+                    Vector2 cell;
+                    var totalBerries = 0;
+
+                    for (int checkpointIdx = 0; checkpointIdx <= chapterObj.Checkpoints.Length; checkpointIdx++) {
+                        var cpChapterIdx = chapterIdx < 9 ? chapterIdx : chapterIdx - 1;
+                        var cpName = checkpointIdx == 0 ? Dialog.Clean("overworld_start") : Dialog.Clean($"checkpoint_{cpChapterIdx}_{checkpointIdx - 1}");
+                        int berries = 0;
+                        bool hasWinged = false;
+                        bool hasSeeded = false;
+                        for (int berryNo = 0; berryNo < chapterObj.StrawberriesByCheckpoint.GetLength(1); berryNo++) {
+                            var berry = chapterObj.StrawberriesByCheckpoint[checkpointIdx, berryNo];
+                            if (berry != null) {
+                                berries++;
+                                totalBerries++;
+                                if (berry.Bool("winged")) {
+                                    hasWinged = true;
+                                }
+                                if (berry.Nodes.Length != 0) {
+                                    hasSeeded = true;
+                                }
+                            }
+                        }
+
+                        cell = this.Cell(1 + checkpointIdx, chapterRow);
+                        if (hasWinged) {
+                            new ImageDrawingDirective("collectables/strawberry/wings02", cell + new Vector2(-50, 25), 2f).Draw(offset, alpha);
+                        }
+                        if (hasSeeded) {
+                            new ImageDrawingDirective("collectables/strawberry/seed00", cell + new Vector2(50, 25), 3.5f).Draw(offset, alpha);
+                        }
+                        new TextDrawingDirective($"{cpName} ({berries})", cell, this.CellWidth * 0.9f, this.CellHeight * 0.7f, 0.75f * 0.8f, false).Draw(offset, alpha);
+                    }
+
+                    cell = this.Cell(0, chapterRow);
+                    new TextDrawingDirective($"{Dialog.Clean($"area_{chapterIdx}")} ({totalBerries})", cell - Vector2.UnitX * 100, this.CellWidth, this.CellHeight).Draw(offset, alpha);
+                }
+            }
+        }
+
+        public class BinosTable : TableDrawing {
+            private Vector2 Offset;
+            private float Alpha;
+            public BinosTable(Vector2 center, float width, float height) : base(center, width, height, 15, 5) {
+            }
+
+            public override void Draw(Vector2 offset, float alpha) {
+                this.Offset = offset;
+                this.Alpha = alpha;
+
+                for (int row = 0; row < this.Rows; row++) {
+                    for (int col = 0; col < this.Cols; col++) {
+                        this.DrawCell(col, row,
+                            scale: col == 0 ? 0.75f : 0.5f
+                        );
+                    }
+                }
+            }
+
+            private void DrawCell(int col, int row, string text=null, float scale=1f, bool verticalCenter=true, Vector2 offset=default) {
+                if (text == null) {
+                    var key = $"bingo_cheatsheet_binos_{row}_{col}";
+                    if (!Dialog.Has(key)) {
+                        return;
+                    }
+                    text = Dialog.Clean(key);
+                }
+                new TextDrawingDirective(text, this.Cell(col, row) + offset, this.CellWidth, this.CellHeight, scale, verticalCenter).Draw(this.Offset, this.Alpha);
+            }
+        }
+
         #endregion
     }
 }
