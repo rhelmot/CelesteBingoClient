@@ -304,7 +304,7 @@ namespace Celeste.Mod.BingoClient {
             }
 
             var mouseInBounds = this.MousePos.X >= corner.X && this.MousePos.X < corner.X + size.X && this.MousePos.Y >= corner.Y && this.MousePos.Y < corner.Y + size.Y;
-            mouseInBounds &= this.CheatSheetSelected;
+            mouseInBounds &= !this.CheatSheetSelected;
             if (this.MouseShown && mouseInBounds) {
                 this.BoardSelected = true;
                 var oldPos = this.BoardSelSlot;
@@ -439,15 +439,19 @@ namespace Celeste.Mod.BingoClient {
                             }
                         }
                     }
-                    if (Input.MenuConfirm.Pressed) {
-                        Audio.Play(SFX.ui_main_button_select);
-                        this.Wiggle.Start();
-                        this.ToggleSquare(this.BoardSelSlot);
-                    }
-                    if (this.ModSettings.PinObjective.Pressed) {
-                        Audio.Play(SFX.ui_main_button_select);
-                        this.Wiggle.Start();
-                        this.PinSquare(this.BoardSelSlot);
+
+                    if (this.BoardSelected) {
+                            if (Input.MenuConfirm.Pressed) {
+                            Audio.Play(SFX.ui_main_button_select);
+                            this.Wiggle.Start();
+                            this.ToggleSquare(this.BoardSelSlot);
+                        }
+
+                        if (this.ModSettings.PinObjective.Pressed) {
+                            Audio.Play(SFX.ui_main_button_select);
+                            this.Wiggle.Start();
+                            this.PinSquare(this.BoardSelSlot);
+                        }
                     }
                 }
                 if (Input.MenuLeft.Pressed) {
@@ -601,7 +605,22 @@ namespace Celeste.Mod.BingoClient {
                         }
                     }
 
-                    DrawTextBox(this.Board[slot].Text, subcorner + subsize / 2, subsize.X * (1 - padding), subsize.Y * (1 - padding), 0.5f, 1.0f, Color.White, 1f, Color.Black);
+                    bool shrinkBox = false;
+                    Vector2 iconPos = subcorner + new Vector2(30, subsize.Y - 30);
+                    if (this.ModSettings.ScanAssist) {
+                        foreach (var renderer in GetAccessibleTokens(this.Board[slot].Text)) {
+                            shrinkBox = true;
+                            renderer(iconPos, masterAlpha);
+                            iconPos += new Vector2(30f, 0f);
+                        }
+                    }
+
+                    DrawTextBox(
+                        this.Board[slot].Text,
+                        subcorner + subsize / 2,
+                        subsize.X * (1 - padding),
+                        subsize.Y * (1 - padding) * (shrinkBox ? 0.6f : 1f),
+                        0.5f, 1.0f, Color.White, 1f, Color.Black);
                 }
             }
 
@@ -922,6 +941,78 @@ namespace Celeste.Mod.BingoClient {
                 }
                 new TextDrawingDirective(text, this.Cell(col, row) + offset, this.CellWidth, this.CellHeight, scale, verticalCenter).Draw(this.Offset, this.Alpha);
             }
+        }
+
+        public static IEnumerable<Action<Vector2, float>> GetAccessibleTokens(string text) {
+            bool binos, berries, redhearts, bluehearts, cassettes;
+            binos = berries = redhearts = bluehearts = cassettes = false;
+            if (text.Contains("Binocular")) {
+                binos = true;
+            }
+            if (text.Contains("Collectibles")) {
+                berries = true;
+                bluehearts = true;
+                cassettes = true;
+            }
+            if (text.Contains("Blue")) {
+                bluehearts = true;
+            }
+            if (text.Contains("Red") || text.Contains("B-Side")) {
+                redhearts = true;
+            }
+            if (text.Contains("Heart") && !redhearts && !bluehearts && !text.Contains("Heart of the Mountain")) {
+                redhearts = true;
+                bluehearts = true;
+            }
+            if (text.Contains("Cassette")) {
+                cassettes = true;
+            }
+            if (text.Contains("Berries") && !text.Contains("PICO")) {
+                berries = true;
+            }
+            if (text.Contains("1-Up") || text.Contains("2-Up") || text.Contains("3-Up")) {
+                berries = true;
+            }
+
+            if (binos) {
+                yield return RenderBinoculars;
+            }
+            if (berries) {
+                yield return RenderBerry;
+            }
+            if (cassettes) {
+                yield return RenderCassette;
+            }
+            if (bluehearts) {
+                yield return RenderBlueHeart;
+            }
+            if (redhearts) {
+                yield return RenderRedHeart;
+            }
+        }
+
+        private static void RenderBlueHeart(Vector2 pos, float alpha) {
+            MTN.Journal["heartgem0"].DrawCentered(pos, Color.White * alpha, 0.5f);
+        }
+
+        private static void RenderRedHeart(Vector2 pos, float alpha) {
+            MTN.Journal["heartgem1"].DrawCentered(pos, Color.White * alpha, 0.5f);
+        }
+
+        private static void RenderBerry(Vector2 pos, float alpha) {
+            MTN.Journal["strawberry"].DrawCentered(pos, Color.White * alpha, 0.5f);
+        }
+
+        private static void RenderCassette(Vector2 pos, float alpha) {
+            MTN.Journal["cassette"].DrawCentered(pos, Color.White * alpha, 0.5f);
+        }
+
+        //private static void RenderFlag(Vector2 pos, float alpha) {
+        //    MTN.Journal["clear"].DrawCentered(pos, Color.White * alpha, 0.5f);
+        //}
+
+        private static void RenderBinoculars(Vector2 pos, float alpha) {
+            GFX.Game["objects/lookout/lookout05"].DrawJustified(pos, new Vector2(0.5f, 0.75f), Color.White * alpha, 2f);
         }
 
         #endregion

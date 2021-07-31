@@ -184,7 +184,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         public bool IsObjectiveClaimable(int i) {
-            return this.Board[i].Colors.Count == 0 && this.ObjectivesCompleted[i];
+            return this.Board?[i].Colors.Count == 0 && (this.ObjectivesCompleted?[i] ?? false);
         }
 
         public IEnumerable<BingoVariant> RelevantVariants() {

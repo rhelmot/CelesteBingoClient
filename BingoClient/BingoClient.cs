@@ -500,6 +500,7 @@ namespace Celeste.Mod.BingoClient {
         public TriggerAlphaMode TriggerAlpha { get; set; } = TriggerAlphaMode.Medium;
         public bool AutoUnpin { get; set; } = true;
         public bool ClaimAssist { get; set; } = false;
+        public bool ScanAssist { get; set; } = false;
 
         public void CreatePlayerColorEntry(TextMenu menu, bool inGame) {
             var enumValues = new List<BingoColors>((BingoColors[])Enum.GetValues(typeof(BingoColors)));
