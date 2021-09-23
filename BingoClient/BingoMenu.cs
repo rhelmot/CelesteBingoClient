@@ -539,7 +539,7 @@ namespace Celeste.Mod.BingoClient {
                 SpriteSortMode.Deferred,
                 BlendState.AlphaBlend,
                 SamplerState.LinearClamp,
-                DepthStencilState.Default,
+                DepthStencilState.None,
                 RasterizerState.CullNone,
                 null,
                 Engine.ScreenMatrix);
