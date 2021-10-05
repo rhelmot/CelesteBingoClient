@@ -656,15 +656,18 @@ namespace Celeste.Mod.BingoClient {
             // render cheat sheet
             // cheatpageease = 1 means LEFT was pressed and we're rendering the FOLLOWING page
             // cheatpageease = -1 means RIGHT was pressed and we're rendering the PREVIOUS page
-            var pageOffset = -1920f * Ease.CubeIn(this.CheatPageEase);
-            foreach (var item in this.CheatSheetPages[this.CheatSheetPage]) {
-                item.Draw(new Vector2(pageOffset, 1080f - screenOffset), masterAlpha);
-            }
-            if (this.CheatPageEase != 0) {
-                var otherPageIdx = (this.CheatPageEase < 0 ? -1 : 1) + this.CheatSheetPage;
-                var otherPageOffset = (this.CheatPageEase < 0 ? -1 : 1) * 1920f;
-                foreach (var item in this.CheatSheetPages[otherPageIdx]) {
-                    item.Draw(new Vector2(pageOffset + otherPageOffset, 1080f - screenOffset), masterAlpha);
+            if (this.CheatSheetPages != null) {
+                var pageOffset = -1920f * Ease.CubeIn(this.CheatPageEase);
+                foreach (var item in this.CheatSheetPages[this.CheatSheetPage]) {
+                    item.Draw(new Vector2(pageOffset, 1080f - screenOffset), masterAlpha);
+                }
+
+                if (this.CheatPageEase != 0) {
+                    var otherPageIdx = (this.CheatPageEase < 0 ? -1 : 1) + this.CheatSheetPage;
+                    var otherPageOffset = (this.CheatPageEase < 0 ? -1 : 1) * 1920f;
+                    foreach (var item in this.CheatSheetPages[otherPageIdx]) {
+                        item.Draw(new Vector2(pageOffset + otherPageOffset, 1080f - screenOffset), masterAlpha);
+                    }
                 }
             }
 
