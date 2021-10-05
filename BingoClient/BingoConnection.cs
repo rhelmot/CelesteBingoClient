@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Net.WebSockets;
+using System.Security.Authentication;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -11,6 +12,11 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace Celeste.Mod.BingoClient {
+    public class VerbatimException : Exception {
+        public VerbatimException(string msg) : base(msg) {
+        }
+    }
+
     public partial class BingoClient {
         public string RoomDomain;
         public string RoomId;
@@ -70,7 +76,60 @@ namespace Celeste.Mod.BingoClient {
             }).Start();
         }
 
-        public void Connect() {
+        public bool Reconnect() {
+            this.Disconnect();
+            this.Session = null;
+            Thread.Sleep(1000);
+            return this.Connect();
+        }
+
+        string DiagnoseError(Exception e) {
+            if (e is VerbatimException) {
+                return e.Message;
+            }
+            if (e is WebException we) {
+                if (we.Response is HttpWebResponse wr) {
+                    if ((int) wr.StatusCode == 429) {
+                        return Dialog.Clean("bingoclient_connect_error_ratelimit");
+                    }
+                    return string.Format(Dialog.Clean("bingoclient_connect_error_http"), (int) wr.StatusCode);
+                }
+            }
+
+            if (e is AuthenticationException) {
+                return Dialog.Clean("bingoclient_connect_error_ssl");
+            }
+
+            if (e is AggregateException ae) {
+                foreach (var ie in ae.InnerExceptions) {
+                    var maybeResult = this.DiagnoseError(ie);
+                    if (maybeResult != null) {
+                        return maybeResult;
+                    }
+                }
+            }
+
+            if (e.InnerException != null) {
+                return this.DiagnoseError(e.InnerException);
+            }
+            
+            return null;
+        }
+
+        public bool Connect() {
+            try {
+                this.ConnectInner();
+                // No need to log anything. we'll see the connected message from chat
+                return true;
+            } catch (Exception e) {
+                Logger.LogDetailed(e, "BingoClient");
+                var msg = this.DiagnoseError(e) ?? Dialog.Clean("bingoclient_connect_error");
+                this.LogChat(msg);
+                return false;
+            }
+        }
+
+        private void ConnectInner() {
             string sessionKey;
             if (this.Session == null || this.Password != this.SavedPassword || this.RoomId != this.SavedRoomId) {
                 try {
@@ -91,7 +150,7 @@ namespace Celeste.Mod.BingoClient {
                         };
                         var r2 = Encoding.UTF8.GetString(this.Session.UploadValues(this.RoomUrl, postKeys));
                         if (r2.Contains("Incorrect Password")) {
-                            throw new Exception("Incorrect Password");
+                            throw new VerbatimException(Dialog.Clean("bingoclient_connect_error_password"));
                         }
 
                         this.IsBoardHidden = r2.Contains("hide_card\\u0022: true");
@@ -146,6 +205,7 @@ namespace Celeste.Mod.BingoClient {
             //this.CancelToken = null;  // don't null this so we can preemptively cancel future things
             this.Sock = null;
             this.Connected = false;
+            this.LogChat(Dialog.Clean("modoptions_bingoclient_disconnect_message"));
         }
 
         public void SendClaim(int slot) {

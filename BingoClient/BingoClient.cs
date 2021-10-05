@@ -165,12 +165,7 @@ namespace Celeste.Mod.BingoClient {
             if (this.Password != null && !this.Connected) {
                 var retryBtn = new TextMenu.Button(Dialog.Clean("modoptions_bingoclient_reconnect"));
                 retryBtn.OnPressed = () => {
-                    try {
-                        this.Connect();
-                    } catch (Exception e) {
-                        Logger.LogDetailed(e, "BingoClient");
-                        this.LogChat(Dialog.Clean("bingoclient_connect_error"));
-                    }
+                    this.Connect();
                 };
                 menu.Add(retryBtn);
             }
@@ -178,7 +173,6 @@ namespace Celeste.Mod.BingoClient {
                 var disconnectBtn = new TextMenu.Button(Dialog.Clean("modoptions_bingoclient_disconnect"));
                 disconnectBtn.OnPressed = () => {
                     this.Disconnect();
-                    this.LogChat(Dialog.Clean("modoptions_bingoclient_disconnect_message"));
                 };
                 menu.Add(disconnectBtn);
             }
@@ -314,7 +308,7 @@ namespace Celeste.Mod.BingoClient {
                 var bingoButton = new OuiFileSelectSlot.Button {
                     Action = () => {
                         var contents = TextInput.GetClipboardText();
-                        if (contents.StartsWith("https://bingosync.com/room/")) {
+                        if (contents.StartsWith("http") && contents.Contains("://bingosync.com/room/")) {
                             this.Password = "password";
                             (self.Scene as Overworld).Goto<OuiTextEntry>().Init<OuiBingoConnecting>("password", s => {
                                 this.Password = s;
@@ -346,12 +340,7 @@ namespace Celeste.Mod.BingoClient {
                         });
                         break;
                     case "/reconnect":
-                        this.Disconnect();
-                        try {
-                            this.Connect();
-                        } catch (Exception e) {
-                            Logger.LogDetailed(e, "BingoClient");
-                        }
+                        this.Reconnect();
                         break;
                     default:
                         this.Chat.Chat("Bad command. Valid commands are: /countdown");
@@ -382,16 +371,7 @@ namespace Celeste.Mod.BingoClient {
         public override IEnumerator Enter(Oui from) {
             if (!OuiModOptionString.Cancelled) {
                 var task = new Task(() => {
-                    try {
-                        if (BingoClient.Instance.Connected) {
-                            BingoClient.Instance.Disconnect();
-                            BingoClient.Instance.LogChat(Dialog.Clean("modoptions_bingoclient_disconnect_message"));
-                        }
-                        BingoClient.Instance.Connect();
-                    } catch (Exception e) {
-                        Logger.LogDetailed(e, "BingoClient");
-                        BingoClient.Instance.LogChat(Dialog.Clean("BINGOCLIENT_CONNECT_ERROR"));
-                    }
+                    BingoClient.Instance.Connect();
                 });
                 task.Start();
 

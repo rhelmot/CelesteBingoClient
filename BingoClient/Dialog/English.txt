@@ -1,6 +1,10 @@
 BINGOCLIENT_START_BUTTON=Connect to Bingo
 BINGOCLIENT_BAD_PASTE=You need a BingoSync room URL in your clipboard!
-BINGOCLIENT_CONNECT_ERROR=Could not connect to room
+BINGOCLIENT_CONNECT_ERROR=Could not connect to room: unknown error
+BINGOCLIENT_CONNECT_ERROR_HTTPCODE=Could not connect to room: HTTP error {}
+BINGOCLIENT_CONNECT_ERROR_RATELIMIT=Could not connect to room: too many connections
+BINGOCLIENT_CONNECT_ERROR_SSL=Could not connect to room: HTTPS security error
+BINGOCLIENT_CONNECT_ERROR_PASSWORD=Could not connect to room: incorrect password
 BINGOCLIENT_CONNECT_TRYAGAIN=Try reconnecting from the options menu
 BINGOCLIENT_CONNECT_RETRYING=Retrying connection...
 

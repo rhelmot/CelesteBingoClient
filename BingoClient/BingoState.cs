@@ -65,13 +65,7 @@ namespace Celeste.Mod.BingoClient {
                 case "error":
                     if (this.Connected) {
                         this.LogChat(Dialog.Clean("bingoclient_connect_retrying"));
-                        this.Disconnect();
-                        try {
-                            this.Connect();
-                        } catch (Exception e) {
-                            Logger.LogDetailed(e, "BingoClient");
-                            this.LogChat(Dialog.Clean("bingoclient_connect_error"));
-                        }
+                        this.Reconnect();
                     } else {
                         this.LogChat(Dialog.Clean("bingoclient_connect_tryagain"));
                         this.Disconnect();
