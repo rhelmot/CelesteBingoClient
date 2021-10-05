@@ -178,13 +178,18 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
+        internal bool NameChanged = false;
         public override void SaveSettings() {
             base.SaveSettings();
             if (!this.Connected) {
                 return;
             }
 
-            this.SendColor();
+            if (this.NameChanged) {
+                this.Reconnect();
+            } else {
+                this.SendColor();
+            }
         }
 
         private void WipeObjectiveCache(On.Celeste.SaveData.orig_Start orig, SaveData data, int slot) {
@@ -496,6 +501,25 @@ namespace Celeste.Mod.BingoClient {
                 }, 0, enumValues.Count - 1, (int)this.PlayerColor - 1)
                 .Change(v => this.PlayerColor = (BingoColors) v + 1)
             ;
+            menu.Add(item);
+        }
+
+        public void CreatePlayerNameEntry(TextMenu menu, bool inGame) {
+            if (inGame) return;
+            var item = new TextMenu.Button(Dialog.Clean("MODOPTIONS_BINGOCLIENT_PLAYERNAME") + ": " + this.PlayerName)
+                .Pressed(() => {
+                    Audio.Play(SFX.ui_main_savefile_rename_start);
+                    menu.SceneAs<Overworld>().Goto<OuiModOptionString>().Init<OuiModOptions>(
+                        (string) this.PlayerName,
+                        v => {
+                            this.PlayerName = v;
+                            BingoClient.Instance.Username = v;
+                            BingoClient.Instance.NameChanged = true;
+                        },
+                        20,
+                        0
+                    );
+            });
             menu.Add(item);
         }
 
