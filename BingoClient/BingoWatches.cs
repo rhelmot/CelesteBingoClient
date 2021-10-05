@@ -240,7 +240,7 @@ namespace Celeste.Mod.BingoClient {
         private static void CheckIceRoom(On.Celeste.CoreModeToggle.orig_OnChangeMode orig, CoreModeToggle self, Session.CoreModes mode) {
             orig(self, mode);
             var level = self.Scene as Level ?? throw new Exception("dude what");
-            if (mode == global::Celeste.Session.CoreModes.Cold && level.Session.Level == "b-04") {
+            if (mode == Session.CoreModes.Cold && level.Session.Level == "b-04") {
                 BingoClient.Instance.ModSaveData.AddFlag("first_ice");
             }
         }
@@ -259,10 +259,15 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
+        public static bool IsSecretlyInSearch(Session session) {
+            return session.Area.ID == 5 && (session.Level == "e-00" || session.Level == "d-01") &&
+                session.RespawnPoint.Value.Y > 1304 && session.RespawnPoint.Value.X > 2960;
+        }
+
         private static void OnSkipCutscene(On.Celeste.Level.orig_SkipCutscene orig, Level self) {
             orig(self);
             var where = self.Session.Level;
-            if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.X > 3150) {
+            if (IsSecretlyInSearch(self.Session)) {
                 where = "search";
             }
             BingoClient.Instance.ModSaveData.FileFlags.Remove($"cutscene:{self.Session.Area.ID}:{where}");
@@ -271,7 +276,7 @@ namespace Celeste.Mod.BingoClient {
 
         private static void OnStartCutsceneCommon(Level self) {
             var where = self.Session.Level;
-            if (self.Session.Area.ID == 5 && where == "e-00" && self.Session.RespawnPoint.Value.Y > 1300) {
+            if (IsSecretlyInSearch(self.Session)) {
                 where = "search";
             }
             BingoClient.Instance.ModSaveData.AddFlag($"cutscene:{self.Session.Area.ID}:{where}");

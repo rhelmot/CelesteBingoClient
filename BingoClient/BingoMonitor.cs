@@ -1045,6 +1045,10 @@ namespace Celeste.Mod.BingoClient {
                 return null;
             }
 
+            if (BingoWatches.IsSecretlyInSearch(level.Session)) {
+                return null;
+            }
+
             return list.IndexOf(room) + 1;
         }
 
