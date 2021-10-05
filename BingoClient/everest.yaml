@@ -1,5 +1,5 @@
 ﻿- Name: BingoClient
-  Version: 0.1.6
+  Version: 0.1.7
   DLL: BingoClient.dll
   Dependencies:
     - Name: Celeste
