@@ -631,10 +631,12 @@ namespace Celeste.Mod.BingoClient {
                     var subcorner = currentCorner + subsize * new Vector2(x, y) + Vector2.One * 15f;
 
                     var status = this.GetObjectiveStatus(slot);
-                    if (status == ObjectiveStatus.Completed) {
-                        PieButton.DrawPieAndText(subcorner, 0.5f, 1f, "!");
-                    } else if (this.ModSettings.ClaimAssist && status == ObjectiveStatus.Progress) {
-                        PieButton.DrawPieAndText(subcorner, 0.5f, BingoMonitor.ObjectiveProgress(this.Board[slot].Text), "");
+                    if (this.ModSettings.ClaimAssist) {
+                        if (status == ObjectiveStatus.Completed) {
+                            PieButton.DrawPieAndText(subcorner, 0.5f, 1f, "!");
+                        } else if (status == ObjectiveStatus.Progress) {
+                            PieButton.DrawPieAndText(subcorner, 0.5f, BingoMonitor.ObjectiveProgress(this.Board[slot].Text), "");
+                        }
                     }
                 }
             }
