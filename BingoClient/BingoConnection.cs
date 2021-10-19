@@ -70,8 +70,12 @@ namespace Celeste.Mod.BingoClient {
 
         public void LockedTask(Action action) {
             new Task(() => {
-                using (this.Lock.Use(this.CancelToken.Token)) {
-                    Retry(action);
+                try {
+                    using (this.Lock.Use(this.CancelToken.Token)) {
+                        Retry(action);
+                    }
+                } catch (Exception e) {
+                    this.LogChat(this.DiagnoseError(e));
                 }
             }).Start();
         }
