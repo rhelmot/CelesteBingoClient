@@ -28,6 +28,21 @@ namespace Celeste.Mod.BingoClient {
         public List<int> Pinned = new List<int>();
 
         #region init
+        private static Dictionary<string, Color> HighlightWords = new Dictionary<string, Color> {
+            {"Hearts", new Color(0x92, 0x90, 0x06)},
+            {"Heart", new Color(0x92, 0x90, 0x06)},
+            {"Berries", new Color(0x6f, 0x00, 0x00)},
+            {"Blue", new Color(0x16, 0x8a, 0x84)},
+            {"Cassette", new Color(0x8d, 0x4f, 0x12)},
+            {"Cassettes", new Color(0x8d, 0x4f, 0x12)},
+            {"B-Side", new Color(0xae, 0x26, 0x91)},
+            {"B-Sides", new Color(0xae, 0x26, 0x91)},
+            {"Red", new Color(0xae, 0x26, 0x91)},
+            {"Collectibles", new Color(0x20, 0x7e, 0x10)},
+            {"Binoculars", new Color(0x67, 0x67, 0x67)},
+            {"Binocular", new Color(0x67, 0x67, 0x67)},
+            {"A-Sides", new Color(0x52, 0x1f, 0x92)},
+        };
         private void InitMenu() {
             Menu = new TextMenu {
                 new TextMenuExt.SubHeaderExt(Dialog.Clean("bingoclient_menu_variants")),
@@ -607,7 +622,7 @@ namespace Celeste.Mod.BingoClient {
 
                     bool shrinkBox = false;
                     Vector2 iconPos = subcorner + new Vector2(30, subsize.Y - 30);
-                    if (this.ModSettings.ScanAssist) {
+                    if (this.ModSettings.ScanAssist == BingoClientSettings.ScanAssistMode.Icons) {
                         foreach (var renderer in GetAccessibleTokens(this.Board[slot].Text)) {
                             shrinkBox = true;
                             renderer(iconPos, masterAlpha);
@@ -620,7 +635,9 @@ namespace Celeste.Mod.BingoClient {
                         subcorner + subsize / 2,
                         subsize.X * (1 - padding),
                         subsize.Y * (1 - padding) * (shrinkBox ? 0.6f : 1f),
-                        0.5f, 1.0f, Color.White, 1f, Color.Black);
+                        0.5f, 1.0f, Color.White, 1f, Color.Black,
+                        highlight: this.ModSettings.ScanAssist == BingoClientSettings.ScanAssistMode.Highlight ?
+                            HighlightWords : null);
                 }
             }
 
@@ -680,7 +697,7 @@ namespace Celeste.Mod.BingoClient {
             Draw.SpriteBatch.End();
         }
 
-        public static void DrawTextBox(string text, Vector2 center, float width, float height, float scale, float lineHeight, Color color, float stroke, Color strokeColor, bool verticalCenter=true) {
+        public static void DrawTextBox(string text, Vector2 center, float width, float height, float scale, float lineHeight, Color color, float stroke, Color strokeColor, bool verticalCenter=true, Dictionary<string, Color> highlight=null) {
             var words = text.Split(' ');
             var singleHeight = ActiveFont.Measure(text).Y;
             while (true) {
@@ -720,6 +737,21 @@ namespace Celeste.Mod.BingoClient {
                     var offsetY = verticalCenter ? -singleHeight * lineHeight * scale * (result.Count - 1) / 2 : -height / 2;
                     var justify = verticalCenter ? new Vector2(0.5f, 0.5f) : new Vector2(0.5f, 0f);
                     foreach (var finalline in result) {
+                        if (highlight != null) {
+                            var fullMeasure = ActiveFont.Measure(finalline) * scale;
+                            var start = center + Vector2.UnitY * offsetY - fullMeasure * justify;
+                            string sofar = "";
+                            foreach (var word in finalline.Split(' ')) {
+                                if (highlight.TryGetValue(word, out var h)) {
+                                    var sofarX = ActiveFont.Measure(sofar).X * scale;
+                                    var rectangle = ActiveFont.Measure(word) * scale;
+                                    Draw.Rect(start + sofarX * Vector2.UnitX, rectangle.X, rectangle.Y, h);
+                                }
+
+                                sofar += word + " ";
+                            }
+                        }
+
                         ActiveFont.DrawOutline(finalline, center + Vector2.UnitY * offsetY, justify, Vector2.One * scale, color, stroke, strokeColor);
                         offsetY += singleHeight * lineHeight * scale;
                     }

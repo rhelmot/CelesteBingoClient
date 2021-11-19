@@ -466,6 +466,7 @@ namespace Celeste.Mod.BingoClient {
     public class BingoClientSettings : EverestModuleSettings {
         public enum TriggerMode { Patient, Hasty }
         public enum TriggerAlphaMode { Low, Medium, High }
+        public enum ScanAssistMode { Off, Highlight, Icons }
         public bool MasterSwitch { get; set; } = true;
         [SettingMaxLength(20)]
         [SettingMinLength(0)]
@@ -485,7 +486,7 @@ namespace Celeste.Mod.BingoClient {
         public TriggerAlphaMode TriggerAlpha { get; set; } = TriggerAlphaMode.Medium;
         public bool AutoUnpin { get; set; } = true;
         public bool ClaimAssist { get; set; } = false;
-        public bool ScanAssist { get; set; } = false;
+        public ScanAssistMode ScanAssist { get; set; } = ScanAssistMode.Off;
 
         public void CreatePlayerColorEntry(TextMenu menu, bool inGame) {
             var enumValues = new List<BingoColors>((BingoColors[])Enum.GetValues(typeof(BingoColors)));
