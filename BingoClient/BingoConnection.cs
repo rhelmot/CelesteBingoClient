@@ -327,7 +327,15 @@ namespace Celeste.Mod.BingoClient {
                         };
                     }
                 }
-                this.BingoEvent(obj);
+
+                try {
+                    this.BingoEvent(obj);
+                } catch (Exception e) {
+                    this.LogChat(this.DiagnoseError(e));
+                    this.Disconnect();
+                    return;
+                }
+
                 if (obj.type == "error") {
                     break;
                 }

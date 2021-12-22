@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Monocle;
 
@@ -56,6 +57,7 @@ namespace Celeste.Mod.BingoClient {
                     var settings = this.GetSettings();
                     this.IsBoardHidden = settings.Item1;
                     this.IsLockout = settings.Item2;
+                    Thread.Sleep(500);
                     this.RefreshBoard();
                     break;
                 case "color":

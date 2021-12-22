@@ -313,11 +313,11 @@ namespace Celeste.Mod.BingoClient {
                 var bingoButton = new OuiFileSelectSlot.Button {
                     Action = () => {
                         var contents = TextInput.GetClipboardText();
-                        if (contents.StartsWith("http") && contents.Contains("://bingosync.com/room/")) {
+                        if (contents.StartsWith("http") && contents.Contains("bingosync.com/room/")) {
                             this.Password = "password";
                             (self.Scene as Overworld).Goto<OuiTextEntry>().Init<OuiBingoConnecting>("password", s => {
                                 this.Password = s;
-                            });
+                            }, 100);
                             this.Username = this.ModSettings.PlayerName.Length == 0 ? self.Name : this.ModSettings.PlayerName;
                             this.RoomUrl = contents;
                         } else {
