@@ -174,6 +174,7 @@ namespace Celeste.Mod.BingoClient {
 
             this.CancelToken = new CancellationTokenSource();
             this.Chat.SetHistory(this.GetHistory().events.Select(x => x.Render()));
+            this.SentColor = BingoColors.Blank;
 
             // https://stackoverflow.com/questions/40502921/net-websockets-forcibly-closed-despite-keep-alive-and-activity-on-the-connectio
             ServicePointManager.MaxServicePointIdleTime = 1000 * 60 * 60 * 24;
