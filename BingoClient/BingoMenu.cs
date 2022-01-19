@@ -455,7 +455,7 @@ namespace Celeste.Mod.BingoClient {
                         }
                     }
 
-                    if (this.BoardSelected) {
+                    if (this.BoardSelected && !this.CheatSheetSelected) {
                             if (Input.MenuConfirm.Pressed) {
                             Audio.Play(SFX.ui_main_button_select);
                             this.Wiggle.Start();
