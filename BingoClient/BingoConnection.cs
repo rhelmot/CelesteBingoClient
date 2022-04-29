@@ -18,7 +18,6 @@ namespace Celeste.Mod.BingoClient {
     }
 
     public partial class BingoClient {
-        public string RoomDomain;
         public string RoomId;
         public String Username;
         public String Password;
@@ -27,12 +26,40 @@ namespace Celeste.Mod.BingoClient {
         private BingoColors SentColor;
         public bool IsBoardHidden, IsLockout;
 
+        private string roomDomain;
+        public string RoomDomain {
+            get {
+                if (this.roomDomain != "https://bingosync.com" && this.roomDomain != "https://www.bingosync.com") {
+                    return this.roomDomain;
+                }
+
+                switch (this.ModSettings.Proxy) {
+                        case BingoClientSettings.ProxyMode.HTTP:
+                            return "http://bingosync.rhelmot.io";
+                        default:
+                            return this.roomDomain;
+                    }
+            }
+            set => this.roomDomain = value;
+        }
+
         public string RoomUrl {
             get => $"{this.RoomDomain}/room/{this.RoomId}";
             set {
                 var pieces = value.Split(new[] { "/room/" }, StringSplitOptions.None);
                 this.RoomDomain = pieces[0];
                 this.RoomId = pieces[1];
+            }
+        }
+
+        public string WsUrl {
+            get {
+                switch (this.ModSettings.Proxy) {
+                    case BingoClientSettings.ProxyMode.HTTP:
+                        return "ws://sockets.bingosync.rhelmot.io/broadcast";
+                    default:
+                        return "wss://sockets.bingosync.com/broadcast";
+                }
             }
         }
 
@@ -180,7 +207,7 @@ namespace Celeste.Mod.BingoClient {
             ServicePointManager.MaxServicePointIdleTime = 1000 * 60 * 60 * 24;
 
             this.Sock = new ClientWebSocket();
-            Uri uri = new Uri("wss://sockets.bingosync.com/broadcast");
+            Uri uri = new Uri(this.WsUrl);
             //Uri uri = new Uri("ws://localhost:8902/");
             Retry(() => { this.Sock.ConnectAsync(uri, this.CancelToken.Token).Wait(); });
 
