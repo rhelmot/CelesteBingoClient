@@ -13,8 +13,11 @@ namespace Celeste.Mod.BingoClient {
     public static class BingoMonitor {
         #region data
         public static string[] TheoCutscenes = { "cutscene:1:6zb", "cutscene:2:end_2", "cutscene:3:09-d", "cutscene:5:search" };
-        public static string[] SearchKeys = { "key:5:0:d-15:216", "key:5:0:d-04:39", "key:5:0:d-04:14" };
-        public static string[] PowerSourceKeys = { "key:10:0:d-01:261", "key:10:0:d-02:70", "key:10:0:d-03:315", "key:10:0:d-04:444", "key:10:0:d-05:593" };
+        public static string[] KeysSearch = { "key:5:0:d-15:216", "key:5:0:d-04:39", "key:5:0:d-04:14" };
+        public static string[] KeysFW = { "key:10:0:d-01:261", "key:10:0:d-02:70", "key:10:0:d-03:315", "key:10:0:d-04:444", "key:10:0:d-05:593" };
+        public static string[] Keys3A = { "key:3:0:s3:15", "key:3:0:02-b:32", "key:3:0:07-b:2", "key:3:0:09-b:13", "key:3:0:02-c:1" };
+        public static string[] Keys5A = { "key:5:0:a-08:55", "key:5:0:b-04:3", "key:5:0:d-15:216", "key:5:0:d-04:39", "key:5:0:d-04:14" };
+        public static string[] Keys5B = { "key:5:1:b-02:221", "key:5:1:b-02:219" };
         public static Dictionary<string, Func<float>> Objectives = new Dictionary<string, Func<float>> {
             { "Talk to Theo in Crossing", () => HasFlag("cutscene:1:6zb") },
             { "Complete 1A Start without jumping", null }, // generated
@@ -75,6 +78,7 @@ namespace Celeste.Mod.BingoClient {
             { "Huge Mess: Towel -> Books -> Chest", () => HasHugeMessOrder(0, 1, 2) },
             { "2 Seeded Berries", () => HasNSeedBerries(2) },
             { "2 optional Theo Cutscenes", () => HasNFlags(2, TheoCutscenes) },
+            { "2 optional Theo cutscenes", () => HasNFlags(2, TheoCutscenes) },
             { "Get a 1-Up in 3 Chapters", () => HasN1upsInChapters(1, 3) },
             { "Read Diary in Elevator Shaft", () => HasFlag("cutscene:3:02-c") },
             { "Grabless Elevator Shaft", null }, // generated
@@ -110,6 +114,7 @@ namespace Celeste.Mod.BingoClient {
             { "Use 6 Binoculars in B-Sides", () => HasNBinosInBSides(6) },
             { "Get 10 Berries in PICO-8", () => HasPicoBerries(10) },
             { "Stun Oshiro 10 times", () => HasOshiroBonks(10) },
+            { "Stun Oshiro 10 Times", () => HasOshiroBonks(10) },
             { "Golden Ridge B-Side", () => HasHeart(4, 1) },
             { "Winged Golden Berry", () => HasParticularStrawberries(1, "end:4") },
             { "Mirror Temple A-Side", () => HasChapterComplete(5, 0) },
@@ -126,7 +131,7 @@ namespace Celeste.Mod.BingoClient {
             { "All Berries in Unraveling (1)", () => HasCheckpointBerries(5, 2) },
             { "2 Blue and 2 Red Hearts", () => (HasNHeartsColor(2, 0) + HasNHeartsColor(2, 1)) / 2 },
             { "Get the Orb in PICO-8", () => HasFlag("pico_orb") },
-            { "Get 1 Key in Power Source", () => HasNFlags(1, PowerSourceKeys) },
+            { "Get 1 Key in Power Source", () => HasNFlags(1, KeysFW) },
             { "Reach Library (3B Checkpoint)", () => HasCheckpoint(3, 1, 2) },
             { "All Berries in Into the Core (1)", () => HasCheckpointBerries(9, 1) },
             { "Reflection Cutscene in Hollows", () => HasFlag("cutscene:6:04d") },
@@ -135,17 +140,19 @@ namespace Celeste.Mod.BingoClient {
             { "40 Berries", () => HasNBerries(40) },
             { "Complete PICO-8", () => HasFlag("pico_complete") },
             { "3 optional Theo Cutscenes", () => HasNFlags(3, TheoCutscenes) },
+            { "3 optional Theo cutscenes", () => HasNFlags(3, TheoCutscenes) },
             { "Kill a Seeker", () => HasSeekerKills(1) },
             { "Use 1 Binocular in 4 Chapters", () => HasNBinosInChapters(1, 4) },
             { "Only top route in Hollows", () => HasFlag("room:hollows:top") },
-            { "Get 1 Key in Search", () => HasNFlags(1, SearchKeys) },
+            { "Get 1 Key in Search", () => HasNFlags(1, KeysSearch) },
             { "Reflection Cassette", () => HasCassette(6) },
             { "Reflection Blue Heart", () => HasHeart(6, 0) },
             { "3 Seeded Berries", () => HasNSeedBerries(3) },
             { "Complete 2 A-Sides and 2 B-Sides", () => (HasNASides(2) + HasNHeartsColor(2, 1)) / 2f },
             { "5 Cassettes", () => HasNCassettes(5) },
             { "Stun Seekers 15 times", () => HasSeekerStuns(15) },
-            { "Get 2 Keys in Power Source", () => HasNFlags(2, PowerSourceKeys) },
+            { "Stun Seekers 15 Times", () => HasSeekerStuns(15) },
+            { "Get 2 Keys in Power Source", () => HasNFlags(2, KeysFW) },
             { "Use 5 Binoculars in Farewell", () => HasNBinosInChapter(5, 10, 0) },
             { "All Berries in Depths (11)", () => HasCheckpointBerries(5, 1) },
             { "All Berries in Search (6)", () => HasCheckpointBerries(5, 3) },
@@ -158,13 +165,13 @@ namespace Celeste.Mod.BingoClient {
             { "Get 15 Berries in PICO-8", () => HasPicoBerries(15) },
             { "Celestial Resort B-Side", () => HasHeart(3, 1) },
             { "Only bottom route in Hollows", () => HasFlag("room:hollows:bottom") },
-            { "Get 2 Keys in Search", () => HasNFlags(2, SearchKeys) },
-            { "Get 3 Keys in Search", () => HasNFlags(3, SearchKeys) },
+            { "Get 2 Keys in Search", () => HasNFlags(2, KeysSearch) },
+            { "Get 3 Keys in Search", () => HasNFlags(3, KeysSearch) },
             { "6 Winged Berries", () => HasNWingBerries(6) },
             { "7 Winged Berries", () => HasNWingBerries(7) },
             { "Kill 2 different Seekers", () => HasSeekerKills(2) },
-            { "Get 3 Keys in Power Source", () => HasNFlags(3, PowerSourceKeys) },
-            { "Get 4 Keys in Power Source", () => HasNFlags(4, PowerSourceKeys) },
+            { "Get 3 Keys in Power Source", () => HasNFlags(3, KeysFW) },
+            { "Get 4 Keys in Power Source", () => HasNFlags(4, KeysFW) },
             { "Use 1 Binocular in 5 Chapters", () => HasNBinosInChapters(1, 5) },
             { "10 Berries in 3 Chapters", () => HasNBerriesInChapters(10, 3) },
             { "Switch to Ice on the right of Into the Core", () => HasFlag("first_ice") },
@@ -173,7 +180,9 @@ namespace Celeste.Mod.BingoClient {
             { "3 Blue and 3 Red Hearts", () => (HasNHeartsColor(3, 0) + HasNHeartsColor(3, 1)) / 2f },
             { "Complete 2 Chapters Grabless", () => HasChaptersVariant(2, BingoVariant.NoGrab) },
             { "Stun Seekers 20 times", () => HasSeekerStuns(20) },
+            { "Stun Seekers 20 Times", () => HasSeekerStuns(20) },
             { "Kill 3 different Seekers", () => HasSeekerKills(3) },
+            { "Kill 3 Different Seekers", () => HasSeekerKills(3) },
             { "Blue and Red Heart in Golden Ridge", () => (HasHeart(4, 0) + HasHeart(4, 1)) / 2f },
             { "Grabless Hollows", null }, // generated
             { "15 Berries in 2 Chapters", () => HasNBerriesInChapters(15, 2) },
@@ -185,6 +194,7 @@ namespace Celeste.Mod.BingoClient {
             { "Blue and Red Heart in Mirror Temple", () => (HasHeart(5, 0) + HasHeart(5, 1)) / 2f },
             { "All Berries in Heart of the Mountain (1)", () => HasCheckpointBerries(9, 3) },
             { "Use all Binoculars in 500M (3)", () => HasParticularBinos(7, 0, "b-01", "b-02", "b-02b") },
+            { "Use All Binoculars in 500M (3)", () => HasParticularBinos(7, 0, "b-01", "b-02", "b-02b") },
             { "All Berries in 0M (4)", () => HasCheckpointBerries(7, 0) },
             { "Reflection A-Side", () => HasChapterComplete(6, 0) },
             { "All Collectibles in 4A", () => (HasNBerriesInChapter(29, 4, false)*29f + HasCassette(4) + HasHeart(4, 0)) / 31f },
@@ -198,6 +208,7 @@ namespace Celeste.Mod.BingoClient {
             { "All Collectibles in 3A", () => (HasNBerriesInChapter(25, 3, false)*25f + HasCassette(3) + HasHeart(3, 0)) / 27f },
             { "Grabless Rock Bottom", null }, // generated
             { "Easteregg room in Reflection", () => HasFlag("room:easteregg") },
+            { "Easteregg Room in Reflection", () => HasFlag("room:easteregg") },
             { "4 Seeded Berries", () => HasNSeedBerries(4) },
             { "6 Hearts", () => HasNHearts(6) },
             { "7 Hearts", () => HasNHearts(7) },
@@ -208,6 +219,8 @@ namespace Celeste.Mod.BingoClient {
             { "All Berries in 500M (6)", () => HasCheckpointBerries(7, 1) },
             { "All Berries in 1000M (6)", () => HasCheckpointBerries(7, 2) },
             { "All 4 optional Theo Cutscenes", () => HasNFlags(4, TheoCutscenes) },
+            { "All 4 optional Theo cutscenes", () => HasNFlags(4, TheoCutscenes) },
+            { "Complete 4 A-Sides", () => HasNASides(4) },
             { "Complete 5 A-Sides", () => HasNASides(5) },
             { "The Summit Cassette", () => HasCassette(7) },
             { "65 Berries", () => HasNBerries(65) },
@@ -222,12 +235,13 @@ namespace Celeste.Mod.BingoClient {
             { "Reflection B-Side", () => HasHeart(6, 1) },
             { "Reach the Intro Car in Remembered", () => HasFlag("remembered_intro_car") },
             { "5 Gems in the Summit", () => HasNSummitGems(5) },
+            { "5 Gems in The Summit", () => HasNSummitGems(5) },
             { "2000M and 2500M Gems", () => HasSummitGems(4, 5) },
             { "15 Berries in 3 Chapters", () => HasNBerriesInChapters(15, 3) },
             { "Grabless 6A", null }, // generated
             { "All Berries in 1500M (8)", () => HasCheckpointBerries(7, 3) },
             { "All Berries in 2000M (8)", () => HasCheckpointBerries(7, 4) },
-            { "Get 5 Keys in Power Source", () => HasNFlags(5, PowerSourceKeys) },
+            { "Get 5 Keys in Power Source", () => HasNFlags(5, KeysFW) },
             { "35 Berries in 7A", () => HasNBerriesInChapter(35, 7) },
             { "Blue and Red Heart in Reflection", () => (HasHeart(6, 0) + HasHeart(6, 1)) / 2f },
             { "All Flags in 3000M", () => HasFlag("all_summit_flags") },
@@ -243,8 +257,11 @@ namespace Celeste.Mod.BingoClient {
             { "Complete 5 B-Sides", () => HasNHeartsColor(5, 1) },
             { "15 Berries in 4 Chapters", () => HasNBerriesInChapters(15, 4) },
             { "Reach Event Horizon (9 Checkpoint)", () => HasCheckpoint(10, 0, 4) },
+            { "Reach 2000m (7B Checkpoint)", () => HasCheckpoint(7, 0, 4) },
             { "All Collectibles in 8A", () => (HasNBerriesInChapter(5, 9, false)*5f + HasCassette(9) + HasHeart(9, 0)) / 7f },
             { "The Summit Blue Heart", () => HasHeart(7, 0) },
+            { "2 Keys in 2 Chapters", () => HasNKeysInChapters(2, 2) },
+            { "5 Keys in 2 Chapters", () => HasNKeysInChapters(5, 2) },
 
             { "2 Winged Berries", () => HasNWingBerries(2) },
             { "Take hidden path before Cliff Face", () => HasFlag("room:oldtrailsecret") },
@@ -265,11 +282,13 @@ namespace Celeste.Mod.BingoClient {
             { "3 Hearts", () => HasNHearts(3) },
             { "4 Hearts", () => HasNHearts(4) },
             { "Stun Oshiro 15 times", () => HasOshiroBonks(15) },
+            { "Stun Oshiro 15 Times", () => HasOshiroBonks(15) },
             { "Use 1 Binocular in 3 Chapters", () => HasNBinosInChapters(1, 3) },
             { "Grabless Rescue", null }, // generated
             { "3 Hearts and 3 Cassettes", () => (HasNHearts(3) + HasNCassettes(3)) / 2 },
             { "4 Hearts and 4 Cassettes", () => (HasNHearts(4) + HasNCassettes(4)) / 2 },
             { "Stun Seekers 10 times", () => HasSeekerStuns(10) },
+            { "Stun Seekers 10 Times", () => HasSeekerStuns(10) },
             { "15 Berries in 5A", () => HasNBerriesInChapter(15, 5) },
             { "Don't skip final 4A Cutscene", () => HasFlag("cutscene:4:d-10") },
             { "Use 3 Binoculars in 2 Chapters", () => HasNBinosInChapters(3, 2) },
@@ -428,6 +447,7 @@ namespace Celeste.Mod.BingoClient {
             {"Invisible 2500M", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(7, 0, 5, BingoVariant.Invisible)}},
             {"Invisible 3000M", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(7, 0, 6, BingoVariant.Invisible)}},
             {"3000M Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(7, 0, 6, BingoVariant.NoGrab)}},
+            {"Grabless Power Source", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(10, 0, 2, BingoVariant.NoGrab)}},
             {"Invisible Power Source", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(10, 0, 2, BingoVariant.Invisible)}},
             {"Complete Remembered with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(10, 0, 3, BingoVariant.LowFriction)}},
             {
@@ -817,6 +837,22 @@ namespace Celeste.Mod.BingoClient {
 
         private static float HasNBerriesInChapters(int n, int chapters) {
             return HasInNChapters((ch, mode) => mode == 0 ? HasNBerriesInChapter(n, ch) : 0f, chapters);
+        }
+
+        private static float HasNKeysInChapters(int n, int chapters) {
+            return HasInNChapters((ch, mode) => {
+                if (ch == 3 && mode == 0) {
+                    return HasNFlags(n, Keys3A);
+                } else if (ch == 5 && mode == 0) {
+                    return HasNFlags(n, Keys5A);
+                } else if (ch == 5 && mode == 1) {
+                    return HasNFlags(n, Keys5B);
+                } else if (ch == 10 && mode == 0) {
+                    return HasNFlags(n, KeysFW);
+                } else {
+                    return 0f;
+                }
+            }, chapters);
         }
 
         private static float HasInNChapters(Func<int, int, float> predicate, int chapters) {
