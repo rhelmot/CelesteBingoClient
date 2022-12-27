@@ -209,7 +209,9 @@ namespace Celeste.Mod.BingoClient {
             this.Sock = new ClientWebSocket();
             Uri uri = new Uri(this.WsUrl);
             //Uri uri = new Uri("ws://localhost:8902/");
-            Retry(() => { this.Sock.ConnectAsync(uri, this.CancelToken.Token).Wait(); });
+            //Retry(() => { this.Sock.ConnectAsync(uri, this.CancelToken.Token).Wait(); });
+            this.Sock.ConnectAsync(uri, this.CancelToken.Token).Wait();
+            Thread.Sleep(2000);
 
             string msg = JsonConvert.SerializeObject(new HelloMessage {
                 socket_key = sessionKey,
