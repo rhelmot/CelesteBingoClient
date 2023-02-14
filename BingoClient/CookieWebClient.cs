@@ -4,6 +4,7 @@ using System.Net;
 namespace Celeste.Mod.BingoClient {
     // https://stackoverflow.com/questions/1777221/using-cookiecontainer-with-webclient-class
     public class CookieAwareWebClient : WebClient {
+        public string Referer;
         public CookieAwareWebClient(CookieContainer container) {
             this.container = container;
         }
@@ -20,6 +21,10 @@ namespace Celeste.Mod.BingoClient {
             var request = r as HttpWebRequest;
             if (request != null) {
                 request.CookieContainer = container;
+                request.UserAgent = "celeste-bingo-client/" + BingoClient.Instance.VersionString;
+                if (this.Referer != null) {
+                    request.Referer = this.Referer;
+                }
             }
 
             return r;

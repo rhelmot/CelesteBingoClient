@@ -30,6 +30,16 @@ namespace Celeste.Mod.BingoClient {
             Instance = this;
         }
 
+        public string VersionString {
+            get {
+                var result = this.Metadata.VersionString;
+                if (!string.IsNullOrEmpty(this.Metadata.PathDirectory)) {
+                    result += " (dev)";
+                }
+                return result;
+            }
+        }
+
         public override void LoadContent(bool firstLoad) {
         }
 
@@ -313,7 +323,7 @@ namespace Celeste.Mod.BingoClient {
                 var bingoButton = new OuiFileSelectSlot.Button {
                     Action = () => {
                         var contents = TextInput.GetClipboardText();
-                        if (contents.StartsWith("http") && contents.Contains("bingosync.com/room/")) {
+                        if (contents.StartsWith("http") && contents.Contains("/room/")) {
                             this.Password = "password";
                             (self.Scene as Overworld).Goto<OuiTextEntry>().Init<OuiBingoConnecting>("password", s => {
                                 this.Password = s;

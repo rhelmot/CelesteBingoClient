@@ -30,6 +30,9 @@ namespace Celeste.Mod.BingoClient {
         public string RoomDomain {
             get {
                 if (this.roomDomain != "https://bingosync.com" && this.roomDomain != "https://www.bingosync.com") {
+                    if (this.ModSettings.Proxy == BingoClientSettings.ProxyMode.HTTP) {
+                        return this.roomDomain.Replace("https://", "http://");
+                    }
                     return this.roomDomain;
                 }
 
@@ -48,19 +51,29 @@ namespace Celeste.Mod.BingoClient {
             set {
                 var pieces = value.Split(new[] { "/room/" }, StringSplitOptions.None);
                 this.RoomDomain = pieces[0];
-                this.RoomId = pieces[1];
+                this.RoomId = pieces[1].Split(new[] { "/" }, StringSplitOptions.None)[0];
+                Logger.Log(LogLevel.Warn, "BingoClient", $"Connected to {this.RoomDomain} and {this.RoomId}");
             }
         }
 
+        private string wsUrl;
         public string WsUrl {
             get {
-                switch (this.ModSettings.Proxy) {
-                    case BingoClientSettings.ProxyMode.HTTP:
-                        return "ws://sockets.bingosync.rhelmot.io/broadcast";
-                    default:
-                        return "wss://sockets.bingosync.com/broadcast";
+                if (this.wsUrl == "wss://sockets.bingosync.com/broadcast") {
+                    switch (this.ModSettings.Proxy) {
+                        case BingoClientSettings.ProxyMode.HTTP:
+                            return "ws://sockets.bingosync.rhelmot.io/broadcast";
+                        default:
+                            return this.wsUrl;
+                    }
                 }
+                if (this.wsUrl.StartsWith("wss://") &&
+                    this.ModSettings.Proxy == BingoClientSettings.ProxyMode.HTTP) {
+                    return this.wsUrl.Replace("wss://", "ws://");
+                }
+                return this.wsUrl;
             }
+            set => this.wsUrl = value;
         }
 
         private string SelectUrl => $"{this.RoomDomain}/api/select";
@@ -143,7 +156,7 @@ namespace Celeste.Mod.BingoClient {
             if (e.InnerException != null) {
                 return this.DiagnoseError(e.InnerException);
             }
-            
+
             return null;
         }
 
@@ -169,6 +182,7 @@ namespace Celeste.Mod.BingoClient {
                     using (this.Lock.Use(CancellationToken.None)) {
                         this.Session = new CookieAwareWebClient(new CookieContainer());
                         var r1 = this.Session.DownloadString(this.RoomUrl);
+                        this.Session.Referer = this.RoomUrl;
                         var postKeys = new NameValueCollection {
                             {"csrfmiddlewaretoken", RecoverFormValue("csrfmiddlewaretoken", r1)},
                             {"encoded_room_uuid", RecoverFormValue("encoded_room_uuid", r1)},
@@ -187,6 +201,7 @@ namespace Celeste.Mod.BingoClient {
                         this.IsBoardHidden = r2.Contains("hide_card\\u0022: true");
                         this.IsLockout = r2.Contains("\\u0022lockout_mode\\u0022: \\u0022Lockout\\u0022");
                         sessionKey = RecoverFormValue("temporarySocketKey", r2);
+                        this.WsUrl = RecoverFormValue("socketsUrl", r2);
                     }
                 } catch (Exception) {
                     this.Session = null;
