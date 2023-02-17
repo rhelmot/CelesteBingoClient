@@ -324,12 +324,16 @@ namespace Celeste.Mod.BingoClient {
                     Action = () => {
                         var contents = TextInput.GetClipboardText();
                         if (contents.StartsWith("http") && contents.Contains("/room/")) {
-                            this.Password = "password";
-                            (self.Scene as Overworld).Goto<OuiTextEntry>().Init<OuiBingoConnecting>("password", s => {
-                                this.Password = s;
-                            }, 100);
+                            this.Password = null;
                             this.Username = this.ModSettings.PlayerName.Length == 0 ? self.Name : this.ModSettings.PlayerName;
                             this.RoomUrl = contents;
+                            if (this.Password == null) {
+                                (self.Scene as Overworld).Goto<OuiTextEntry>().Init<OuiBingoConnecting>("password", s => {
+                                    this.Password = s;
+                                }, 100);
+                            } else {
+                                (self.Scene as Overworld).Goto<OuiBingoConnecting>();
+                            }
                         } else {
                             this.LogChat(Dialog.Clean("BINGOCLIENT_BAD_PASTE"));
                         }

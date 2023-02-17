@@ -51,8 +51,12 @@ namespace Celeste.Mod.BingoClient {
             set {
                 var pieces = value.Split(new[] { "/room/" }, StringSplitOptions.None);
                 this.RoomDomain = pieces[0];
-                this.RoomId = pieces[1].Split(new[] { "/" }, StringSplitOptions.None)[0];
-                Logger.Log(LogLevel.Warn, "BingoClient", $"Connected to {this.RoomDomain} and {this.RoomId}");
+                this.RoomId = pieces[1].Split(new[] { "/", "?" }, StringSplitOptions.None)[0];
+                var pieces2 = value.Split(new[] {"?password="}, StringSplitOptions.None);
+                if (pieces2.Length > 1) {
+                    this.Password = Uri.UnescapeDataString(pieces2[1]);
+                }
+                Logger.Log(LogLevel.Warn, "BingoClient", $"Connecting to {this.RoomDomain}/{this.RoomId}");
             }
         }
 
