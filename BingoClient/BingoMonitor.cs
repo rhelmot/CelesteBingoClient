@@ -932,9 +932,9 @@ namespace Celeste.Mod.BingoClient {
                 case BingoVariant.NoGrab:
                     return SaveData.Instance.VariantMode && SaveData.Instance.Assists.NoGrabbing;
                 case BingoVariant.NoJump:
-                    return extvar.MasterSwitch && extvar.JumpCount == 0 && extvar.DisableClimbJumping && extvar.DisableNeutralJumping && extvar.DisableWallJumping;
+                    return extvar.MasterSwitch && ExtendedVariantInterop.JumpCount == 0 && ExtendedVariantInterop.DisableClimbJumping && ExtendedVariantInterop.DisableNeutralJumping && ExtendedVariantInterop.DisableWallJumping;
                 case BingoVariant.NoDash:
-                    return extvar.MasterSwitch && extvar.DashCount == 0;
+                    return extvar.MasterSwitch && ExtendedVariantInterop.DashCount == 0;
                 case BingoVariant.Invisible:
                     return SaveData.Instance.VariantMode && SaveData.Instance.Assists.InvisibleMotion;
                 case BingoVariant.LowFriction:
@@ -971,15 +971,17 @@ namespace Celeste.Mod.BingoClient {
                         extvar.MasterSwitch = true;
                         extvarmod.HookStuff();
                     }
-                    extvar.JumpCount = enabled ? 0 : 1;
-                    extvar.DisableClimbJumping = extvar.DisableNeutralJumping = extvar.DisableWallJumping = enabled;
+                    ExtendedVariantInterop.JumpCount = enabled ? 0 : 1;
+                    ExtendedVariantInterop.DisableClimbJumping = enabled;
+                    ExtendedVariantInterop.DisableNeutralJumping = enabled;
+                    ExtendedVariantInterop.DisableWallJumping = enabled;
                     break;
                 case BingoVariant.NoDash:
                     if (enabled) {
                         extvar.MasterSwitch = true;
                         extvarmod.HookStuff();
                     }
-                    extvar.DashCount = enabled ? 0 : -1;
+                    ExtendedVariantInterop.DashCount = enabled ? 0 : -1;
                     if (enabled) {
                         var player = Engine.Scene.Tracker.GetEntity<Player>();
                         if (player != null) {

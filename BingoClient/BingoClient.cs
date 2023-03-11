@@ -11,6 +11,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod.Cil;
+using MonoMod.ModInterop;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 
@@ -59,6 +60,7 @@ namespace Celeste.Mod.BingoClient {
             }
 
             this.Chat = new BingoChat(this.HandleChat);
+            typeof(ExtendedVariantInterop).ModInterop();
         }
 
         public override void Unload() {
