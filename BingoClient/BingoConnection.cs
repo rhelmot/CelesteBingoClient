@@ -198,7 +198,7 @@ namespace Celeste.Mod.BingoClient {
 
                         };
                         var r2 = Encoding.UTF8.GetString(this.Session.UploadValues(this.RoomUrl, postKeys));
-                        if (r2.Contains("Incorrect Password")) {
+                        if (r2.Contains("Incorrect Password") && r2.Contains("<div class=\"alert alert-danger\">")) {
                             throw new VerbatimException(Dialog.Clean("bingoclient_connect_error_password"));
                         }
 
