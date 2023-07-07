@@ -44,7 +44,6 @@ namespace Celeste.Mod.BingoClient {
             IL.Celeste.CutsceneEntity.Added += FuckedUpIfTrue;
             IL.Celeste.NPC01_Theo.OnTalk += FuckedUpIfTrue;
             IL.Celeste.NPC02_Theo.OnTalk += FuckedUpIfTrue;
-            IL.Celeste.NPC02_Theo.OnTalk += FuckedUpIfTrue;
             IL.Celeste.NPC03_Theo_Vents.OnTalk += FuckedUpIfTrue;
 
             SpecialHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.Instance | BindingFlags.NonPublic), TrackSeekerDeath));
@@ -80,7 +79,6 @@ namespace Celeste.Mod.BingoClient {
             IL.Celeste.CutsceneEntity.Start -= FuckedUpIfTrue;
             IL.Celeste.CutsceneEntity.Added -= FuckedUpIfTrue;
             IL.Celeste.NPC01_Theo.OnTalk -= FuckedUpIfTrue;
-            IL.Celeste.NPC02_Theo.OnTalk -= FuckedUpIfTrue;
             IL.Celeste.NPC02_Theo.OnTalk -= FuckedUpIfTrue;
             IL.Celeste.NPC03_Theo_Vents.OnTalk -= FuckedUpIfTrue;
 
