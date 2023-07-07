@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Celeste.Mod.BingoUI;
 using Microsoft.Xna.Framework;
 using Monocle;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 // this file is for static methods to query the game state
 // this includes methods to query BingoClient.ModSaveData
@@ -18,6 +19,7 @@ namespace Celeste.Mod.BingoClient {
         public static string[] Keys3A = { "key:3:0:s3:15", "key:3:0:02-b:32", "key:3:0:07-b:2", "key:3:0:09-b:13", "key:3:0:02-c:1" };
         public static string[] Keys5A = { "key:5:0:a-08:55", "key:5:0:b-04:3", "key:5:0:d-15:216", "key:5:0:d-04:39", "key:5:0:d-04:14" };
         public static string[] Keys5B = { "key:5:1:b-02:221", "key:5:1:b-02:219" };
+        public static string[] KeysAll = KeysFW.Concat(Keys3A).Concat(Keys5A).Concat(Keys5B).Concat(new[] {"key:7:0:f-07:712"}).ToArray();
         public static Dictionary<string, Func<float>> Objectives = new Dictionary<string, Func<float>> {
             { "Talk to Theo in Crossing", () => HasFlag("cutscene:1:6zb") },
             { "Complete 1A Start without jumping", null }, // generated
@@ -43,6 +45,7 @@ namespace Celeste.Mod.BingoClient {
             { "Complete Intervention without jumping", null }, // generated
             { "All Berries in Crossing (9)", () => HasCheckpointBerries(1, 1) },
             { "10 Berries in 2A", () => HasNBerriesInChapter(10, 2) },
+            { "12 Berries in 2A", () => HasNBerriesInChapter(12, 2) },
             { "Find Letter and PICO-8 in Huge Mess", () => (HasFlag("cutscene:3:11-a") + HasFlag("foundpico")) / 2f },
             { "Get a 1-Up in 2 Chapters", () => HasN1upsInChapters(1, 2) },
             { "Grabless Start of 3A", null }, // generated
@@ -76,6 +79,9 @@ namespace Celeste.Mod.BingoClient {
             { "Huge Mess: Chest -> Books -> Towel", () => HasHugeMessOrder(2, 1, 0) },
             { "Huge Mess: Chest -> Towel -> Books", () => HasHugeMessOrder(2, 0, 1) },
             { "Huge Mess: Towel -> Books -> Chest", () => HasHugeMessOrder(0, 1, 2) },
+            { "Huge Mess: Chest \u2193 Books \u2191 Towel \u2192", () => HasHugeMessOrder(2, 1, 0) },
+            { "Huge Mess: Chest \u2193 Towel \u2192 Books \u2191", () => HasHugeMessOrder(2, 0, 1) },
+            { "Huge Mess: Towel \u2192 Books \u2191 Chest \u2193", () => HasHugeMessOrder(0, 1, 2) },
             { "2 Seeded Berries", () => HasNSeedBerries(2) },
             { "2 optional Theo Cutscenes", () => HasNFlags(2, TheoCutscenes) },
             { "2 optional Theo cutscenes", () => HasNFlags(2, TheoCutscenes) },
@@ -94,6 +100,9 @@ namespace Celeste.Mod.BingoClient {
             { "Huge Mess: Books -> Towel -> Chest", () => HasHugeMessOrder(1, 0, 2) },
             { "Huge Mess: Books -> Chest -> Towel", () => HasHugeMessOrder(1, 2, 0) },
             { "Huge Mess: Towel -> Chest -> Books", () => HasHugeMessOrder(0, 2, 1) },
+            { "Huge Mess: Books \u2191 Towel \u2192 Chest \u2193", () => HasHugeMessOrder(1, 0, 2) },
+            { "Huge Mess: Books \u2191 Chest \u2193 Towel \u2192", () => HasHugeMessOrder(1, 2, 0) },
+            { "Huge Mess: Towel \u2192 Chest \u2193 Books \u2191", () => HasHugeMessOrder(0, 2, 1) },
             { "Jump on 10 Snowballs", () => HasNSnowballs(10) },
             { "Grabless Presidential Suite", null }, // generated
             { "25 Berries", () => HasNBerries(25) },
@@ -170,6 +179,7 @@ namespace Celeste.Mod.BingoClient {
             { "6 Winged Berries", () => HasNWingBerries(6) },
             { "7 Winged Berries", () => HasNWingBerries(7) },
             { "Kill 2 different Seekers", () => HasSeekerKills(2) },
+            { "Kill 2 Different Seekers", () => HasSeekerKills(2) },
             { "Get 3 Keys in Power Source", () => HasNFlags(3, KeysFW) },
             { "Get 4 Keys in Power Source", () => HasNFlags(4, KeysFW) },
             { "Use 1 Binocular in 5 Chapters", () => HasNBinosInChapters(1, 5) },
@@ -187,6 +197,7 @@ namespace Celeste.Mod.BingoClient {
             { "Grabless Hollows", null }, // generated
             { "15 Berries in 2 Chapters", () => HasNBerriesInChapters(15, 2) },
             { "15 Berries in 3A", () => HasNBerriesInChapter(15, 3) },
+            { "5 Berries in 8A", () => HasNBerriesInChapter(15, 9) },
             { "45 Berries", () => HasNBerries(45) },
             { "50 Berries", () => HasNBerries(50) },
             { "Reach Rock Bottom (6A/6B Checkpoint)", () => Math.Max(HasCheckpoint(6, 0, 4), HasCheckpoint(6, 1, 2)) },
@@ -234,6 +245,8 @@ namespace Celeste.Mod.BingoClient {
             { "Complete 4 B-Sides", () => HasNHeartsColor(4, 1) },
             { "Reflection B-Side", () => HasHeart(6, 1) },
             { "Reach the Intro Car in Remembered", () => HasFlag("remembered_intro_car") },
+            { "Reach an Intro Car in Farewell", () => HasFlag("fw_intro_car") },
+            { "Reach the Orb in Heart of the Mountain", () => HasFlag("fw_intro_car") },
             { "5 Gems in the Summit", () => HasNSummitGems(5) },
             { "5 Gems in The Summit", () => HasNSummitGems(5) },
             { "2000M and 2500M Gems", () => HasSummitGems(4, 5) },
@@ -257,12 +270,14 @@ namespace Celeste.Mod.BingoClient {
             { "Complete 5 B-Sides", () => HasNHeartsColor(5, 1) },
             { "15 Berries in 4 Chapters", () => HasNBerriesInChapters(15, 4) },
             { "Reach Event Horizon (9 Checkpoint)", () => HasCheckpoint(10, 0, 4) },
+            { "Reach Event Horizon (FW Checkpoint)", () => HasCheckpoint(10, 0, 4) },
             { "Reach 2000m (7B Checkpoint)", () => HasCheckpoint(7, 0, 4) },
+            { "Reach 2000M (7B Checkpoint)", () => HasCheckpoint(7, 0, 4) },
             { "All Collectibles in 8A", () => (HasNBerriesInChapter(5, 9, false)*5f + HasCassette(9) + HasHeart(9, 0)) / 7f },
             { "The Summit Blue Heart", () => HasHeart(7, 0) },
             { "2 Keys in 2 Chapters", () => HasNKeysInChapters(2, 2) },
             { "5 Keys in 2 Chapters", () => HasNKeysInChapters(5, 2) },
-
+            { "5 Keys", () => HasNFlags(5, KeysAll) },
             { "2 Winged Berries", () => HasNWingBerries(2) },
             { "Take hidden path before Cliff Face", () => HasFlag("room:oldtrailsecret") },
             { "Complete Awake without jumping", null }, // generated
@@ -342,6 +357,7 @@ namespace Celeste.Mod.BingoClient {
             { "Complete Mirror Temple with Low Friction", null }, // generated
             { "Kill 3 Different Seekers in Two Chapters", () => HasSeekerKillsInChapters(3, 2) },
             { "Get 15 Berries in 4 Chapters", () => HasNBerriesInChapters(15, 4) },
+            { "15 Berries in 5 Chapters", () => HasNBerriesInChapters(15, 4) },
             { "Intro Car in Remembered", () => HasFlag("remembered_intro_car") },
             { "1-Up in 7A", () => HasN1upsInChapter(1, 7) },
             { "Jumpless Reflection (Checkpoint)", null }, // generated
@@ -607,6 +623,34 @@ namespace Celeste.Mod.BingoClient {
             }
 
             return maybenull();
+        }
+
+        [Command("test_bingo_json", "Test if the bingo json in the clipboard has all its objectives handled by the monitor")]
+        public static void TestBingoJson() {
+            try {
+                foreach (var tier in JArray.Parse(TextInput.GetClipboardText())) {
+                    if (tier is JArray tierArray) {
+                        foreach (var objective in tierArray) {
+                            if (objective is JObject objectiveObj) {
+                                var name = objective.Value<string>("name");
+                                if (name != null) {
+                                    if (!BingoMonitor.Objectives.ContainsKey(name)) {
+                                        Engine.Commands.Log($"Fail: Objective {name} is unmonitored");
+                                    }
+                                } else {
+                                    Engine.Commands.Log("Fail: Objective must have name");
+                                }
+                            } else {
+                                Engine.Commands.Log("Fail: Objective must be object");
+                            }
+                        }
+                    } else {
+                        Engine.Commands.Log("Fail: Tier must be array");
+                    }
+                }
+            } catch (JsonException) {
+                Engine.Commands.Log("Fail: Could not parse JSON");
+            }
         }
 
         #endregion

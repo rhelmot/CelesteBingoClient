@@ -39,6 +39,7 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.AngryOshiro.HurtBegin += TrackOshiroBonks;
             On.Celeste.Snowball.OnPlayerBounce += TrackSnowballBonks;
             On.Celeste.Seeker.ctor_EntityData_Vector2 += TrackSeekerLife;
+            On.Celeste.BadelineBoost.OnPlayer += TrackBadelineOrbs;
 
             IL.Celeste.CutsceneEntity.Start += FuckedUpIfTrue;
             IL.Celeste.CutsceneEntity.Added += FuckedUpIfTrue;
@@ -75,6 +76,7 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.AngryOshiro.HurtBegin -= TrackOshiroBonks;
             On.Celeste.Snowball.OnPlayerBounce -= TrackSnowballBonks;
             On.Celeste.Seeker.ctor_EntityData_Vector2 -= TrackSeekerLife;
+            On.Celeste.BadelineBoost.OnPlayer -= TrackBadelineOrbs;
 
             IL.Celeste.CutsceneEntity.Start -= FuckedUpIfTrue;
             IL.Celeste.CutsceneEntity.Added -= FuckedUpIfTrue;
@@ -183,8 +185,21 @@ namespace Celeste.Mod.BingoClient {
 
         private static void TrackIntroCar(On.Celeste.IntroCar.orig_Update orig, IntroCar self) {
             orig(self);
-            if (self.HasRider() && SaveData.Instance.CurrentSession.Level == "e-01") {
-                BingoClient.Instance.ModSaveData.AddFlag("remembered_intro_car");
+            if (self.HasRider()) {
+                if (Engine.Scene is Level lvl && lvl.Session.Area.ID == 10) {
+                    BingoClient.Instance.ModSaveData.AddFlag("fw_intro_car");
+                }
+                if (SaveData.Instance.CurrentSession.Level == "e-01") {
+                    BingoClient.Instance.ModSaveData.AddFlag("remembered_intro_car");
+                }
+            }
+        }
+
+        private static void TrackBadelineOrbs(On.Celeste.BadelineBoost.orig_OnPlayer orig, BadelineBoost self, Player player)
+        {
+            orig(self, player);
+            if (Engine.Scene is Level lvl && lvl.Session.Area.ID == 9) {
+                BingoClient.Instance.ModSaveData.AddFlag("core_badeline_orb");
             }
         }
 
