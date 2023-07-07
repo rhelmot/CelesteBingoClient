@@ -692,8 +692,7 @@ namespace Celeste.Mod.BingoClient {
             Tuple.Create(7, "e-12:504"),
         };
 
-        private static FieldInfo BinosField = typeof(BingoModule).GetField("BinocularsList", BindingFlags.NonPublic | BindingFlags.Instance);
-        public static List<Binoculars> BinocularsList => (List<Binoculars>)BinosField.GetValue(BingoModule.Instance);
+        public static List<Binoculars> BinocularsList => BingoModule.SaveData.BinocularsList;
 
         private static float HasNSeedBerries(int n) {
             return Math.Min(1f, SeedBerryIDList.Count(id => SaveData.Instance.Areas[id.Item1].Modes[0].Strawberries.Contains(new EntityID {Key = id.Item2})) / (float) n);
