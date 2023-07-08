@@ -327,7 +327,7 @@ namespace Celeste.Mod.BingoClient {
                         var contents = TextInput.GetClipboardText();
                         if (contents.StartsWith("http") && contents.Contains("/room/")) {
                             this.Password = null;
-                            this.Username = this.ModSettings.PlayerName.Length == 0 ? self.Name : this.ModSettings.PlayerName;
+                            this.Username = string.IsNullOrEmpty(this.ModSettings.PlayerName) ? self.Name : this.ModSettings.PlayerName;
                             this.RoomUrl = contents;
                             if (this.Password == null) {
                                 (self.Scene as Overworld).Goto<OuiTextEntry>().Init<OuiBingoConnecting>("password", s => {
@@ -525,13 +525,13 @@ namespace Celeste.Mod.BingoClient {
 
         public void CreatePlayerNameEntry(TextMenu menu, bool inGame) {
             if (inGame) return;
-            var item = new TextMenu.Button(Dialog.Clean("MODOPTIONS_BINGOCLIENT_PLAYERNAME") + ": " + this.PlayerName)
+            var item = new TextMenu.Button(Dialog.Clean("MODOPTIONS_BINGOCLIENT_PLAYERNAME") + ": " + (this.PlayerName ?? ""))
                 .Pressed(() => {
                     Audio.Play(SFX.ui_main_savefile_rename_start);
                     menu.SceneAs<Overworld>().Goto<OuiModOptionString>().Init<OuiModOptions>(
-                        (string) this.PlayerName,
+                        (string) this.PlayerName ?? "",
                         v => {
-                            this.PlayerName = v;
+                            this.PlayerName = v ?? "";
                             BingoClient.Instance.Username = v;
                             BingoClient.Instance.NameChanged = true;
                         },
