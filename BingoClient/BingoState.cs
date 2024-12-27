@@ -192,6 +192,15 @@ namespace Celeste.Mod.BingoClient {
 
             var seen = new HashSet<BingoVariant>();
             foreach (var square in Instance.Board) {
+                if(square.Text == "Grabless Rock Bottom" ||  square.Text == "Grabless Rock Bottom (6A/6B Checkpoint)")
+                {
+                    if((area.ID == 6) && ((int)area.Mode == 0 && checkpoint == 4) ||
+                                        ((int)area.Mode == 1 && checkpoint == 2)) {
+                        yield return BingoVariant.NoGrab;
+                        continue;
+                    }
+                }
+
                 if (!BingoMonitor.ObjectiveVariants.TryGetValue(square.Text, out var variants)) {
                     continue;
                 }
