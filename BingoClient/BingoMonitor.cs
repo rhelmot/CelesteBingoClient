@@ -283,8 +283,8 @@ namespace Celeste.Mod.BingoClient {
             { "15 Berries in 4 Chapters", () => HasNBerriesInChapters(15, 4) },
             { "Reach Event Horizon (9 Checkpoint)", () => HasCheckpoint(10, 0, 4) },
             { "Reach Event Horizon (FW Checkpoint)", () => HasCheckpoint(10, 0, 4) },
-            { "Reach 2000m (7B Checkpoint)", () => HasCheckpoint(7, 0, 4) },
-            { "Reach 2000M (7B Checkpoint)", () => HasCheckpoint(7, 0, 4) },
+            { "Reach 2000m (7B Checkpoint)", () => HasCheckpoint(7, 1, 4) },
+            { "Reach 2000M (7B Checkpoint)", () => HasCheckpoint(7, 1, 4) },
             { "All Collectibles in 8A", () => (HasNBerriesInChapter(5, 9, false)*5f + HasCassette(9) + HasHeart(9, 0)) / 7f },
             { "The Summit Blue Heart", () => HasHeart(7, 0) },
             { "2 Keys in 2 Chapters", () => HasNKeysInChapters(2, 2) },
@@ -327,6 +327,8 @@ namespace Celeste.Mod.BingoClient {
             { "Complete Resolution without jumping", null }, // generated
             { "Empty Space", () => HasFlag("empty_space") },
             { "Clear Core", () => HasHeart(9, 0) },
+            { "Grabless Rock Bottom", () => BingoClient.Instance.ModSaveData.HasCheckpointVariant(6, 0, 4, BingoVariant.NoGrab) || BingoClient.Instance.ModSaveData.HasCheckpointVariant(6, 1, 2, BingoVariant.NoGrab) ? 1f : 0f },
+            { "Grabless Rock Bottom (6A/6B Checkpoint)", () => BingoClient.Instance.ModSaveData.HasCheckpointVariant(6, 0, 4, BingoVariant.NoGrab) || BingoClient.Instance.ModSaveData.HasCheckpointVariant(6, 1, 2, BingoVariant.NoGrab) ? 1f : 0f },
 
             { "Triple 1-Up", () => Has1upCombo(3) },
             { "Crossing Dashless", null }, // generated
@@ -372,7 +374,7 @@ namespace Celeste.Mod.BingoClient {
             { "Complete Mirror Temple with Low Friction", null }, // generated
             { "Kill 3 Different Seekers in Two Chapters", () => HasSeekerKillsInChapters(3, 2) },
             { "Get 15 Berries in 4 Chapters", () => HasNBerriesInChapters(15, 4) },
-            { "15 Berries in 5 Chapters", () => HasNBerriesInChapters(15, 4) },
+            { "15 Berries in 5 Chapters", () => HasNBerriesInChapters(15, 5) },
             { "Intro Car in Remembered", () => HasFlag("remembered_intro_car") },
             { "Reach an Intro Car in Remembered", () => HasFlag("remembered_intro_car") },
             { "1-Up in 7A", () => HasN1upsInChapter(1, 7) },
@@ -475,8 +477,6 @@ namespace Celeste.Mod.BingoClient {
             {"Grabless Lake", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 1, BingoVariant.NoGrab)}},
             {"Grabless Hollows", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 2, BingoVariant.NoGrab)}},
             {"Jumpless Reflection (Checkpoint)", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 3, BingoVariant.NoJump)}},
-            {"Grabless Rock Bottom", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 4, BingoVariant.NoGrab)}},
-            {"Grabless Rock Bottom (6A/6B Checkpoint)", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 4, BingoVariant.NoGrab)}},
             {"Complete Resolution without jumping", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 5, BingoVariant.NoJump)}},
             {"Jumpless Resolution", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 0, 5, BingoVariant.NoJump)}},
             {"Grabless Repreive", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(6, 1, 3, BingoVariant.NoGrab)}},
@@ -604,16 +604,6 @@ namespace Celeste.Mod.BingoClient {
                     Tuple.Create(6, 1, 3, BingoVariant.NoGrab),
                 }
             },
-            {"2 Chapters Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.NoGrab)}},
-            {"Complete 2 Chapters Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.NoGrab)}},
-            {"Complete 5 Chapters Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.NoGrab)}},
-            {"Complete 6 Chapters Grabless", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.NoGrab)}},
-            {"Complete 2 Chapters Mirrored", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.Mirrored)}},
-            {"Complete 4 Chapters Mirrored", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.Mirrored)}},
-            {"Complete 2 Chapters Invisible", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.Invisible)}},
-            {"4 Chapters Hiccups", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.Hiccups)}},
-            {"Complete 3 Chapters with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.LowFriction)}},
-            {"Complete 5 Chapters with Low Friction", new List<Tuple<int, int, int, BingoVariant>> {Tuple.Create(-1, -1, -1, BingoVariant.LowFriction)}},
         };
 
         static BingoMonitor() {
