@@ -228,7 +228,6 @@ namespace Celeste.Mod.BingoClient {
             { "Grabless 3A", null }, // generated
             { "10 Berries in 4 Chapters", () => HasNBerriesInChapters(10, 4) },
             { "All Collectibles in 3A", () => (HasNBerriesInChapter(25, 3, false)*25f + HasCassette(3) + HasHeart(3, 0)) / 27f },
-            { "Grabless Rock Bottom", null }, // generated
             { "Easteregg room in Reflection", () => HasFlag("room:easteregg") },
             { "Easteregg Room in Reflection", () => HasFlag("room:easteregg") },
             { "4 Seeded Berries", () => HasNSeedBerries(4) },
