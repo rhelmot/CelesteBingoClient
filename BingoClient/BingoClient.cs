@@ -68,7 +68,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private bool StuffIsHooked;
-        private List<IDetour> SpecialHooks = new List<IDetour>();
+        private List<ILHook> SpecialHooks = new List<ILHook>();
 
         internal void HookStuff() {
             if (this.StuffIsHooked) {

@@ -1,83 +1,73 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{070b259a-eac5-44a9-9b8b-691652ffd0c2}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Celeste.Mod.BingoClient</RootNamespace>
+    <TargetFramework>net7.0</TargetFramework>
     <AssemblyName>BingoClient</AssemblyName>
-    <TargetFramework>net452</TargetFramework>
+    <RootNamespace>Celeste.Mod.BingoClient</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <CelestePrefix Condition="'$(CelestePrefix)' == '' And Exists('..\..\..\..\..\games\celeste\Celeste.dll')">..\..\..\..\..\games\celeste</CelestePrefix>
+    <CelestePrefix Condition="'$(CelestePrefix)' == '' And Exists('..\..\..\..\games\celeste\Celeste.dll')">..\..\..\..\games\celeste</CelestePrefix>
+    <CelestePrefix Condition="'$(CelestePrefix)' == '' And Exists('..\..\..\Celeste.dll')">..\..\..</CelestePrefix>
+    <CelestePrefix Condition="'$(CelestePrefix)' == ''">lib-stripped</CelestePrefix>
   </PropertyGroup>
+
+  <!--Disable "Copy Local" for all references-->
+  <ItemDefinitionGroup>
+    <PackageReference PrivateAssets="all" ExcludeAssets="runtime" />
+    <Reference Private="false" />
+  </ItemDefinitionGroup>
+
   <ItemGroup>
-    <Reference Include="BingoUI">
-      <HintPath>../packages/lib-stripped/BingoUI.dll</HintPath>
+    <Reference Include="$(CelestePrefix)\Celeste.dll">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="$(CelestePrefix)\FNA.dll">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="$(CelestePrefix)\Mods\Cache\BingoUI.BingoUI.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Celeste">
-      <HintPath>..\packages\lib-stripped\Celeste.exe</HintPath>
+    <Reference Include="$(CelestePrefix)\Mods\Cache\ExtendedVariantMode.ExtendedVariantMode.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="ExtendedVariantMode">
-      <HintPath>../packages/lib-stripped/ExtendedVariantMode.dll</HintPath>
+    <Reference Include="$(CelestePrefix)\Mono.Cecil.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="FNA">
-      <HintPath>..\packages\lib-stripped\FNA.dll</HintPath>
+    <Reference Include="$(CelestePrefix)\Mono.Cecil.Mdb.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="MMHOOK_Celeste">
-      <HintPath>..\packages/lib-stripped\MMHOOK_Celeste.dll</HintPath>
+    <Reference Include="$(CelestePrefix)\Mono.Cecil.Pdb.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Cecil">
-      <HintPath>..\packages/lib-stripped\Mono.Cecil.dll</HintPath>
+    <Reference Include="$(CelestePrefix)\Mono.Cecil.Rocks.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>..\packages/lib-stripped\Mono.Cecil.Mdb.dll</HintPath>
+    <Reference Include="$(CelestePrefix)\Newtonsoft.Json.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>..\packages/lib-stripped\Mono.Cecil.Pdb.dll</HintPath>
+    <Reference Include="$(CelestePrefix)\YamlDotNet.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>..\packages/lib-stripped\Mono.Cecil.Rocks.dll</HintPath>
+    <Reference Include="$(CelestePrefix)\MonoMod.Utils.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
-      <HintPath>../packages/lib-stripped/Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Steamworks.NET">
-      <HintPath>..\packages\lib-stripped\Steamworks.NET.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Xml" />
-    <Reference Include="YamlDotNet">
-      <HintPath>..\packages/lib-stripped\YamlDotNet.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MonoMod.Utils">
-      <HintPath>..\packages/lib-stripped\MonoMod.Utils.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>..\packages/lib-stripped\MonoMod.RuntimeDetour.dll</HintPath>
+    <Reference Include="$(CelestePrefix)\MonoMod.RuntimeDetour.dll">
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  <!--
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
-  </ItemGroup>
-  -->
+
+  <Target Name="CopyFiles" AfterTargets="Build">
+    <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="..\bin" />
+    <Copy SourceFiles="$(OutputPath)\$(AssemblyName).pdb" DestinationFolder="..\bin" />
+  </Target>
+
   <ItemGroup>
     <None Include="everest.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Dialog\English.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
