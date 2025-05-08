@@ -271,7 +271,7 @@ namespace Celeste.Mod.BingoClient {
         private MouseState personalMouse;
         private bool gameSawNothing;
         private void Update() {
-            if (Dialog.Language == null || ActiveFont.Font == null || ActiveFont.Font.Sizes.Count == 0) {
+            if (Dialog.Language == null || ActiveFont.Font == null || ActiveFont.Font.Sizes.Count == 0 || this.Chat == null) {
                 return;
             }
 
