@@ -1,11 +1,11 @@
 ﻿- Name: BingoClient
-  Version: 0.1.15
+  Version: 0.1.16
   DLL: BingoClient.dll
   Dependencies:
     - Name: Celeste
       Version: 1.4.0.0
     - Name: Everest
-      Version: 1.2637.0
+      Version: 1.4961.0
     - Name: BingoUI
       Version: 1.2.0
     - Name: ExtendedVariantMode
