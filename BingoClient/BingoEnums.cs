@@ -14,6 +14,7 @@ namespace Celeste.Mod.BingoClient {
         Brown,
         Pink,
         Yellow,
+        Forest,
     }
 
     public enum ObjectiveStatus {
@@ -46,6 +47,7 @@ namespace Celeste.Mod.BingoClient {
             {BingoColors.Brown, new Color(0xab, 0x5c, 0x23)},
             {BingoColors.Pink, new Color(0xed, 0x86, 0xaa)},
             {BingoColors.Yellow, new Color(0xd8, 0xd0, 0x14)},
+            {BingoColors.Forest, new Color(0x00, 0x48, 0x10)},
         };
 
         public static Dictionary<string, BingoColors> ColorNames = new Dictionary<string, BingoColors> {
@@ -60,6 +62,7 @@ namespace Celeste.Mod.BingoClient {
             {"brown", BingoColors.Brown},
             {"pink", BingoColors.Pink},
             {"yellow", BingoColors.Yellow},
+            {"forest", BingoColors.Forest},
         };
 
         public static Color ToSquareColor(this BingoColors self) {
