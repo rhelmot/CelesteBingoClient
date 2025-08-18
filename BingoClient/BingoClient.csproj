@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>BingoClient</AssemblyName>
     <RootNamespace>Celeste.Mod.BingoClient</RootNamespace>
     <LangVersion>latest</LangVersion>
     <CelestePrefix Condition="'$(CelestePrefix)' == '' And Exists('..\..\..\..\..\games\celeste\Celeste.dll')">..\..\..\..\..\games\celeste</CelestePrefix>
     <CelestePrefix Condition="'$(CelestePrefix)' == '' And Exists('..\..\..\..\games\celeste\Celeste.dll')">..\..\..\..\games\celeste</CelestePrefix>
     <CelestePrefix Condition="'$(CelestePrefix)' == '' And Exists('..\..\..\Celeste.dll')">..\..\..</CelestePrefix>
-    <CelestePrefix Condition="'$(CelestePrefix)' == ''">lib-stripped</CelestePrefix>
+    <CelestePrefix Condition="'$(CelestePrefix)' == ''">..\packages\lib-stripped</CelestePrefix>
   </PropertyGroup>
 
   <!--Disable "Copy Local" for all references-->
@@ -57,11 +57,6 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-
-  <Target Name="CopyFiles" AfterTargets="Build">
-    <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="..\bin" />
-    <Copy SourceFiles="$(OutputPath)\$(AssemblyName).pdb" DestinationFolder="..\bin" />
-  </Target>
 
   <ItemGroup>
     <None Include="everest.yaml">
