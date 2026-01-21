@@ -463,7 +463,6 @@ namespace Celeste.Mod.BingoClient {
             { "Collect a berry in the final room of a chapter", () => throw new NotImplementedException() },
             { "See a <50 berry epilogue pie", () => throw new NotImplementedException() },
             { "Collect 2 berries in the same room, twice", () => throw new NotImplementedException() },
-            { "Collect 2 Winged Berries in 2 Chapters", () => throw new NotImplementedException() },
             { "Collect 5 berries", () => throw new NotImplementedException() },
             { "Collect a different number of berries in each chapter", () => throw new NotImplementedException() },
             { "Collect no more than 3 blue hearts", () => throw new NotImplementedException() },
