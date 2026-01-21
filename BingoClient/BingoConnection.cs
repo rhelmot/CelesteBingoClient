@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.WebSockets;
 using System.Security.Authentication;
 using System.Text;
@@ -56,7 +57,7 @@ namespace Celeste.Mod.BingoClient {
                 if (pieces2.Length > 1) {
                     this.Password = Uri.UnescapeDataString(pieces2[1]);
                 }
-                Logger.Log(LogLevel.Warn, "BingoClient", $"Connecting to {this.RoomDomain}/{this.RoomId}");
+                Logger.Log(LogLevel.Warn, "BingoClient", $"Connecting to {this.RoomDomain}/room/{this.RoomId}");
             }
         }
 
@@ -86,7 +87,7 @@ namespace Celeste.Mod.BingoClient {
         private string RevealUrl => $"{this.RoomDomain}/api/revealed";
         private string SettingsUrl => $"{this.RoomDomain}/room/{this.RoomId}/room-settings";
 
-        private CookieAwareWebClient Session;
+        private HttpClient Session;
         private ClientWebSocket Sock;
         private CancellationTokenSource CancelToken;
         private SemaphoreSlim Lock = new SemaphoreSlim(1);
@@ -177,6 +178,25 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
+        private string Get(string url) {
+            var response = this.Session.Send(new HttpRequestMessage(HttpMethod.Get, url));
+            return new StreamReader(response.Content.ReadAsStream()).ReadToEnd();
+        }
+
+        private string PostString(string url, string body) {
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Content = new StringContent(body);
+            var response = this.Session.Send(request);
+            return new StreamReader(response.Content.ReadAsStream()).ReadToEnd();
+        }
+
+        private string PostForm(string url, Dictionary<string, string> values) {
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Content = new FormUrlEncodedContent(values);
+            var response = this.Session.Send(request);
+            return new StreamReader(response.Content.ReadAsStream()).ReadToEnd();
+        }
+
         private void ConnectInner() {
             string sessionKey;
             if (this.Session == null || this.Password != this.SavedPassword || this.RoomId != this.SavedRoomId) {
@@ -184,10 +204,13 @@ namespace Celeste.Mod.BingoClient {
                     this.SavedPassword = this.Password;
                     this.SavedRoomId = this.RoomId;
                     using (this.Lock.Use(CancellationToken.None)) {
-                        this.Session = new CookieAwareWebClient(new CookieContainer());
-                        var r1 = this.Session.DownloadString(this.RoomUrl);
-                        this.Session.Referer = this.RoomUrl;
-                        var postKeys = new NameValueCollection {
+                        this.Session = new HttpClient(new HttpClientHandler {
+                                CookieContainer = new CookieContainer(),
+                                UseCookies = true,
+                        });
+                        var r1 = this.Get(this.RoomUrl);
+                        this.Session.DefaultRequestHeaders.Add("Referer", this.RoomUrl);
+                        var postKeys = new Dictionary<string, string> {
                             {"csrfmiddlewaretoken", RecoverFormValue("csrfmiddlewaretoken", r1)},
                             {"encoded_room_uuid", RecoverFormValue("encoded_room_uuid", r1)},
                             {"room_name", RecoverFormValue("room_name", r1)},
@@ -197,7 +220,7 @@ namespace Celeste.Mod.BingoClient {
                             {"passphrase", this.Password},
 
                         };
-                        var r2 = Encoding.UTF8.GetString(this.Session.UploadValues(this.RoomUrl, postKeys));
+                        var r2 = this.PostForm(this.RoomUrl, postKeys);
                         if (r2.Contains("Incorrect Password") && r2.Contains("<div class=\"alert alert-danger\">")) {
                             throw new VerbatimException(Dialog.Clean("bingoclient_connect_error_password"));
                         }
@@ -213,7 +236,7 @@ namespace Celeste.Mod.BingoClient {
                 }
             } else {
                 using (this.Lock.Use(CancellationToken.None)) {
-                    var r2 = this.Session.DownloadString(this.RoomUrl);
+                    var r2 = this.Get(this.RoomUrl);
                     sessionKey = RecoverFormValue("temporarySocketKey", r2);
                 }
             }
@@ -263,7 +286,7 @@ namespace Celeste.Mod.BingoClient {
 
         public void SendClaim(int slot) {
             LockedTask(() => {
-                this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
+                this.PostString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
                     color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
                     remove_color = false,
                     room = this.RoomId,
@@ -274,7 +297,7 @@ namespace Celeste.Mod.BingoClient {
 
         public void SendClear(int slot) {
             LockedTask(() => {
-                this.Session.UploadString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
+                this.PostString(this.SelectUrl, JsonConvert.SerializeObject(new SelectMessage {
                     color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
                     remove_color = true,
                     room = this.RoomId,
@@ -286,7 +309,7 @@ namespace Celeste.Mod.BingoClient {
         public void SendColor() {
             if (this.SentColor != this.ModSettings.PlayerColor) {
                 LockedTask(() => {
-                    this.Session.UploadString(this.ColorUrl, JsonConvert.SerializeObject(new ColorMessage {
+                    this.PostString(this.ColorUrl, JsonConvert.SerializeObject(new ColorMessage {
                         color = this.ModSettings.PlayerColor.ToString().ToLowerInvariant(),
                         room = this.RoomId,
                     }));
@@ -297,7 +320,7 @@ namespace Celeste.Mod.BingoClient {
 
         public void SendChat(string text) {
             LockedTask(() => {
-                this.Session.UploadString(this.ChatUrl, JsonConvert.SerializeObject(new ChatMessage {
+                this.PostString(this.ChatUrl, JsonConvert.SerializeObject(new ChatMessage {
                     text = text,
                     room = this.RoomId,
                 }));
@@ -307,7 +330,7 @@ namespace Celeste.Mod.BingoClient {
         public void RevealBoard() {
             if (this.IsBoardHidden) {
                 LockedTask(() => {
-                    this.Session.UploadString(this.RevealUrl, JsonConvert.SerializeObject(new RevealMessage {
+                    this.PostString(this.RevealUrl, JsonConvert.SerializeObject(new RevealMessage {
                         room = this.RoomId,
                     }));
                 });
@@ -317,13 +340,13 @@ namespace Celeste.Mod.BingoClient {
 
         public List<SquareMsg> GetBoard() {
             using (this.Lock.Use(this.CancelToken.Token)) {
-                return Retry(() => JsonConvert.DeserializeObject<List<SquareMsg>>(this.Session.DownloadString(this.RoomUrl + "/board")));
+                return Retry(() => JsonConvert.DeserializeObject<List<SquareMsg>>(this.Get(this.RoomUrl + "/board")));
             }
         }
 
         public HistoryMessage GetHistory() {
             using (this.Lock.Use(this.CancelToken.Token)) {
-                return Retry(() => JsonConvert.DeserializeObject<HistoryMessage>(this.Session.DownloadString(this.RoomUrl + "/feed")));
+                return Retry(() => JsonConvert.DeserializeObject<HistoryMessage>(this.Get(this.RoomUrl + "/feed")));
             }
         }
 
@@ -331,7 +354,7 @@ namespace Celeste.Mod.BingoClient {
         public Tuple<bool, bool> GetSettings() {
             using (this.Lock.Use(this.CancelToken.Token)) {
                 return Retry(() => {
-                    var result = this.Session.DownloadString(this.SettingsUrl);
+                    var result = this.Get(this.SettingsUrl);
                     return Tuple.Create(result.Contains("\"hide_card\": true"), result.Contains("\"lockout_mode\": \"Lockout\""));
                 });
             }

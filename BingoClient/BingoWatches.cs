@@ -13,7 +13,7 @@ using MonoMod.Utils;
 
 namespace Celeste.Mod.BingoClient {
     public static class BingoWatches {
-        private static List<IDetour> SpecialHooks = new List<IDetour>();
+        private static List<ILHook> SpecialHooks = new List<ILHook>();
 
         internal static void HookStuff() {
             IL.Celeste.StrawberryPoints.Added += Track1up;

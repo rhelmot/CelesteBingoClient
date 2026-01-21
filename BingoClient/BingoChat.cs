@@ -20,7 +20,6 @@ namespace Celeste.Mod.BingoClient {
 
         public BingoChat(Action<string> submit) {
             this.Submit = submit;
-            TextInput.OnInput += OnInput;
         }
 
         public void Update() {
@@ -37,13 +36,19 @@ namespace Celeste.Mod.BingoClient {
 
             if (this.ChatOpen) {
                 if (Input.ESC.Pressed) {
-                    this.ChatOpen = false;
+                    this.InhibitOne = true;
+                    Engine.Scene.OnEndOfFrame += () => {
+                        TextInput.OnInput -= OnInput;
+                        this.ChatOpen = false;
+                        this.InhibitOne = false;
+                    };
                 }
             } else {
                 if (BingoClient.Instance.ModSettings.OpenChat.Pressed &&
                     !Engine.Commands.Open &&
                     !BingoClient.Instance.IsInappropriateTimeForMenu() &&
                     (this.ChatHistory.Count > 0 || BingoClient.Instance.Connected)) {
+                    TextInput.OnInput += OnInput;
                     this.ChatOpen = true;
                     this.InhibitOne = true;
                     Engine.Scene.OnEndOfFrame += () => this.InhibitOne = false;

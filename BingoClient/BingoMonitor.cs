@@ -257,7 +257,7 @@ namespace Celeste.Mod.BingoClient {
             { "Reflection B-Side", () => HasHeart(6, 1) },
             { "Reach the Intro Car in Remembered", () => HasFlag("remembered_intro_car") },
             { "Reach an Intro Car in Farewell", () => HasFlag("fw_intro_car") },
-            { "Reach the Orb in Heart of the Mountain", () => HasFlag("fw_intro_car") },
+            { "Reach the Orb in Heart of the Mountain", () => HasFlag("core_badeline_orb") },
             { "5 Gems in the Summit", () => HasNSummitGems(5) },
             { "5 Gems in The Summit", () => HasNSummitGems(5) },
             { "2000M and 2500M Gems", () => HasSummitGems(4, 5) },
