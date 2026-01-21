@@ -440,21 +440,21 @@ namespace Celeste.Mod.BingoClient {
             { "Do not collect moon berry", () => 1 - HasParticularStrawberries(10, "j-19:9") },
             { "In each chapter with any berries collected, your death count should be divisible by your berry count", () => BerriesDivideDeaths() },
             { "Collect no more than 60 Berries", () => HasNoMoreThanNBerries(60) },
-            { "Collect at least 3 berries in every checkpoint with a cassette collected", () => throw new NotImplementedException() },
+            { "Collect at least 3 berries in every checkpoint with a cassette collected", () => BerriesInCassetteCheckpoints() },
             { "Collecting a seeded berry requires you to collect all berries that can be reached in 2 screen transitions from that berry", () => throw new NotImplementedException() },
-            { "Collect a different number of berries in each chapter", () => throw new NotImplementedException() },
+            { "Collect a different number of berries in each chapter", () => UniqueBerriesPerChapter() },
             { "See 3 different pie endings", () => throw new NotImplementedException() },
             { "for every bino collected, collect a different berry in a checkpoint of that chapter with no binos", () => throw new NotImplementedException() },
             { "Do not collect any berry commonly collected on any% routes", () => throw new NotImplementedException() },
             { "Never collect the second red berry in any checkpoint", () => throw new NotImplementedException() },
             { "In every checkpoint with a winged berry collected, collect at least 4 berries", () => throw new NotImplementedException() },
-            { "Collect no more than 4 blue hearts", () => throw new NotImplementedException() },
+            { "Collect no more than 4 blue hearts", () => MaxHearts(0, 4) },
             { "for every winged red berry collected, collect the subsequent 2 berries", () => throw new NotImplementedException() },
-            { "Collect no red berries from 1a start", () => throw new NotImplementedException() },
-            { "In every chapter with >5 berries collected, collect heart + cassette", () => throw new NotImplementedException() },
+            { "Collect no red berries from 1a start", () => 1 - HasCheckpointBerries(1, 0) },
+            { "In every chapter with >5 berries collected, collect heart + cassette", () => HeartCassetteInBerryChapters(5) },
             { "Collect all binos in every checkpoint with a berry collected", () => throw new NotImplementedException() },
             { "If you collect a red or yellow heart, collect the cassette for that chapter", () => throw new NotImplementedException() },
-            { "Collect a number of seeded berries two fewer than your number of winged berries", () => throw new NotImplementedException() },
+            { "Collect a number of seeded berries two fewer than your number of winged berries", () => SeededWingedCount() },
             { "Collect 10 berries each with the chapter timer <10s", () => throw new NotImplementedException() },
             { "Your filename should contain the sum of your berry, heart, cassette, and death counts", () => throw new NotImplementedException() },
             { "Collect no more than one bino in each chapter", () => throw new NotImplementedException() },
@@ -463,19 +463,19 @@ namespace Celeste.Mod.BingoClient {
             { "Collect a berry in the final room of a chapter", () => throw new NotImplementedException() },
             { "See a <50 berry epilogue pie", () => throw new NotImplementedException() },
             { "Collect 2 berries in the same room, twice", () => throw new NotImplementedException() },
-            { "Collect 5 berries", () => throw new NotImplementedException() },
+            { "Collect 5 berries", () => HasNBerries(5) },
             { "Collect a different number of berries in each chapter", () => throw new NotImplementedException() },
-            { "Collect no more than 3 blue hearts", () => throw new NotImplementedException() },
+            { "Collect no more than 3 blue hearts", () => MaxHearts(0, 3) },
             { "For every winged berry collected, collect the next 2 berries", () => throw new NotImplementedException() },
             { "Collect heart, cassette, and all berries in the same checkpoint", () => throw new NotImplementedException() },
-            { "Collect no berries from 1a start", () => throw new NotImplementedException() },
+            { "Collect no berries from 1a start", () => 1 - HasCheckpointBerries(1, 0) },
             { "Collect a winged and seeded berry in the same checkpoint", () => throw new NotImplementedException() },
             { "Collect a bino in every checkpoint with a berry collected", () => throw new NotImplementedException() },
             { "Collect 4 cassettes without touching pink cassette blocks", () => throw new NotImplementedException() },
-            { "In every chapter with >15 berries collected, collect heart + cassette", () => throw new NotImplementedException() },
+            { "In every chapter with >15 berries collected, collect heart + cassette", () => HeartCassetteInBerryChapters(15) },
             { "For every seeded berry collected, collect the previous 2 berries", () => throw new NotImplementedException() },
             { "Your filename should contain the sum of your berry, heart, cassette, and death counts", () => throw new NotImplementedException() },
-            { "Collect at least 60 berries", () => throw new NotImplementedException() },
+            { "Collect at least 60 berries", () => HasNBerries(60) },
 
             #endregion
         };
@@ -1037,7 +1037,130 @@ namespace Celeste.Mod.BingoClient {
             {
                 return 0;
             }
-            return ratio;
+            return 1;
+        }
+
+        
+        private static float HasNCheckpointBerries(int chapter, int checkpoint, int n)
+        {
+            var dim = AreaData.Areas[chapter].Mode[0].StrawberriesByCheckpoint.GetLength(1);
+            var possible = 0;
+            var collected = 0;
+            for (int i = 0; i < dim; i++)
+            {
+                var e = AreaData.Areas[chapter].Mode[0].StrawberriesByCheckpoint[checkpoint, i];
+                if (e == null)
+                {
+                    continue;
+                }
+
+                possible++;
+                if (SaveData.Instance.Areas[chapter].Modes[0].Strawberries.Contains(new EntityID { ID = e.ID, Level = e.Level.Name }))
+                {
+                    collected++;
+                }
+            }
+
+            if (possible == 0)
+            {
+                // why are you here
+                return 0f;
+            }
+            return (float)collected / n;
+        }
+
+        private static Dictionary<int, int> CassetteCheckpoints = new Dictionary<int, int>()
+        {
+            {1, 2 },
+            {2, 0 },
+            {3, 2 },
+            {4, 0 },
+            {5, 1 },
+            {6, 2 },
+            {7, 3 },
+            {8, 3 },
+        };
+
+        private static float BerriesInCassetteCheckpoints()
+        {
+            float progCount = 0;
+            float prog = 0;
+            for (int i = 0; i < SaveData.Instance.Areas.Count; i++)
+            {
+                var area = SaveData.Instance.Areas[i];
+                if (area.Cassette)
+                {
+                    progCount++;
+                    prog += HasNCheckpointBerries(i, CassetteCheckpoints[i], 3);
+                }
+            }
+            return prog / progCount;
+        }
+
+        private static float UniqueBerriesPerChapter()
+        {
+            HashSet<int> counts = new();
+            float count = 0;
+            for (int i = 0; i < SaveData.Instance.Areas.Count; i++)
+            {
+                if (i == 0 || i == 6 || i == 8 || i == 10)
+                {
+                    continue;
+                }
+                int berryCount = SaveData.Instance.Areas[i].TotalStrawberries;
+                if (!counts.Contains(berryCount))
+                {
+                    counts.Add(berryCount);
+                }
+                count++;
+            }
+            return counts.Count() / count;
+        }
+
+        private static float MaxHearts(int color, int max)
+        {
+            float count = SaveData.Instance.Areas.Select(area => area.Modes.Length > color && area.Modes[color] != null && area.Modes[color].HeartGem ? 1f : 0f).Sum();
+            if (count > max)
+            {
+                return 0;
+            }
+            return 1;
+        }
+
+        private static float HeartCassetteInBerryChapters(int threshold)
+        {
+            for (int i = 0; i < SaveData.Instance.Areas.Count; i++)
+            {
+                var area = SaveData.Instance.Areas[i];
+                if (area.TotalStrawberries <= threshold)
+                {
+                    continue;
+                }
+
+                if (!area.Cassette || HasHeart(i, 0) == 0)
+                {
+                    return 0;
+                }
+            }
+            return 1;
+        }
+
+        private static float SeededWingedCount()
+        {
+            int wingedCount = WingedBerryIDList.Count(id => SaveData.Instance.Areas[id.Item1].Modes[0].Strawberries.Contains(new EntityID { Key = id.Item2 }));
+            int seededCount = SeedBerryIDList.Count(id => SaveData.Instance.Areas[id.Item1].Modes[0].Strawberries.Contains(new EntityID { Key = id.Item2 }));
+
+            if (wingedCount < 2)
+            {
+                return 0;
+            }
+
+            if (wingedCount == 2)
+            {
+                return seededCount == 0 ? 1 : 0;
+            }
+
+            return (float)seededCount / (wingedCount - 2f);
         }
         #endregion
 
