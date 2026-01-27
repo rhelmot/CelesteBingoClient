@@ -466,7 +466,7 @@ namespace Celeste.Mod.BingoClient {
             { "Collect 5 berries", () => HasNBerries(5) },
             { "Collect no more than 3 blue hearts", () => MaxHearts(0, 3) },
             { "For every winged berry collected, collect the next 2 berries", () => throw new NotImplementedException() },
-            { "Collect heart, cassette, and all berries in the same checkpoint", () => HeartCassetteBerryChapter() },
+            { "Collect heart, cassette, and all berries in the same checkpoint", () => HeartCassetteBerryCheckpoint() },
             { "Collect no berries from 1a start", () => 1 - HasCheckpointBerries(1, 0) },
             { "Collect a winged and seeded berry in the same checkpoint", () => throw new NotImplementedException() },
             { "Collect a bino in every checkpoint with a berry collected", () => throw new NotImplementedException() },
@@ -1232,7 +1232,7 @@ namespace Celeste.Mod.BingoClient {
         {
             (2, 0), (5, 1), (8, 3)
         };
-        private static float HeartCassetteBerryChapter()
+        private static float HeartCassetteBerryCheckpoint()
         {
             foreach (var area in ValidHeartCassetteBerryAreas)
             {
