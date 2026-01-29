@@ -25,7 +25,7 @@ namespace Celeste.Mod.BingoClient {
         private String SavedRoomId, SavedPassword;
         public bool Connected;
         private BingoColors SentColor;
-        public bool IsBoardHidden, IsLockout;
+        public bool IsBoardHidden, IsLockout, IsFog;
 
         private string roomDomain;
         public string RoomDomain {
@@ -227,6 +227,7 @@ namespace Celeste.Mod.BingoClient {
 
                         this.IsBoardHidden = r2.Contains("hide_card\\u0022: true");
                         this.IsLockout = r2.Contains("\\u0022lockout_mode\\u0022: \\u0022Lockout\\u0022");
+                        this.IsFog = r2.Contains("\\u0022fog_of_war\\u0022: true");
                         sessionKey = RecoverFormValue("temporarySocketKey", r2);
                         this.WsUrl = RecoverFormValue("socketsUrl", r2);
                     }
@@ -350,12 +351,12 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
-        // returns (hide_card, lockout)
-        public Tuple<bool, bool> GetSettings() {
+        // returns (hide_card, lockout, fog)
+        public Tuple<bool, bool, bool> GetSettings() {
             using (this.Lock.Use(this.CancelToken.Token)) {
                 return Retry(() => {
                     var result = this.Get(this.SettingsUrl);
-                    return Tuple.Create(result.Contains("\"hide_card\": true"), result.Contains("\"lockout_mode\": \"Lockout\""));
+                    return Tuple.Create(result.Contains("\"hide_card\": true"), result.Contains("\"lockout_mode\": \"Lockout\""), result.Contains("\"fog_of_war\": true"));
                 });
             }
         }
@@ -483,6 +484,7 @@ namespace Celeste.Mod.BingoClient {
             public string name;
             public string colors;
             public string slot;
+            public int tier;
         }
 
         public class SelectMessage {

@@ -8,6 +8,7 @@ namespace Celeste.Mod.BingoClient {
     public partial class BingoClient {
         private List<BingoSquare> Board;
         public List<bool> ObjectivesCompleted;
+        public List<bool> ObjectivesSeen;
 
         private void RefreshBoard() {
             var board = this.GetBoard();
@@ -22,6 +23,7 @@ namespace Celeste.Mod.BingoClient {
                 int i = int.Parse(square.slot.Substring(4)) - 1;
                 this.Board[i].Colors = new List<BingoColors>(BingoEnumExtensions.ParseColors(square.colors));
                 this.Board[i].Text = square.name;
+                this.Board[i].Tier = square.tier;
             }
 
             this.RefreshObjectives();
@@ -29,8 +31,14 @@ namespace Celeste.Mod.BingoClient {
 
         private void RefreshObjectives() {
             this.ObjectivesCompleted = new List<bool>();
+            this.ObjectivesSeen = new List<bool>();
             for (int i = 0; i < 25; i++) {
-                this.ObjectivesCompleted.Add(false);
+                if (this.Board == null) {
+                    this.ObjectivesCompleted.Add(false);
+                } else {
+                    this.ObjectivesCompleted.Add(this.Board[i].Colors.Contains(this.ModSettings.PlayerColor));
+                }
+                this.ObjectivesSeen.Add(false);
             }
         }
 
@@ -57,6 +65,7 @@ namespace Celeste.Mod.BingoClient {
                     var settings = this.GetSettings();
                     this.IsBoardHidden = settings.Item1;
                     this.IsLockout = settings.Item2;
+                    this.IsFog = settings.Item3;
                     Thread.Sleep(500);
                     this.RefreshBoard();
                     break;
@@ -101,6 +110,7 @@ namespace Celeste.Mod.BingoClient {
 
         private class BingoSquare {
             public int Idx;
+            public int Tier;
             public List<BingoColors> Colors = new List<BingoColors>();
             public string Text = "";
         }
@@ -119,16 +129,31 @@ namespace Celeste.Mod.BingoClient {
             }
 
             for (var i = 0; i < 25; i++) {
-                if (this.GetObjectiveStatus(i) != ObjectiveStatus.Completed) {
+                if (this.IsObjectiveHidden(i)) {
                     continue;
                 }
 
-                if (!this.ObjectivesCompleted[i]) {
-                    this.ObjectivesCompleted[i] = true;
-                    this.LogChat(string.Format(Dialog.Get("bingoclient_objective_claimable"), this.Board[i].Text));
+                var status = this.GetObjectiveStatus(i, true);
+                var statusComplete = status == ObjectiveStatus.Completed;
+
+                if (this.ObjectivesCompleted[i] != statusComplete) {
+                    this.ObjectivesCompleted[i] = statusComplete;
+                    if (this.IsObjectiveClaimable(i, statusComplete)) {
+                        if (statusComplete) {
+                            if (this.ModSettings.ClaimAssist == BingoClientSettings.ClaimAssistMode.Auto) {
+                                this.SendClaim(i);
+                            } else {
+                                this.LogChat(string.Format(Dialog.Get("bingoclient_objective_claimable"), this.Board[i].Text));
+                            }
+                        } else {
+                            if (this.ModSettings.ClaimAssist == BingoClientSettings.ClaimAssistMode.Auto) {
+                                this.SendClear(i);
+                            }
+                        }
+                    }
                 }
 
-                if (this.ModSettings.ClaimAssist && this.ModSettings.QuickClaim.Pressed) {
+                if (this.ModSettings.ClaimAssist == BingoClientSettings.ClaimAssistMode.Button && this.IsObjectiveClaimable(i) && this.ModSettings.QuickClaim.Pressed) {
                     this.SendClaim(i);
                 }
             }
@@ -140,22 +165,55 @@ namespace Celeste.Mod.BingoClient {
             }
             for (var i = 0; i < 25; i++) {
                 this.ObjectivesCompleted[i] = false;
-                if (this.GetObjectiveStatus(i) == ObjectiveStatus.Completed) {
+                if (!this.IsObjectiveHidden(i) && this.GetObjectiveStatus(i) == ObjectiveStatus.Completed) {
                     this.ObjectivesCompleted[i] = true;
                 }
             }
         }
 
-        public ObjectiveStatus GetObjectiveStatus(int i) {
+        private bool IsObjectiveLiftingFog(int i) {
+            if (this.Board[i].Colors.Contains(this.ModSettings.PlayerColor)) {
+                return true;
+            }
+            return false;
+        }
+
+        public bool IsObjectiveHidden(int i) {
+            if (this.IsBoardHidden) {
+                return true;
+            }
+            if (!this.IsFog) {
+                return false;
+            }
+            if (this.ModSettings.FogPersistence && this.ObjectivesSeen[i]) {
+                return false;
+            }
+            if (this.Board[i].Tier == 0
+                    || this.IsObjectiveLiftingFog(i)
+                    || (i < 20 && this.IsObjectiveLiftingFog(i+5))
+                    || (i >= 5 && this.IsObjectiveLiftingFog(i-5))
+                    || (i % 5 != 0 && this.IsObjectiveLiftingFog(i-1))
+                    || (i % 5 != 4 && this.IsObjectiveLiftingFog(i+1))) {
+                this.ObjectivesSeen[i] = true;
+                return false;
+            }
+            return true;
+        }
+
+        public ObjectiveStatus GetObjectiveStatus(int i, bool force = false) {
             if (this.Board == null || this.Board.Count <= i || this.Board[i] == null || this.ObjectivesCompleted == null) {
                 return ObjectiveStatus.Nothing;
             }
 
-            if (this.Board[i].Colors.Contains(this.ModSettings.PlayerColor) || (this.IsLockout && this.Board[i].Colors.Count != 0)) {
+            if (this.IsLockout && this.Board[i].Colors.Count != 0) {
                 return ObjectiveStatus.Claimed;
             }
 
-            if (this.ObjectivesCompleted[i]) {
+            if (!force && this.Board[i].Colors.Contains(this.ModSettings.PlayerColor)) {
+                return ObjectiveStatus.Claimed;
+            }
+
+            if (!force && this.ObjectivesCompleted[i]) {
                 return ObjectiveStatus.Completed;
             }
 
@@ -179,8 +237,23 @@ namespace Celeste.Mod.BingoClient {
             return ObjectiveStatus.Progress;
         }
 
-        public bool IsObjectiveClaimable(int i) {
-            return this.Board?[i].Colors.Count == 0 && (this.ObjectivesCompleted?[i] ?? false);
+        public bool IsObjectiveClaimable(int i, bool claiming = true) {
+            if (this.IsObjectiveHidden(i)) {
+                return false;
+            }
+            if (claiming != (this.ObjectivesCompleted?[i] ?? false)) {
+                return false;
+            }
+            if (this.Board == null) {
+                return false;
+            }
+            bool b;
+            if (this.IsLockout) {
+                b = this.Board[i].Colors.Count == 0;
+            } else {
+                b = !this.Board[i].Colors.Contains(this.ModSettings.PlayerColor);
+            }
+            return b == claiming;
         }
 
         public IEnumerable<BingoVariant> RelevantVariants() {
@@ -191,7 +264,12 @@ namespace Celeste.Mod.BingoClient {
             var area = SaveData.Instance.CurrentSession.Area;
 
             var seen = new HashSet<BingoVariant>();
+            int i = -1;
             foreach (var square in Instance.Board) {
+                i++;
+                if (this.IsObjectiveHidden(i)) {
+                    continue;
+                }
                 if(square.Text == "Grabless Rock Bottom" ||  square.Text == "Grabless Rock Bottom (6A/6B Checkpoint)")
                 {
                     if((area.ID == 6) && ((int)area.Mode == 0 && checkpoint == 4) ||

@@ -484,6 +484,7 @@ namespace Celeste.Mod.BingoClient {
         public enum ProxyMode { None, HTTP }
         public enum TriggerAlphaMode { Low, Medium, High }
         public enum ScanAssistMode { Off, Highlight, Icons }
+        public enum ClaimAssistMode { Off, Button, Auto }
         public bool MasterSwitch { get; set; } = true;
         [SettingMaxLength(20)]
         [SettingMinLength(0)]
@@ -502,9 +503,10 @@ namespace Celeste.Mod.BingoClient {
         public TriggerMode TriggerBehavior { get; set; } = TriggerMode.Hasty;
         public TriggerAlphaMode TriggerAlpha { get; set; } = TriggerAlphaMode.Medium;
         public bool AutoUnpin { get; set; } = true;
-        public bool ClaimAssist { get; set; } = false;
+        public ClaimAssistMode ClaimAssist { get; set; } = ClaimAssistMode.Off;
         public ScanAssistMode ScanAssist { get; set; } = ScanAssistMode.Off;
         public ProxyMode Proxy { get; set; } = ProxyMode.None;
+        public bool FogPersistence { get; set; } = false;
 
         public void CreatePlayerColorEntry(TextMenu menu, bool inGame) {
             var enumValues = new List<BingoColors>((BingoColors[])Enum.GetValues(typeof(BingoColors)));

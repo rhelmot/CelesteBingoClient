@@ -349,7 +349,8 @@ namespace Celeste.Mod.BingoClient {
             if (this.Board != null) {
                 for (var i = 0; i < 25; i++) {
                     this.GetSlotButton(i).Label = this.Board[i].Text;
-                    var visible = this.ModSettings.ClaimAssist && this.IsObjectiveClaimable(i);
+                    var visible = this.ModSettings.ClaimAssist == BingoClientSettings.ClaimAssistMode.Button && this.IsObjectiveClaimable(i);
+                    visible &= !this.IsObjectiveHidden(i);
                     this.GetSlotButton(i).Visible = visible;
                     anyVisible |= visible;
                 }
@@ -363,6 +364,10 @@ namespace Celeste.Mod.BingoClient {
                     } else {
                         var j = this.Pinned[i];
                         var btn = this.GetPinnedButton(i);
+                        if (this.IsObjectiveHidden(j)) {
+                            btn.Visible = false;
+                            continue;
+                        }
                         btn.Visible = true;
                         btn.Label = this.Board[j].Text;
 
@@ -620,6 +625,10 @@ namespace Celeste.Mod.BingoClient {
                         }
                     }
 
+                    if (this.IsObjectiveHidden(slot)) {
+                        continue;
+                    }
+
                     bool shrinkBox = false;
                     Vector2 iconPos = subcorner + new Vector2(30, subsize.Y - 30);
                     if (this.ModSettings.ScanAssist == BingoClientSettings.ScanAssistMode.Icons) {
@@ -645,10 +654,13 @@ namespace Celeste.Mod.BingoClient {
             for (int x = 0; x < 5; x++) {
                 for (int y = 0; y < 5; y++) {
                     var slot = y * 5 + x;
+                    if (this.IsObjectiveHidden(slot)) {
+                        continue;
+                    }
                     var subcorner = currentCorner + subsize * new Vector2(x, y) + Vector2.One * 15f;
 
                     var status = this.GetObjectiveStatus(slot);
-                    if (this.ModSettings.ClaimAssist) {
+                    if (this.ModSettings.ClaimAssist == BingoClientSettings.ClaimAssistMode.Button) {
                         if (status == ObjectiveStatus.Completed) {
                             PieButton.DrawPieAndText(subcorner, 0.5f, 1f, "!");
                         } else if (status == ObjectiveStatus.Progress) {

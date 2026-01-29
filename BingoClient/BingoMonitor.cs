@@ -456,7 +456,6 @@ namespace Celeste.Mod.BingoClient {
             { "Collect all binos in every checkpoint with a berry collected", () => throw new NotImplementedException() },
             { "If you collect a red or yellow heart, collect the cassette for that chapter", () => throw new NotImplementedException() },
             { "Collect 10 berries each with the chapter timer <10s", () => throw new NotImplementedException() },
-            { "Your filename should contain the sum of your berry, heart, cassette, and death counts", () => throw new NotImplementedException() },
             { "Do NOT collect more than one bino in each chapter", () => throw new NotImplementedException() },
             { "Collect 2 more winged berries than seeded berries", () => SeededWingedCount() },
             { "Die during the collect animation of 3 different hearts", () => throw new NotImplementedException() },
