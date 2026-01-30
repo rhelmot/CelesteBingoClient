@@ -17,7 +17,13 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <Reference Include="$(CelestePrefix)\Celeste.dll">
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
+    <PackageReference Include="MonoMod.RuntimeDetour" Version="25.3.3" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageReference Include="MonoMod.Patcher" Version="25.0.0-prerelease.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="$(CelestePrefix)\Celeste.dll" Publicize="true">
       <Private>false</Private>
     </Reference>
     <Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll">
@@ -32,6 +38,13 @@
     <Reference Include="$(CelestePrefix)\Mods\Cache\ExtendedVariantMode.ExtendedVariantMode.dll">
       <Private>False</Private>
     </Reference>
+    <Reference Include="$(CelestePrefix)\Newtonsoft.Json.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(CelestePrefix)\YamlDotNet.dll">
+      <Private>False</Private>
+    </Reference>
+<!--
     <Reference Include="$(CelestePrefix)\Mono.Cecil.dll">
       <Private>False</Private>
     </Reference>
@@ -44,18 +57,13 @@
     <Reference Include="$(CelestePrefix)\Mono.Cecil.Rocks.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="$(CelestePrefix)\Newtonsoft.Json.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="$(CelestePrefix)\YamlDotNet.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="$(CelestePrefix)\MonoMod.Utils.dll">
+    <Reference Include="$(CelestePrefix)\MonoMod.Utils.dll" Publicize="true">
       <Private>False</Private>
     </Reference>
     <Reference Include="$(CelestePrefix)\MonoMod.RuntimeDetour.dll">
       <Private>False</Private>
     </Reference>
+-->
   </ItemGroup>
 
   <ItemGroup>
