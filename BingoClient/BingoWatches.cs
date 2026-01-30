@@ -41,6 +41,11 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.Seeker.ctor_EntityData_Vector2 += TrackSeekerLife;
             On.Celeste.BadelineBoost.OnPlayer += TrackBadelineOrbs;
 
+            Everest.Events.Player.OnDie += TrackPlayerDeath;
+            On.Celeste.CS08_Ending.OnEnd += TrackPies;
+            On.Celeste.CassetteBlock.Update += TrackPinkCassetteBlocks;
+            On.Celeste.SaveData.RegisterCassette += TrackPinkCassetteBlocksDone;
+
             IL.Celeste.CutsceneEntity.Start += FuckedUpIfTrue;
             IL.Celeste.CutsceneEntity.Added += FuckedUpIfTrue;
             IL.Celeste.NPC01_Theo.OnTalk += FuckedUpIfTrue;
@@ -78,6 +83,11 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.Seeker.ctor_EntityData_Vector2 -= TrackSeekerLife;
             On.Celeste.BadelineBoost.OnPlayer -= TrackBadelineOrbs;
 
+            Everest.Events.Player.OnDie -= TrackPlayerDeath;
+            On.Celeste.CS08_Ending.OnEnd -= TrackPies;
+            On.Celeste.CassetteBlock.Update -= TrackPinkCassetteBlocks;
+            On.Celeste.SaveData.RegisterCassette -= TrackPinkCassetteBlocksDone;
+
             IL.Celeste.CutsceneEntity.Start -= FuckedUpIfTrue;
             IL.Celeste.CutsceneEntity.Added -= FuckedUpIfTrue;
             IL.Celeste.NPC01_Theo.OnTalk -= FuckedUpIfTrue;
@@ -88,6 +98,57 @@ namespace Celeste.Mod.BingoClient {
                 hook.Dispose();
             }
             SpecialHooks.Clear();
+        }
+
+        private static void TrackPinkCassetteBlocksDone(On.Celeste.SaveData.orig_RegisterCassette orig, SaveData self, AreaKey area) {
+            orig(self, area);
+            var flag = $"pinkcassette:{area.ID}";
+            if (SaveData.Instance.Areas[area.ID].Cassette) {
+                if (!SaveData.Instance.CurrentSession.Flags.Contains("pinkcassette")) {
+                    BingoClient.Instance.ModSaveData.AddFlag(flag);
+                }
+            } else {
+                BingoClient.Instance.ModSaveData.RemoveFlag(flag);
+            }
+        }
+
+        private static void TrackPinkCassetteBlocks(On.Celeste.CassetteBlock.orig_Update orig, CassetteBlock self) {
+            orig(self);
+
+            if (self.Index == 1 && self.Collidable) {
+                var rect = self.Collider.Bounds;
+                rect.Inflate(1, 1);
+                var player = self.Scene.Tracker.GetEntity<Player>();
+                if (player != null && player.CollideRect(rect)) {
+                    SaveData.Instance.CurrentSession_Safe.Flags.Add("pinkcassette");
+                }
+            }
+        }
+
+        private static void TrackPies(On.Celeste.CS08_Ending.orig_OnEnd orig, CS08_Ending self, Level level) {
+            int totalStrawberries = SaveData.Instance.TotalStrawberries;
+            if (totalStrawberries < 20) {
+                BingoClient.Instance.ModSaveData.AddFlag("pie:0");
+            } else if (totalStrawberries < 50) {
+                BingoClient.Instance.ModSaveData.AddFlag("pie:20");
+            } else if (totalStrawberries < 90) {
+                BingoClient.Instance.ModSaveData.AddFlag("pie:50");
+            } else if (totalStrawberries < 150) {
+                BingoClient.Instance.ModSaveData.AddFlag("pie:90");
+            } else {
+                BingoClient.Instance.ModSaveData.AddFlag("pie:150");
+            }
+
+            orig(self, level);
+        }
+
+        private static void TrackPlayerDeath(Player player) {
+            var heart = player.Scene.Entities.FindFirst<HeartGem>();
+            if (heart == null || !heart.collected) {
+                return;
+            }
+
+            BingoClient.Instance.ModSaveData.AddHeartDeath(SaveData.Instance.CurrentSession.Area);
         }
 
         private static void TrackSnowballBonks(On.Celeste.Snowball.orig_OnPlayerBounce orig, Snowball self, Player player) {
@@ -315,6 +376,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private static void HookLoadLevel(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerintro, bool isfromloader) {
+            self.Session.Flags.Remove("pinkcassette");
             orig(self, playerintro, isfromloader);
             if (!isfromloader && playerintro != Player.IntroTypes.Transition) {
                 OnTransition(self, self.Session.LevelData, Vector2.Zero);

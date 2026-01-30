@@ -436,7 +436,7 @@ namespace Celeste.Mod.BingoClient {
 
             #region Password Bingo Objectives
             { "Do NOT collect the Winged Golden Berry", () => 1 - HasParticularStrawberries(1, "end:4") },
-            { "Die during the collect animation for 10 different hearts", () => throw new NotImplementedException() }, //RHELMOT HELP
+            { "Die during the collect animation for 10 different hearts", () => HasHeartDeaths(10) },
             { "Do not collect moon berry", () => 1 - HasParticularStrawberries(10, "j-19:9") },
             { "In each chapter with any berries collected, your death count should be divisible by your berry count", () => BerriesDivideDeaths() },
             { "Collect no more than 60 Berries", () => HasNoMoreThanNBerries(60) },
@@ -444,7 +444,7 @@ namespace Celeste.Mod.BingoClient {
             { "Collecting a seeded berry requires you to collect all berries that can be reached in 2 screen transitions from that berry", 
                 () => HasSeededTransitionBerries() },
             { "Collect a different number of berries in each chapter", () => UniqueBerriesPerChapter() },
-            { "See 3 different pie endings", () => throw new NotImplementedException() },
+            { "See 3 different pie endings", () => HasNFlags(3, new String[] {"pie:0", "pie:20", "pie:50", "pie:90", "pie:150"}) },
             { "for every bino collected, collect a different berry in a checkpoint of that chapter with no binos", () => throw new NotImplementedException() },
             { "Do NOT collect any berry commonly collected on any% routes", () => HasNoAnyBerries() },
             { "Do NOT collect the second red berry in any checkpoint", () => throw new NotImplementedException() },
@@ -455,12 +455,11 @@ namespace Celeste.Mod.BingoClient {
             { "In every chapter with >5 berries collected, collect heart + cassette", () => HeartCassetteInBerryChapters(5) },
             { "Collect all binos in every checkpoint with a berry collected", () => throw new NotImplementedException() },
             { "If you collect a red or yellow heart, collect the cassette for that chapter", () => throw new NotImplementedException() },
-            { "Collect 10 berries each with the chapter timer <10s", () => throw new NotImplementedException() },
             { "Do NOT collect more than one bino in each chapter", () => throw new NotImplementedException() },
             { "Collect 2 more winged berries than seeded berries", () => SeededWingedCount() },
-            { "Die during the collect animation of 3 different hearts", () => throw new NotImplementedException() },
+            { "Die during the collect animation of 3 different hearts", () => HasHeartDeaths(3) },
             { "Collect a berry in the final room of a chapter", () => throw new NotImplementedException() },
-            { "See a <50 berry epilogue pie", () => throw new NotImplementedException() },
+            { "See a <50 berry epilogue pie", () => HasNFlags(1, new String[] {"pie:0", "pie:20"}) },
             { "Collect 2 berries in the same room, twice", () => throw new NotImplementedException() },
             { "Collect 5 berries", () => HasNBerries(5) },
             { "Collect no more than 3 blue hearts", () => MaxHearts(0, 3) },
@@ -469,7 +468,7 @@ namespace Celeste.Mod.BingoClient {
             { "Collect no berries from 1a start", () => 1 - HasCheckpointBerries(1, 0) },
             { "Collect a winged and seeded berry in the same checkpoint", () => throw new NotImplementedException() },
             { "Collect a bino in every checkpoint with a berry collected", () => throw new NotImplementedException() },
-            { "Collect 4 cassettes without touching pink cassette blocks", () => throw new NotImplementedException() },
+            { "Collect 4 cassettes without touching pink cassette blocks", () => HasNFlags(4, new String[] { "pinkcassette:1", "pinkcassette:2", "pinkcassette:3", "pinkcassette:4", "pinkcassette:5", "pinkcassette:6", "pinkcassette:7", "pinkcassette:9" }) },
             { "In every chapter with >15 berries collected, collect heart + cassette", () => HeartCassetteInBerryChapters(15) },
             { "For every seeded berry collected, collect the previous 2 berries", () => throw new NotImplementedException() },
             { "Your filename should contain the sum of your berry, heart, cassette, and death counts", () => GetRequiredFileName() },
@@ -963,6 +962,11 @@ namespace Celeste.Mod.BingoClient {
 
         private static float HasNBerries(int n) {
             return Math.Min(1f, SaveData.Instance.TotalStrawberries / (float)n);
+        }
+
+        private static float HasHeartDeaths(int v)
+        {
+            return Math.Min(1f, BingoClient.Instance.ModSaveData.HeartDeaths.Count() / (float)v);
         }
 
         private static float HasNHeartsColor(int n, int color) {

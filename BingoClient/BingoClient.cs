@@ -420,6 +420,7 @@ namespace Celeste.Mod.BingoClient {
         public int MaxOneUpCombo = -1;
         public List<string> FileFlags = new List<string>();
         public List<string> VariantCompletions = new List<string>();
+        public List<string> HeartDeaths = new List<string>();
 
         public void Reset() {
             this.OneUps = new int[11];
@@ -441,11 +442,21 @@ namespace Celeste.Mod.BingoClient {
             this.SeekerKills.Add(seeker);
         }
 
+        public void AddHeartDeath(AreaKey area) {
+            var str = $"{area.SID}-{(int)area.Mode}";
+            if (!this.HeartDeaths.Contains(str)) {
+                this.HeartDeaths.Add(str);
+            }
+        }
+
         public void AddFlag(string cp) {
             if (this.FileFlags.Contains(cp)) {
                 return;
             }
             this.FileFlags.Add(cp);
+        }
+        public void RemoveFlag(string cp) {
+            this.FileFlags.Remove(cp);
         }
 
         public void AddHugeMessOrder(int a, int b, int c) {
