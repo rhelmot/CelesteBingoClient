@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Xna.Framework;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod.Cil;
@@ -45,6 +46,7 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.CS08_Ending.OnEnd += TrackPies;
             On.Celeste.CassetteBlock.Update += TrackPinkCassetteBlocks;
             On.Celeste.SaveData.RegisterCassette += TrackPinkCassetteBlocksDone;
+            On.Celeste.SaveData.RegisterHeartGem += TrackHeartGemDone;
 
             IL.Celeste.CutsceneEntity.Start += FuckedUpIfTrue;
             IL.Celeste.CutsceneEntity.Added += FuckedUpIfTrue;
@@ -55,7 +57,6 @@ namespace Celeste.Mod.BingoClient {
             SpecialHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.Instance | BindingFlags.NonPublic), TrackSeekerDeath));
             SpecialHooks.Add(new ILHook(typeof(HeartGem).GetMethod("orig_CollectRoutine", BindingFlags.Instance | BindingFlags.NonPublic).GetStateMachineTarget(), TrackEmptySpace));
         }
-
 
         internal static void UnhookStuff() {
             IL.Celeste.StrawberryPoints.Added -= Track1up;
@@ -87,6 +88,7 @@ namespace Celeste.Mod.BingoClient {
             On.Celeste.CS08_Ending.OnEnd -= TrackPies;
             On.Celeste.CassetteBlock.Update -= TrackPinkCassetteBlocks;
             On.Celeste.SaveData.RegisterCassette -= TrackPinkCassetteBlocksDone;
+            On.Celeste.SaveData.RegisterHeartGem -= TrackHeartGemDone;
 
             IL.Celeste.CutsceneEntity.Start -= FuckedUpIfTrue;
             IL.Celeste.CutsceneEntity.Added -= FuckedUpIfTrue;
@@ -98,6 +100,20 @@ namespace Celeste.Mod.BingoClient {
                 hook.Dispose();
             }
             SpecialHooks.Clear();
+        }
+
+        private static void TrackHeartGemDone(On.Celeste.SaveData.orig_RegisterHeartGem orig, SaveData self, AreaKey area) {
+            orig(self, area);
+            if (area.Mode == AreaMode.BSide) {
+                var flag = $"bluecassette:{area.ID}b";
+                if (SaveData.Instance.Areas[area.ID].Modes[(int)area.Mode].HeartGem) {
+                    if (!SaveData.Instance.CurrentSession.Flags.Contains("bluecassette")) {
+                        BingoClient.Instance.ModSaveData.AddFlag(flag);
+                    }
+                } else {
+                    BingoClient.Instance.ModSaveData.RemoveFlag(flag);
+                }
+            }
         }
 
         private static void TrackPinkCassetteBlocksDone(On.Celeste.SaveData.orig_RegisterCassette orig, SaveData self, AreaKey area) {
@@ -115,12 +131,16 @@ namespace Celeste.Mod.BingoClient {
         private static void TrackPinkCassetteBlocks(On.Celeste.CassetteBlock.orig_Update orig, CassetteBlock self) {
             orig(self);
 
-            if (self.Index == 1 && self.Collidable) {
+            if (self.Collidable) {
                 var rect = self.Collider.Bounds;
                 rect.Inflate(1, 1);
                 var player = self.Scene.Tracker.GetEntity<Player>();
                 if (player != null && player.CollideRect(rect)) {
-                    SaveData.Instance.CurrentSession_Safe.Flags.Add("pinkcassette");
+                    if (self.Index == 1) {
+                        SaveData.Instance.CurrentSession_Safe.Flags.Add("pinkcassette");
+                    } else if (self.Index == 0) {
+                        SaveData.Instance.CurrentSession_Safe.Flags.Add("bluecassette");
+                    }
                 }
             }
         }
@@ -179,6 +199,8 @@ namespace Celeste.Mod.BingoClient {
             }
         }
 
+        private static bool allGhost = true;
+
         private static void Track1up(ILContext il) {
             var cursor = new ILCursor(il);
             if (!cursor.TryGotoNext(MoveType.After, insn => insn.MatchLdfld(typeof(StrawberryPoints), "index"))) {
@@ -186,11 +208,21 @@ namespace Celeste.Mod.BingoClient {
             }
 
             cursor.Emit(OpCodes.Dup);
-            cursor.EmitDelegate<Action<int>>(idx => {
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldfld, typeof(StrawberryPoints).GetField("ghostberry", BindingFlags.Instance | BindingFlags.NonPublic));
+            cursor.EmitDelegate<Action<int, bool>>((idx, ghost) => {
+                if (idx == 0) {
+                    allGhost = ghost;
+                } else {
+                    allGhost &= ghost;
+                }
                 if (idx >= 5) {
                     try {
                         BingoClient.Instance.ModSaveData.OneUps[SaveData.Instance.CurrentSession.Area.ID]++;
                     } catch (IndexOutOfRangeException) {
+                    }
+                    if (allGhost) {
+                        BingoClient.Instance.ModSaveData.AddFlag($"blue1up:{SaveData.Instance.CurrentSession.Area.ID}");
                     }
                 }
                 BingoClient.Instance.ModSaveData.MaxOneUpCombo = Math.Max(idx, BingoClient.Instance.ModSaveData.MaxOneUpCombo);
@@ -377,6 +409,7 @@ namespace Celeste.Mod.BingoClient {
 
         private static void HookLoadLevel(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerintro, bool isfromloader) {
             self.Session.Flags.Remove("pinkcassette");
+            self.Session.Flags.Remove("bluecassette");
             orig(self, playerintro, isfromloader);
             if (!isfromloader && playerintro != Player.IntroTypes.Transition) {
                 OnTransition(self, self.Session.LevelData, Vector2.Zero);

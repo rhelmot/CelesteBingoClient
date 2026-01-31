@@ -13,6 +13,31 @@ using Newtonsoft.Json.Linq;
 namespace Celeste.Mod.BingoClient {
     public static class BingoMonitor {
         #region data
+        // jq '.chapters | map(.sides | map(.checkpoints | map(.roomOrder)))' berrycamp.github.io/data/celeste.json -c
+        public static string[][][][] roomOrder = [[[["-1","0","0b","1","2","3"]]],[[["1","2","3","4","3b","5","5z","5a"],["6","6z","6zb","7zb","6a","6b","s0","s1","6c","7","7z","8z","8zb","8","7a","9z","8b","9"],["9b","9c","10","10z","10zb","11","11z","10a","12","12z","12a","end"]],[["00","01","02","02b","03"],["04","05","05b","06","07"],["08","08b","09","10","11","end"]],[["00","01","02"]]],[[["start","s0","s1","s2","0","1","d0","d7","d8","d3","d2","d9","d1","d6","d4","d5","3x"],["3","4","5","6","7","8","9","9b","10","2","11","12b","12c","12d","12","13"],["end_0","end_s0","end_s1","end_1","end_2","end_3","end_4","end_3b","end_3cb","end_3c","end_5","end_6"]],[["start","00","01","01b","02b","02"],["03","04","05","06","07"],["08b","08","09","10","11","end"]],[["00","01","02"]]],[[["s0","s1","s2","s3","0x-a","00-a","02-a","02-b","01-b","00-b","00-c","0x-b","03-a","04-b","05-a","06-a","07-a","07-b","06-b","06-c","05-c","08-c","08-b"],["08-a","09-b","11-x","11-y","12-y","11-z","10-z","10-y","10-x","10-c","11-c","12-c","12-d","11-d","10-d","11-b","12-b","13-b","13-a","13-x","12-x","11-a","08-x"],["09-d","08-d","06-d","04-d","04-c","02-c","03-b","01-c","02-d"],["00-d","roof00","roof01","roof02","roof03","roof04","roof05","roof06b","roof06","roof07"]],[["00","back","01","02","03","04","05"],["06","07","08","09","10"],["11","13","14","15","12"],["16","17","18","19","21","20","end"]],[["00","01","02"]]],[[["a-00","a-01","a-01x","a-02","a-03","a-04","a-05","a-06","a-07","a-08","a-10","a-11","a-09"],["b-00","b-01","b-04","b-06","b-07","b-03","b-02","b-sec","b-secb","b-05","b-08b","b-08"],["c-00","c-01","c-02","c-04","c-05","c-06","c-06b","c-09","c-07","c-08","c-10"],["d-00","d-00b","d-01","d-02","d-03","d-04","d-05","d-06","d-07","d-08","d-09","d-10"]],[["a-00","a-01","a-02","a-03","a-04"],["b-00","b-01","b-02","b-03","b-04"],["c-00","c-01","c-02","c-03","c-04"],["d-00","d-01","d-02","d-03","end"]],[["00","01","02"]]],[[["a-00x","a-00b","a-00d","a-00c","a-00","a-01","a-02","a-03","a-04","a-05","a-06","a-07","a-08","a-10","a-09","a-11","a-12","a-15","a-14","a-13"],["b-00","b-18","b-01","b-01c","b-20","b-21","b-01b","b-02","b-03","b-05","b-04","b-07","b-08","b-09","b-10","b-11","b-12","b-13","b-17","b-22","b-06","b-19","b-14","b-15","b-16","void"],["c-00","c-01","c-01b","c-01c","c-08b","c-08","c-10","c-12","c-07","c-11","c-09","c-13"],["d-00","d-01","d-09","d-04","d-05","d-06","d-07","d-02","d-03","d-15","d-13","d-19","d-19b","d-10","d-20"],["e-00","e-01","e-02","e-03","e-04","e-06","e-05","e-07","e-08","e-09","e-10","e-11"]],[["start","a-00","a-01","a-02"],["b-00","b-01","b-04","b-02","b-05","b-06","b-07","b-03","b-08","b-09"],["c-00","c-01","c-02","c-03","c-04"],["d-00","d-01","d-02","d-03","d-04","d-05"]],[["00","01","02"]]],[[["start"],["00","01","02","03","02b"],["04","04b","04c","04d","04e","05","06","07","08a","08b","09","10a","10b","11","12a","12b","13","14a","14b","15","16a","16b","17","18a","18b","19","20"],["b-00","b-00b","b-00c","b-01","b-02","b-02b","b-03"],["boss-00","boss-01","boss-02","boss-03","boss-04","boss-05","boss-06","boss-07","boss-08","boss-09","boss-10","boss-11","boss-12","boss-13","boss-14","boss-15","boss-16","boss-17","boss-18","boss-19","boss-20"],["after-00","after-01","after-02"]],[["a-00","a-01","a-02","a-03","a-04","a-05","a-06"],["b-00","b-01","b-02","b-03","b-04","b-05","b-06","b-07","b-08","b-10"],["c-00","c-01","c-02","c-03","c-04"],["d-00","d-01","d-02","d-03","d-04","d-05"]],[["00","01","02"]]],[[["a-00","a-01","a-02","a-02b","a-03","a-04","a-04b","a-05","a-06"],["b-00","b-01","b-02","b-02b","b-02e","b-02c","b-02d","b-03","b-04","b-05","b-06","b-07","b-08","b-09"],["c-00","c-01","c-02","c-03","c-03b","c-04","c-05","c-06","c-06b","c-06c","c-07","c-07b","c-08","c-09"],["d-00","d-01","d-01b","d-01c","d-01d","d-02","d-03","d-03b","d-04","d-05","d-05b","d-06","d-07","d-08","d-09","d-10","d-10b","d-11"],["e-00b","e-00","e-01","e-01b","e-01c","e-02","e-03","e-04","e-05","e-06","e-07","e-08","e-09","e-11","e-12","e-10","e-10b","e-13"],["f-00","f-01","f-02","f-02b","f-04","f-03","f-05","f-06","f-07","f-08","f-08b","f-08d","f-08c","f-09","f-10","f-10b","f-11"],["g-00","g-00b","g-01","g-02","g-03"]],[["a-00","a-01","a-02","a-03"],["b-00","b-01","b-02","b-03"],["c-01","c-00","c-02","c-03"],["d-00","d-01","d-02","d-03"],["e-00","e-01","e-02","e-03"],["f-00","f-01","f-02","f-03"],["g-00","g-01","g-02","g-03"]],[["01","02","03"]]],[[["outside","inside","bridge","secret"]]],[[["0x","00","01","02"],["a-00","a-01","a-02","a-03","b-00","b-01","b-02","b-03","b-04","b-05","b-06","b-07b","b-07"],["c-00","c-00b","c-01","c-02","c-03","c-03b","c-04"],["d-00","d-01","d-02","d-03","d-04","d-05","d-06","d-07","d-08","d-09","d-10","d-10b","d-10c","d-11","space"]],[["00","01"],["a-00","a-01","a-02","a-03","a-04","a-05"],["b-00","b-01","b-02","b-03","b-04","b-05"],["c-01","c-02","c-03","c-04","c-05","c-06","c-08","c-07","space"]],[["intro","00","01","02"]]],[[["intro-00-past","intro-01-future","intro-02-launch","intro-03-space"],["a-00","a-01","a-02","a-03","a-04","a-05","b-00","b-01","b-02","b-03","b-04","b-05","b-06","b-07"],["c-00","c-alt-00","c-alt-01","c-00b","c-01","c-02","c-03","d-00","d-01","d-02","d-03","d-04","d-05","e-00y","e-00yb"],["e-00z","e-00","e-00b","e-01","e-02","e-03","e-04","e-05","e-05b","e-05c","e-06","e-07","e-08"],["f-door","f-00","f-01","f-02","f-03","f-04","f-05","f-06","f-07","f-08","f-09","g-00","g-01","g-03","g-02","g-04","g-05","g-06"],["h-00b","h-00","h-01","h-02","h-03","h-03b","h-04","h-04b","h-05","h-06","h-06b","h-07","h-08","h-09","h-10"],["i-00","i-00b","i-01","i-02","i-03","i-04","i-05"],["j-00","j-00b","j-01","j-02","j-03","j-04","j-05","j-06","j-07","j-08","j-09","j-10","j-11","j-12","j-13","j-14","j-14b","j-15"],["j-16","j-17","j-18","j-19","end-golden"]]]];
+        public static Dictionary<string, int>[][] checkpointLookup = roomOrder.Select(chapter => chapter.Select(mode => {
+            var result = new Dictionary<string, int>();
+            for (int cp = 0; cp < mode.Length; cp++) {
+                foreach (var room in mode[cp]) {
+                    result[room] = cp;
+                }
+            }
+            return result;
+        }).ToArray()).ToArray();
+        public static int[][][] binoCounts = [
+            [[0]],
+            [[0,0,0],[1,0,1],[2]],
+            [[1,0,0],[0,0,2],[1]],
+            [[0,0,0,0],[1,0,1,0],[1]],
+            [[1,1,0,1],[0,1,1,2],[2]],
+            [[0,1,0,0,0],[0,1,0,0],[1]],
+            [[0,0,1,0,0,0],[2,0,0,0],[2]],
+            [[0,3,4,0,0,0,1],[0,2,0,0,0,0,0],[2]],
+            [[0]],
+            [[0,0,0,0],[0,0,0,0],[2]],
+            [[0,2,7,5,7,10,4,0,4]]
+        ];
+
         public static string[] TheoCutscenes = { "cutscene:1:6zb", "cutscene:2:end_2", "cutscene:3:09-d", "cutscene:5:search" };
         public static string[] KeysSearch = { "key:5:0:d-15:216", "key:5:0:d-04:39", "key:5:0:d-04:14" };
         public static string[] KeysFW = { "key:10:0:d-01:261", "key:10:0:d-02:70", "key:10:0:d-03:315", "key:10:0:d-04:444", "key:10:0:d-05:593" };
@@ -440,39 +465,53 @@ namespace Celeste.Mod.BingoClient {
             { "Do not collect moon berry", () => 1 - HasParticularStrawberries(10, "j-19:9") },
             { "In each chapter with any berries collected, your death count should be divisible by your berry count", () => BerriesDivideDeaths() },
             { "Collect no more than 60 Berries", () => HasNoMoreThanNBerries(60) },
+            { "Collect no more than 50 berries", () => HasNoMoreThanNBerries(50) },
             { "Collect at least 3 berries in every checkpoint with a cassette collected", () => BerriesInCassetteCheckpoints() },
             { "Collecting a seeded berry requires you to collect all berries that can be reached in 2 screen transitions from that berry", 
                 () => HasSeededTransitionBerries() },
-            { "Collect a different number of berries in each chapter", () => UniqueBerriesPerChapter() },
+            { "Collect a different number of berries from each chapter", () => UniqueBerriesPerChapter() },
             { "See 3 different pie endings", () => HasNFlags(3, new String[] {"pie:0", "pie:20", "pie:50", "pie:90", "pie:150"}) },
-            { "for every bino collected, collect a different berry in a checkpoint of that chapter with no binos", () => throw new NotImplementedException() },
-            { "Do NOT collect any berry commonly collected on any% routes", () => HasNoAnyBerries() },
-            { "Do NOT collect the second red berry in any checkpoint", () => throw new NotImplementedException() },
-            { "In every checkpoint with a winged berry collected, collect at least 4 berries", () => throw new NotImplementedException() },
-            { "Do NOT collect more than 4 blue hearts", () => MaxHearts(0, 4) },
+            { "For each bino collected in an A-side, collect a bino in the corresponding B side", () => HasBSideBinosForASideBinos() },
+            { "Do not collect any berry frequently collected on a normal any% route", () => HasNoAnyBerries() },
+            { "Never collect the second red berry in any checkpoint", () => NeverSecondCheckpointBerry() },
+            { "In every checkpoint with a winged berry collected, collect at least 4 berries", () => WingedBerryRequiresCheckpointBerries(4) },
+            { "Do NOT collect more than 4 blue hearts", () => HeartsRange(0, 0, 4) },
             { "For every winged red berry collected, collect the subsequent 2 berries", () => throw new NotImplementedException() },
-            { "Do NOT collect any red berries from 1a start", () => 1 - HasCheckpointBerries(1, 0) },
+            { "Collect no red berries from 1a start", () => 1 - HasCheckpointBerries(1, 0) },
             { "In every chapter with >5 berries collected, collect heart + cassette", () => HeartCassetteInBerryChapters(5) },
-            { "Collect all binos in every checkpoint with a berry collected", () => throw new NotImplementedException() },
-            { "If you collect a red or yellow heart, collect the cassette for that chapter", () => throw new NotImplementedException() },
+            { "Collect all binos in every checkpoint with a berry collected", () => BerryRequiresCheckpointBinos() },
+            { "If you collect a cassette, collect a red or blue heart in that chapter", () => CassetteRequiresHeart() },
             { "Do NOT collect more than one bino in each chapter", () => throw new NotImplementedException() },
-            { "Collect 2 more winged berries than seeded berries", () => SeededWingedCount() },
+            { "Collect a number of seeded berries two fewer than your number of winged berries", () => SeededWingedCount() },
             { "Die during the collect animation of 3 different hearts", () => HasHeartDeaths(3) },
-            { "Collect a berry in the final room of a chapter", () => throw new NotImplementedException() },
+            { "Collect a berry from the final room of a chapter", () => HasFinalRoomBerries(1) },
             { "See a <50 berry epilogue pie", () => HasNFlags(1, new String[] {"pie:0", "pie:20"}) },
             { "Collect 2 berries in the same room, twice", () => throw new NotImplementedException() },
             { "Collect 5 berries", () => HasNBerries(5) },
-            { "Collect no more than 3 blue hearts", () => MaxHearts(0, 3) },
+            { "Collect no more than 3 blue hearts", () => HeartsRange(0, 0, 3) },
             { "For every winged berry collected, collect the next 2 berries", () => throw new NotImplementedException() },
             { "Collect the heart, cassette, and all berries in a single checkpoint with red berries", () => HeartCassetteBerryCheckpoint() },
             { "Collect no berries from 1a start", () => 1 - HasCheckpointBerries(1, 0) },
             { "Collect a winged and seeded berry in the same checkpoint", () => throw new NotImplementedException() },
             { "Collect a bino in every checkpoint with a berry collected", () => throw new NotImplementedException() },
             { "Collect 4 cassettes without touching pink cassette blocks", () => HasNFlags(4, new String[] { "pinkcassette:1", "pinkcassette:2", "pinkcassette:3", "pinkcassette:4", "pinkcassette:5", "pinkcassette:6", "pinkcassette:7", "pinkcassette:9" }) },
+            { "Collect 4 red hearts without touching the blue cassette blocks in their room", () => HasNFlags(4, new String[] { "bluecassette:1b", "bluecassette:2b", "bluecassette:3b", "bluecassette:4b", "bluecassette:5b", "bluecassette:6b", "bluecassette:7b", "bluecassette:9b" }) },
             { "In every chapter with >15 berries collected, collect heart + cassette", () => HeartCassetteInBerryChapters(15) },
             { "For every seeded berry collected, collect the previous 2 berries", () => throw new NotImplementedException() },
             { "Your filename should contain the sum of your berry, heart, cassette, and death counts", () => GetRequiredFileName() },
             { "Collect at least 60 berries", () => HasNBerries(60) },
+            { "Collect at least 50 berries", () => HasNBerries(50) },
+            { "Collect all berries in 4 checkpoints which have only one non-golden berry", () => HasLonelyBerries(4) },
+            { "Collect the third berry in 3 summit checkpoints", () => HasThirdSummitBerries(3) },
+            { "Your number of snowball hits should be divisible by your chapter 4 berry count", () => Divisible(BingoClient.Instance.ModSaveData.SnowballBonks.Sum(), SaveData.Instance.Areas[4].TotalStrawberries) },
+            { "Collect between 2 and 4 blue hearts", () => HeartsRange(0, 2, 4) },
+            { "Collect the cassette for a chapter if and only if you collect >5 berries in that chapter", () => CassetteIffBerries(6) },
+            { "Get a 1up with only collected berries in 2 chapters", () => HasNFlags(2, new String[] { "blue1up:1" ,"blue1up:2" ,"blue1up:3" ,"blue1up:4" ,"blue1up:5" ,"blue1up:6" ,"blue1up:7" ,"blue1up:9" }) },
+            { "Collect a winged berry and a heart in the same checkpoint in two chapters", () => SaveData.Instance.Areas[3].Modes[0].HeartGem && SaveData.Instance.Areas[5].Modes[0].HeartGem && SaveData.Instance.Areas[3].Modes[0].Strawberries.Contains(new EntityID("13-b", 31)) && SaveData.Instance.Areas[5].Modes[0].Strawberries.Contains(new EntityID("b-21", 99)) ? 1 : 0 },
+            { "Collect exactly 1 heart from chapters 1-8", () => ExactlyOneHeart() },
+            { "Collect a number of cassettes two fewer than your number of red hearts", () => SaveData.Instance.Areas.Select(a => (a.Cassette ? 1 : 0) - (a.Modes[1].HeartGem ? 1 : 0)).Sum() == -2 ? 1 : 0 },
+            { "Your number of binos should be divisible by your number of keys", () => Divisible(BingoModule.SaveData.BinocularsList.Count(), BingoModule.SaveData.KeysList.Count()) },
+            { "Your number of binos should be 5x your number of blue hearts", () => (BingoModule.SaveData.BinocularsList.Count() == 5 * SaveData.Instance.Areas.Select(a => a.Modes[0].HeartGem ? 1 : 0).Sum()) ? 1 : 0 },
 
             #endregion
         };
@@ -714,9 +753,60 @@ namespace Celeste.Mod.BingoClient {
 
         private static float HasParticularBinos(int chapter, int mode, params string[] levels) {
             return levels.Count(lvl => BinocularsList.Any(bino => {
-                var point = new Point((int) bino.pos.X, (int) bino.pos.Y);
-                return bino.areaID == chapter && bino.areaMode == mode && AreaData.Areas[chapter].Mode[mode].MapData.Get(lvl).Bounds.Contains(point);
+                return bino.areaID == chapter && bino.areaMode == mode && bino.level == lvl;
             })) / (float) levels.Length;
+        }
+
+        private static float BerryRequiresCheckpointBinos() {
+            var seen = new HashSet<Tuple<int, int, int>>();
+            foreach (var area in SaveData.Instance.Areas) {
+                for (int side = 0; side < area.Modes.Length; side++) {
+                    foreach (var berry in area.Modes[side].Strawberries) {
+                        var checkpoint = checkpointLookup[area.ID][side][berry.Level];
+                        var key = Tuple.Create(area.ID, side, checkpoint);
+                        if (seen.Add(key)) {
+                            int count = 0;
+                            foreach (var bino in BinocularsList) {
+                                if (bino.areaID == area.ID && bino.areaMode == side && checkpointLookup[area.ID][side][bino.level] == checkpoint) {
+                                    count++;
+                                }
+                            }
+                            if (count != binoCounts[area.ID][side][checkpoint]) {
+                                return 0;
+                            }
+                        }
+                    }
+                }
+            }
+            return 1;
+        }
+
+        private static float ExactlyOneHeart() {
+            foreach (var area in SaveData.Instance.Areas) {
+                if (area.ID == 0 || area.ID == 8 || area.ID > 9) {
+                    continue;
+                }
+                if (area.Modes.Where(m => m.HeartGem).Count() != 1) {
+                    return 0;
+                }
+            }
+            return 1;
+        }
+
+        private static float CassetteIffBerries(int v) {
+            foreach (var area in SaveData.Instance.Areas) {
+                if (area.Cassette != (area.TotalStrawberries >= v)) {
+                    return 0;
+                }
+            }
+            return 1;
+        }
+
+        private static float Divisible(int dividend, int divisor) {
+            if (divisor == 0 || dividend % divisor != 0) {
+                return 0;
+            }
+            return 1;
         }
 
         private static float HasNFlags(int n, params string[] flags) {
@@ -781,6 +871,7 @@ namespace Celeste.Mod.BingoClient {
             Tuple.Create(7, "e-09:398"),
             Tuple.Create(1, "end:4"),
         };
+        private static readonly HashSet<Tuple<int, string>> WingedBerryIDSet = new HashSet<Tuple<int, string>>(WingedBerryIDList);
         private static readonly List<Tuple<int, string>> SeedBerryIDList = new List<Tuple<int, string>> {
             Tuple.Create(2, "d1:67"),
             Tuple.Create(4, "a-10:13"),
@@ -914,6 +1005,27 @@ namespace Celeste.Mod.BingoClient {
             return HasInNChapters((ch, mode) => Math.Min(1f, BinocularsList.Count(bino => bino.areaID == ch && bino.areaMode == mode) / (float) n), chapters);
         }
 
+        private static float HasBSideBinosForASideBinos() {
+            var counts = new List<int>();
+            for (int i = 0; i < 10; i++) {
+                counts.Add(0);
+            }
+            foreach (var bino in BinocularsList) {
+                if (bino.areaMode == 0) {
+                    counts[bino.areaID]++;
+                } else if (bino.areaMode == 1) {
+                    counts[bino.areaID]--;
+                }
+            }
+
+            foreach (var count in counts) {
+                if (count > 0) {
+                    return 0;
+                }
+            }
+            return 1;
+        }
+
         private static float HasNCassettes(int n) {
             return Math.Min(1f, SaveData.Instance.Areas.Select(area => area.Cassette ? 1f : 0f).Sum() / n);
         }
@@ -932,6 +1044,21 @@ namespace Celeste.Mod.BingoClient {
 
         private static float HasChaptersClear(int n) {
             return HasInNChapters((ch, mode) => mode != 0 ? 0f : HasChapterClear(ch), n);
+        }
+
+        private static float CassetteRequiresHeart() {
+            foreach (var area in SaveData.Instance.Areas_Safe) {
+                if (area.Cassette) {
+                    if (area.Modes[0].HeartGem) {
+                        continue;
+                    }
+                    if (area.Modes.Length > 1 && area.Modes[1].HeartGem) {
+                        continue;
+                    }
+                    return 0;
+                }
+            }
+            return 1;
         }
 
         private static float HasNHearts(int n) {
@@ -1048,6 +1175,79 @@ namespace Celeste.Mod.BingoClient {
             return (float)collected / possible;
         }
 
+        private static float NeverSecondCheckpointBerry() {
+            foreach (var area in AreaData.Areas) {
+                var berries = area.Mode[0].StrawberriesByCheckpoint;
+                for (int cp = 0; cp < berries.GetLength(0); cp++) {
+                    var berry = berries[cp, 1];
+                    if (berry != null && SaveData.Instance.Areas[area.ID].Modes[0].Strawberries.Contains(new EntityID {ID = berry.ID, Level = berry.Level.Name})) {
+                        return 0;
+                    }
+                }
+            }
+            return 1;
+        }
+
+        private static float WingedBerryRequiresCheckpointBerries(int v) {
+            foreach (var area in AreaData.Areas) {
+                var berries = area.Mode[0].StrawberriesByCheckpoint;
+                for (int cp = 0; cp < berries.GetLength(0); cp++) {
+                    var hasWinged = false;
+                    var cpCount = 0;
+                    for (int idx = 0; idx < berries.GetLength(1); idx++) {
+                        var berry = berries[cp, idx];
+                        if (berry == null) {
+                            continue;
+                        }
+                        var eid = new EntityID {ID = berry.ID, Level = berry.Level.Name};
+                        if (!SaveData.Instance.Areas[area.ID].Modes[0].Strawberries.Contains(eid)) {
+                            continue;
+                        }
+                        cpCount += 1;
+                        var tuple = Tuple.Create(area.ID, $"{berry.Level.Name}:{berry.ID}");
+                        hasWinged |= WingedBerryIDSet.Contains(tuple);
+                    }
+
+                    if (hasWinged && cpCount < v) {
+                        Logger.Warn("DEBUG", $"Checkpoint {cp} of area {area.ID} has a problem");
+                        return 0;
+                    }
+                }
+            }
+            return 1;
+        }
+
+        private static float HasFinalRoomBerries(int n) {
+            float result = 0;
+            result += HasParticularStrawberries(1, "end:4");
+            result += HasParticularStrawberries(7, "g-03:1504");
+            result += HasParticularStrawberries(10, "j-19:9");
+            return result / n;
+        }
+
+        private static float HasLonelyBerries(int n) {
+            float result = 0;
+            result += HasParticularStrawberries(2, "end_3c:13");
+            result += HasParticularStrawberries(5, "c-08:112");
+            result += HasParticularStrawberries(5, "e-06:56");
+            result += HasParticularStrawberries(9, "b-06:174");
+            result += HasParticularStrawberries(9, "d-06:130");
+            result += HasParticularStrawberries(10, "j-19:9");
+            return result / n;
+        }
+
+        private static float HasThirdSummitBerries(int n) {
+            float result = 0;
+            result += HasParticularStrawberries(7, "a-04b:85");
+            result += HasParticularStrawberries(7, "b-02e:112");
+            result += HasParticularStrawberries(7, "c-06b:281");
+            result += HasParticularStrawberries(7, "d-01d:282");
+            result += HasParticularStrawberries(7, "e-07:473");
+            result += HasParticularStrawberries(7, "f-07:711");
+            result += HasParticularStrawberries(7, "g-00b:114");
+            return result / n;
+        }
+
         public static float HasParticularStrawberries(int area, params string[] entities) {
             return entities.Count(e =>
                 SaveData.Instance.Areas[area].Modes[0].Strawberries.Contains(new EntityID {Key = e})
@@ -1070,14 +1270,8 @@ namespace Celeste.Mod.BingoClient {
             return 1;
         }
 
-        public static float HasNoMoreThanNBerries(int n)
-        {
-            float ratio = SaveData.Instance.TotalStrawberries / (float)n;
-            if (ratio > 1)
-            {
-                return 0;
-            }
-            return 1;
+        public static float HasNoMoreThanNBerries(int n) {
+            return SaveData.Instance.TotalStrawberries > n ? 0 : 1;
         }
 
         
@@ -1121,8 +1315,7 @@ namespace Celeste.Mod.BingoClient {
             {8, 3 },
         };
 
-        private static float BerriesInCassetteCheckpoints()
-        {
+        private static float BerriesInCassetteCheckpoints() {
             float progCount = 0;
             float prog = 0;
             for (int i = 0; i < SaveData.Instance.Areas.Count; i++)
@@ -1131,44 +1324,37 @@ namespace Celeste.Mod.BingoClient {
                 if (area.Cassette)
                 {
                     progCount++;
-                    prog += HasNCheckpointBerries(i, CassetteCheckpoints[i], 3);
+                    prog += Math.Min(HasNCheckpointBerries(i, CassetteCheckpoints[i], 3), 1);
                 }
+            }
+            if (progCount == 0) {
+                return 1;
             }
             return prog / progCount;
         }
 
-        private static float UniqueBerriesPerChapter()
-        {
+        private static float UniqueBerriesPerChapter() {
             HashSet<int> counts = new();
             float count = 0;
-            for (int i = 0; i < SaveData.Instance.Areas.Count; i++)
-            {
-                if (i == 0 || i == 6 || i == 8 || i == 10)
-                {
+            for (int i = 0; i < SaveData.Instance.Areas.Count; i++) {
+                if (i == 0 || i == 8) {
                     continue;
                 }
-                int berryCount = SaveData.Instance.Areas[i].TotalStrawberries;
-                if (!counts.Contains(berryCount))
-                {
-                    counts.Add(berryCount);
-                }
+                counts.Add(SaveData.Instance.Areas[i].TotalStrawberries);
                 count++;
             }
             return counts.Count() / count;
         }
 
-        private static float MaxHearts(int color, int max)
-        {
+        private static float HeartsRange(int color, int min, int max) {
             float count = SaveData.Instance.Areas.Select(area => area.Modes.Length > color && area.Modes[color] != null && area.Modes[color].HeartGem ? 1f : 0f).Sum();
-            if (count > max)
-            {
+            if (count > max || count < min) {
                 return 0;
             }
             return 1;
         }
 
-        private static float HeartCassetteInBerryChapters(int threshold)
-        {
+        private static float HeartCassetteInBerryChapters(int threshold) {
             for (int i = 0; i < SaveData.Instance.Areas.Count; i++)
             {
                 var area = SaveData.Instance.Areas[i];
