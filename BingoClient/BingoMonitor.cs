@@ -509,9 +509,14 @@ namespace Celeste.Mod.BingoClient {
             { "Get a 1-Up with only collected berries in 2 chapters", () => HasNFlags(2, new String[] { "blue1up:1" ,"blue1up:2" ,"blue1up:3" ,"blue1up:4" ,"blue1up:5" ,"blue1up:6" ,"blue1up:7" ,"blue1up:9" }) },
             { "Collect a winged berry and a heart in the same checkpoint in two chapters", () => SaveData.Instance.Areas[3].Modes[0].HeartGem && SaveData.Instance.Areas[5].Modes[0].HeartGem && SaveData.Instance.Areas[3].Modes[0].Strawberries.Contains(new EntityID("13-b", 31)) && SaveData.Instance.Areas[5].Modes[0].Strawberries.Contains(new EntityID("b-21", 99)) ? 1 : 0 },
             { "Collect exactly 1 heart in each chapter except Farewell", () => ExactlyOneHeart() },
-            { "Collect exactly 2 more cassettes than red hearts", () => SaveData.Instance.Areas.Select(a => (a.Cassette ? 1 : 0) - (a.Modes[1].HeartGem ? 1 : 0)).Sum() == -2 ? 1 : 0 },
+            { "Collect exactly 2 more red hearts than cassettes", () => SaveData.Instance.Areas.Select(a => (a.Cassette ? 1 : 0) - (a.Modes[1].HeartGem ? 1 : 0)).Sum() == -2 ? 1 : 0 },
             { "Your number of binos should be divisible by your number of keys", () => Divisible(BingoModule.SaveData.BinocularsList.Count(), BingoModule.SaveData.KeysList.Count()) },
-            { "Your number of binos should be 5x your number of blue hearts", () => (BingoModule.SaveData.BinocularsList.Count() == 5 * SaveData.Instance.Areas.Select(a => a.Modes[0].HeartGem ? 1 : 0).Sum()) ? 1 : 0 },
+            { "Your number of binos should be 5x your number of blue hearts", () => {
+                if (BingoModule.SaveData.BinocularsList.Count() == 0) {
+                    return 0;
+                }
+                return (BingoModule.SaveData.BinocularsList.Count() == 5 * SaveData.Instance.Areas.Select(a => a.Modes[0].HeartGem ? 1 : 0).Sum()) ? 1 : 0;
+            } },
 
             #endregion
         };
@@ -794,16 +799,23 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private static float CassetteIffBerries(int v) {
+            int cassetteCount = 0;
             foreach (var area in SaveData.Instance.Areas) {
+                if (area.Cassette) {
+                    cassetteCount++;
+                }
                 if (area.Cassette != (area.TotalStrawberries >= v)) {
                     return 0;
                 }
+            }
+            if (cassetteCount == 0) {
+                return 0;
             }
             return 1;
         }
 
         private static float Divisible(int dividend, int divisor) {
-            if (divisor == 0 || dividend % divisor != 0) {
+            if (divisor == 0 || dividend == 0 || dividend % divisor != 0) {
                 return 0;
             }
             return 1;
@@ -1011,6 +1023,9 @@ namespace Celeste.Mod.BingoClient {
                 counts.Add(0);
             }
             foreach (var bino in BinocularsList) {
+                if (bino.areaID == 10) {
+                    continue;
+                }
                 if (bino.areaMode == 0) {
                     counts[bino.areaID]++;
                 } else if (bino.areaMode == 1) {
@@ -1189,6 +1204,7 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private static float WingedBerryRequiresCheckpointBerries(int v) {
+            int wingedCount = 0;
             foreach (var area in AreaData.Areas) {
                 var berries = area.Mode[0].StrawberriesByCheckpoint;
                 for (int cp = 0; cp < berries.GetLength(0); cp++) {
@@ -1205,7 +1221,10 @@ namespace Celeste.Mod.BingoClient {
                         }
                         cpCount += 1;
                         var tuple = Tuple.Create(area.ID, $"{berry.Level.Name}:{berry.ID}");
-                        hasWinged |= WingedBerryIDSet.Contains(tuple);
+                        if (WingedBerryIDSet.Contains(tuple)) {
+                            hasWinged = true;
+                            wingedCount++;
+                        }
                     }
 
                     if (hasWinged && cpCount < v) {
@@ -1213,6 +1232,9 @@ namespace Celeste.Mod.BingoClient {
                         return 0;
                     }
                 }
+            }
+            if (wingedCount == 0) {
+                return 0;
             }
             return 1;
         }
@@ -1355,74 +1377,61 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private static float HeartCassetteInBerryChapters(int threshold) {
-            for (int i = 0; i < SaveData.Instance.Areas.Count; i++)
-            {
+            for (int i = 0; i < SaveData.Instance.Areas.Count; i++) {
                 var area = SaveData.Instance.Areas[i];
-                if (area.TotalStrawberries <= threshold)
-                {
+                if (area.TotalStrawberries <= threshold) {
                     continue;
                 }
 
-                if (!area.Cassette || HasHeart(i, 0) == 0)
-                {
+                if (!area.Cassette || HasHeart(i, 0) == 0) {
                     return 0;
                 }
             }
             return 1;
         }
 
-        private static float SeededWingedCount()
-        {
+        private static float SeededWingedCount() {
             int wingedCount = WingedBerryIDList.Count(id => SaveData.Instance.Areas[id.Item1].Modes[0].Strawberries.Contains(new EntityID { Key = id.Item2 }));
             int seededCount = SeedBerryIDList.Count(id => SaveData.Instance.Areas[id.Item1].Modes[0].Strawberries.Contains(new EntityID { Key = id.Item2 }));
 
-            if (wingedCount < 2)
-            {
+            if (wingedCount < 2) {
                 return 0;
             }
 
-            if (wingedCount == 2)
-            {
+            if (wingedCount == 2) {
                 return seededCount == 0 ? 1 : 0;
             }
 
             return (float)seededCount / (wingedCount - 2f);
         }
 
-        private static float HasSeededTransitionBerries()
-        {
+        private static float HasSeededTransitionBerries() {
             float seededCount = 0;
             float goodCount = 0;
 
-            foreach (var seeded in SeedBerryIDList)
-            {
-                if (HasParticularStrawberries(seeded.Item1, seeded.Item2) == 1)
-                {
+            foreach (var seeded in SeedBerryIDList) {
+                if (HasParticularStrawberries(seeded.Item1, seeded.Item2) == 1) {
                     seededCount++;
                     goodCount += HasParticularStrawberries(seeded.Item1, SeedBerry2TransLookup[seeded.Item2]);
                 }
             }
 
-            if (seededCount == 0)
-            {
-                return 1;
+            if (seededCount == 0) {
+                return 0;
             }
             return goodCount / seededCount;
         }
 
-        private static float HasNoAnyBerries()
-        {
+        private static float HasNoAnyBerries() {
             float prog = AnyBerryIDList.Sum(t => HasParticularStrawberries(t.area, t.ids));
 
             return 1 - (prog / AnyBerryIDList.Count);
         }
 
-        private static readonly List<(int area, int checkpoint)> ValidHeartCassetteBerryAreas = new List<(int area, int checkpoint)>()
-        {
+        private static readonly List<(int area, int checkpoint)> ValidHeartCassetteBerryAreas = new List<(int area, int checkpoint)>() {
             (2, 0), (5, 1), (8, 3)
         };
-        private static float HeartCassetteBerryCheckpoint()
-        {
+        private static float HeartCassetteBerryCheckpoint() {
             foreach (var area in ValidHeartCassetteBerryAreas)
             {
                 if (HasCassette(area.area) == 1 &&
