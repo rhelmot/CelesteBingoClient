@@ -106,12 +106,22 @@ namespace Celeste.Mod.BingoClient {
             orig(self, area);
             if (area.Mode == AreaMode.BSide) {
                 var flag = $"bluecassette:{area.ID}b";
+                var msg = false;
                 if (SaveData.Instance.Areas[area.ID].Modes[(int)area.Mode].HeartGem) {
                     if (!SaveData.Instance.CurrentSession.Flags.Contains("bluecassette")) {
                         BingoClient.Instance.ModSaveData.AddFlag(flag);
+                        msg = true;
                     }
                 } else {
                     BingoClient.Instance.ModSaveData.RemoveFlag(flag);
+                    msg = true;
+                }
+
+                if (msg) {
+                    // CRITICAL ABSTRACTION BREACH
+                    var flags = new String[] { "bluecassette:1b", "bluecassette:2b", "bluecassette:3b", "bluecassette:4b", "bluecassette:5b", "bluecassette:6b", "bluecassette:7b", "bluecassette:9b" };
+                    var progress = flags.Count(flag => BingoClient.Instance.ModSaveData.FileFlags.Contains(flag));
+                    BingoClient.Instance.LogChat($"Red Hearts Without Blue Blocks: {progress}/4");
                 }
             }
         }

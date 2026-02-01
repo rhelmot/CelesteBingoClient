@@ -809,7 +809,7 @@ namespace Celeste.Mod.BingoClient {
             return 1;
         }
 
-        private static float HasNFlags(int n, params string[] flags) {
+        public static float HasNFlags(int n, params string[] flags) {
             return Math.Min(1f, flags.Count(flag => BingoClient.Instance.ModSaveData.FileFlags.Contains(flag)) / (float) n);
         }
 

@@ -43,10 +43,6 @@ namespace Celeste.Mod.BingoClient {
         }
 
         private void BingoEvent(StatusMessage msg) {
-            var rendered = msg.Render();
-            if (rendered != null) {
-                this.LogChat(rendered);
-            }
             switch (msg.type) {
                 case "connection" when msg.event_type == "disconnected":
                     break;
@@ -59,6 +55,9 @@ namespace Celeste.Mod.BingoClient {
                     var i = int.Parse(msg.square.slot.Substring(4)) - 1;
                     var colors = msg.square.colors.Split(' ');
                     this.Board[i].Colors = new List<BingoColors>(BingoEnumExtensions.ParseColors(msg.square.colors));
+                    if (this.IsObjectiveHidden(i)) {
+                        msg.square.name = "[???]";
+                    }
                     break;
                 }
                 case "new-card":
@@ -85,6 +84,10 @@ namespace Celeste.Mod.BingoClient {
                 default:
                     Logger.Log("BingoClient", $"Unknown message {msg.type}");
                     break;
+            }
+            var rendered = msg.Render();
+            if (rendered != null) {
+                this.LogChat(rendered);
             }
         }
 
